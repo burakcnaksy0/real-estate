@@ -25,10 +25,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Link to="/" className="flex items-center space-x-3">
               <img
                 src="/logo.png"
-                alt="RealEstate Logo"
+                alt="Vesta Logo"
                 className="h-10 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900 hidden sm:block">RealEstate</span>
+              <span className="text-xl font-bold text-gray-900 hidden sm:block">Vesta</span>
             </Link>
 
             {/* Navigation */}
@@ -107,7 +107,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <footer className="bg-gray-900 text-white py-8">
         <div className="container mx-auto px-4 text-center">
-          <p>© 2024 RealEstate. Tüm hakları saklıdır.</p>
+          <p>© 2024 Vesta. Tüm hakları saklıdır.</p>
         </div>
       </footer>
     </div>

@@ -98,7 +98,7 @@ export const HomePage: React.FC = () => {
       {/* Features Section */}
       <section className="bg-gray-100 rounded-2xl p-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Neden RealEstate?</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Neden Vesta?</h2>
           <p className="text-gray-600 text-lg">Güvenilir ve kolay ilan platformu</p>
         </div>
 

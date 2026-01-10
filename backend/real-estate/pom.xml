@@ -9,10 +9,10 @@
         <relativePath/>
     </parent>
     <groupId>com.burakcanaksoy</groupId>
-    <artifactId>real-estate</artifactId>
+    <artifactId>vesta</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>real-estate</name>
-    <description>real-estate</description>
+    <name>vesta</name>
+    <description>vesta</description>
     <url/>
     <licenses>
         <license/>

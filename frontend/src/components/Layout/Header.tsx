@@ -48,9 +48,9 @@ export const Header: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">RE</span>
+              <span className="text-white font-bold text-lg">V</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">RealEstate</span>
+            <span className="text-xl font-bold text-gray-900">Vesta</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -104,8 +104,8 @@ export const Header: React.FC = () => {
                     </div>
                     <div className="hidden md:block text-left">
                       <p className="text-sm font-medium text-gray-900">
-                        {user?.name && user?.surname 
-                          ? `${user.name} ${user.surname}` 
+                        {user?.name && user?.surname
+                          ? `${user.name} ${user.surname}`
                           : user?.username}
                       </p>
                       <p className="text-xs text-gray-500">{user?.email}</p>
@@ -119,8 +119,8 @@ export const Header: React.FC = () => {
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                       <div className="px-4 py-3 border-b border-gray-200">
                         <p className="text-sm font-medium text-gray-900">
-                          {user?.name && user?.surname 
-                            ? `${user.name} ${user.surname}` 
+                          {user?.name && user?.surname
+                            ? `${user.name} ${user.surname}`
                             : user?.username}
                         </p>
                         <p className="text-sm text-gray-500">{user?.email}</p>
@@ -128,7 +128,7 @@ export const Header: React.FC = () => {
                           <p className="text-xs text-gray-400">{user.phoneNumber}</p>
                         )}
                       </div>
-                      
+
                       <div className="py-2">
                         <Link
                           to="/profile"
@@ -159,7 +159,7 @@ export const Header: React.FC = () => {
                           Favorilerim
                         </Link>
                       </div>
-                      
+
                       <div className="border-t border-gray-200 pt-2">
                         <button
                           onClick={handleLogout}
@@ -228,7 +228,7 @@ export const Header: React.FC = () => {
                   {item.name}
                 </Link>
               ))}
-              
+
               {/* Mobile Search */}
               <div className="pt-4">
                 <div className="relative">

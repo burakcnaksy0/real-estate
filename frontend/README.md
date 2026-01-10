@@ -1,4 +1,4 @@
-# RealEstate Frontend
+# Vesta Frontend
 
 Bu proje, Spring Boot backend'i ile %100 uyumlu React frontend uygulamasıdır.
 
