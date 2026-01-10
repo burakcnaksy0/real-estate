@@ -33,14 +33,14 @@ public class AuthService {
     @Transactional
     public MessageResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("This username is already in use.");
+            throw new RuntimeException("Bu kullanıcı adı zaten kullanılıyor.");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("This mail is already in use.");
+            throw new RuntimeException("Bu e-posta adresi zaten kullanılıyor.");
         }
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
             if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-                throw new RuntimeException("This phone number is already in use.");
+                throw new RuntimeException("Bu telefon numarası zaten kullanılıyor.");
             }
         }
         User user = new User();
@@ -55,23 +55,21 @@ public class AuthService {
 
         userRepository.save(user);
 
-        return new MessageResponse("The user has been successfully registered.");
+        return new MessageResponse("Kullanıcı başarıyla kaydedildi.");
     }
 
     public AuthResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
-                        request.getPassword()
-                )
-        );
+                        request.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("The user not found."));
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
 
         Set<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -91,6 +89,6 @@ public class AuthService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("The user not found."));
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
     }
 }

@@ -37,7 +37,7 @@ export const HomePage: React.FC = () => {
           <p className="text-xl md:text-2xl mb-8">
             Emlak, araç, arsa ve işyeri ilanlarında Türkiye'nin en güvenilir platformu
           </p>
-          
+
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
             <div className="flex flex-col md:flex-row gap-4 p-4 bg-white rounded-lg shadow-lg">
@@ -71,7 +71,7 @@ export const HomePage: React.FC = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Kategoriler</h2>
           <p className="text-gray-600 text-lg">Aradığınız kategoriyi seçin</p>
         </div>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { name: 'Emlak', href: '/real-estate', icon: '🏠', count: '5,234', description: 'Ev, daire, villa' },
@@ -101,7 +101,7 @@ export const HomePage: React.FC = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Neden RealEstate?</h2>
           <p className="text-gray-600 text-lg">Güvenilir ve kolay ilan platformu</p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { icon: '🔒', title: 'Güvenli', description: 'Tüm ilanlar doğrulanır' },
@@ -123,7 +123,7 @@ export const HomePage: React.FC = () => {
           {isAuthenticated ? 'İlanınızı Hemen Verin' : 'Üye Olun ve İlan Verin'}
         </h2>
         <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-          {isAuthenticated 
+          {isAuthenticated
             ? 'Mülkünüzü satmak veya kiralamak mı istiyorsunuz? Ücretsiz ilan vererek binlerce potansiyel alıcıya ulaşın.'
             : 'Ücretsiz üye olun ve mülkünüzü satmak veya kiralamak için ilan verin. Binlerce potansiyel alıcıya ulaşın.'
           }
@@ -132,16 +132,10 @@ export const HomePage: React.FC = () => {
           {isAuthenticated ? (
             <>
               <Link
-                to="/real-estate/create"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200"
-              >
-                Emlak İlanı Ver
-              </Link>
-              <Link
-                to="/vehicles/create"
+                to="/create"
                 className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200"
               >
-                Araç İlanı Ver
+                İlan Ver
               </Link>
             </>
           ) : (

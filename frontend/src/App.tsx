@@ -21,6 +21,7 @@ import { VehicleCreatePage } from './pages/Vehicle/VehicleCreatePage';
 import { ProfilePage } from './pages/Profile/ProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
+import { CreateListingPage } from './pages/CreateListingPage';
 
 // Styles
 import './index.css';
@@ -51,6 +52,9 @@ const AppContent: React.FC = () => {
           <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
           <Route path="/vehicles/create" element={<VehicleCreatePage />} />
 
+          {/* Unified Create Listing Route */}
+          <Route path="/create" element={<CreateListingPage />} />
+
           {/* Land Routes - Placeholder sayfalar */}
           <Route path="/lands" element={
             <div className="text-center py-12">
@@ -64,7 +68,7 @@ const AppContent: React.FC = () => {
               </div>
             </div>
           } />
-          
+
           <Route path="/lands/create" element={
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Arsa İlanı Ver</h2>
@@ -85,7 +89,7 @@ const AppContent: React.FC = () => {
               </div>
             </div>
           } />
-          
+
           <Route path="/workplaces/create" element={
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">İşyeri İlanı Ver</h2>

@@ -56,14 +56,22 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**","/api/listings/**","/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        // Public endpoints - herkes erişebilir
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                        // GET istekleri - herkes ilanları görebilir
+                        .requestMatchers("GET", "/api/realestates/**").permitAll()
+                        .requestMatchers("GET", "/api/vehicles/**").permitAll()
+                        .requestMatchers("GET", "/api/lands/**").permitAll()
+                        .requestMatchers("GET", "/api/workplaces/**").permitAll()
+                        .requestMatchers("GET", "/api/categories/**").permitAll()
+                        .requestMatchers("GET", "/api/listings/**").permitAll()
+
+                        // POST, PUT, DELETE istekleri - sadece authenticated kullanıcılar
+                        .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -75,7 +83,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        configuration
+                .setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

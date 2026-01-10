@@ -25,7 +25,12 @@ public class AuthController {
             MessageResponse response = authService.register(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
+            // Hata mesajını direkt olarak döndür (AuthService'den gelen mesaj)
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        } catch (Exception e) {
+            // Beklenmeyen hatalar için genel mesaj
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("Kayıt işlemi sırasında bir hata oluştu."));
         }
     }
 

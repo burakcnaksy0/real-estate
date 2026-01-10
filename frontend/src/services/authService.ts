@@ -1,15 +1,16 @@
 import { api } from './api';
 import { MockAuthService } from './mockAuthService';
-import { 
-  LoginRequest, 
-  RegisterRequest, 
-  AuthResponse, 
+import {
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
   MessageResponse,
-  User 
+  User
 } from '../types';
 
-// Development mode için mock service kullan
-const USE_MOCK = process.env.NODE_ENV === 'development' || !process.env.REACT_APP_API_BASE_URL;
+// Development mode için mock service kullanma - gerçek backend'e bağlan
+const USE_MOCK = false; // Mock service'i devre dışı bıraktık
+
 
 export class AuthService {
   private static readonly TOKEN_KEY = 'token';
@@ -18,15 +19,15 @@ export class AuthService {
   // Login işlemi
   static async login(credentials: LoginRequest): Promise<AuthResponse> {
     console.log('Login attempt with credentials:', credentials);
-    
+
     if (USE_MOCK) {
       return MockAuthService.login(credentials);
     }
-    
+
     try {
       const response = await api.post<AuthResponse>('/auth/login', credentials);
       console.log('Login response:', response);
-      
+
       // Token ve user bilgilerini localStorage'a kaydet
       this.setToken(response.token);
       this.setUser({
@@ -41,7 +42,7 @@ export class AuthService {
         createdAt: response.createdAt || '',
         updatedAt: response.updatedAt || ''
       });
-      
+
       return response;
     } catch (error) {
       console.error('Login error:', error);
@@ -54,7 +55,7 @@ export class AuthService {
     if (USE_MOCK) {
       return MockAuthService.register(userData);
     }
-    
+
     return await api.post<MessageResponse>('/auth/register', userData);
   }
 
@@ -122,7 +123,7 @@ export class AuthService {
     if (USE_MOCK) {
       return MockAuthService.isAuthenticated();
     }
-    
+
     const token = this.getToken();
     if (!token) return false;
 
@@ -130,12 +131,12 @@ export class AuthService {
       // JWT token'ın geçerliliğini kontrol et (basit expiry check)
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Date.now() / 1000;
-      
+
       if (payload.exp < currentTime) {
         this.logout();
         return false;
       }
-      
+
       return true;
     } catch (error) {
       this.logout();

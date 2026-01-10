@@ -1,55 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useVehicles } from '../../hooks/useVehicles';
 
 export const VehicleListPage: React.FC = () => {
-  // Mock data
-  const mockVehicles = [
-    {
-      id: 1,
-      title: "2020 Model Toyota Corolla",
-      price: 250000,
-      currency: "TRY",
-      city: "İstanbul",
-      district: "Beşiktaş",
-      brand: "Toyota",
-      model: "Corolla",
-      year: 2020,
-      fuelType: "Benzin",
-      transmission: "Otomatik",
-      kilometer: 45000,
-      image: "🚗"
-    },
-    {
-      id: 2,
-      title: "2019 BMW 3.20i",
-      price: 380000,
-      currency: "TRY",
-      city: "Ankara",
-      district: "Çankaya",
-      brand: "BMW",
-      model: "3.20i",
-      year: 2019,
-      fuelType: "Benzin",
-      transmission: "Otomatik",
-      kilometer: 62000,
-      image: "🚙"
-    },
-    {
-      id: 3,
-      title: "2021 Volkswagen Golf",
-      price: 320000,
-      currency: "TRY",
-      city: "İzmir",
-      district: "Konak",
-      brand: "Volkswagen",
-      model: "Golf",
-      year: 2021,
-      fuelType: "Dizel",
-      transmission: "Manuel",
-      kilometer: 28000,
-      image: "🚗"
-    }
-  ];
+  const { vehicles, isLoading, error, fetchAll } = useVehicles();
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
 
   return (
     <div className="space-y-6">
@@ -61,10 +20,10 @@ export const VehicleListPage: React.FC = () => {
             <span>Araç İlanları</span>
           </h1>
           <p className="text-gray-600 mt-1">
-            {mockVehicles.length} ilan bulundu
+            {vehicles.length} ilan bulundu
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           <Link to="/vehicles/create" className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
             İlan Ver
@@ -119,39 +78,39 @@ export const VehicleListPage: React.FC = () => {
 
       {/* Vehicles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockVehicles.map((vehicle) => (
+        {vehicles.map((vehicle: any) => (
           <Link
             key={vehicle.id}
             to={`/vehicles/${vehicle.id}`}
             className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden"
           >
             <div className="h-48 bg-gray-200 flex items-center justify-center text-6xl">
-              {vehicle.image}
+              🚗
             </div>
-            
+
             <div className="p-4">
               <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
                 {vehicle.title}
               </h3>
-              
+
               <div className="space-y-2 text-sm text-gray-600">
                 <p className="flex items-center">
                   <span className="mr-1">📍</span>
                   {vehicle.city}, {vehicle.district}
                 </p>
-                
+
                 <div className="flex items-center space-x-4">
                   <span>{vehicle.brand}</span>
                   <span>{vehicle.year}</span>
                   <span>{vehicle.kilometer.toLocaleString()} km</span>
                 </div>
-                
+
                 <div className="flex items-center space-x-4">
                   <span>{vehicle.fuelType}</span>
                   <span>{vehicle.transmission}</span>
                 </div>
               </div>
-              
+
               <div className="mt-4 flex justify-between items-center">
                 <p className="text-lg font-bold text-green-600">
                   {vehicle.price.toLocaleString('tr-TR')} {vehicle.currency}
@@ -166,7 +125,7 @@ export const VehicleListPage: React.FC = () => {
       </div>
 
       {/* Empty State */}
-      {mockVehicles.length === 0 && (
+      {vehicles.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">🚗</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
