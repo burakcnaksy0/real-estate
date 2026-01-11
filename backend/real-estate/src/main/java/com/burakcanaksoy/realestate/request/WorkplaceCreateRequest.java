@@ -36,6 +36,9 @@ public class WorkplaceCreateRequest {
     @Size(max = 50, message = "District must not exceed 50 characters")
     private String district;
 
+    @NotNull(message = "Offer type must be specified")
+    private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
+
     /* ---------------- Workplace fields ---------------- */
 
     @NotNull(message = "Workplace type must be specified")
@@ -51,7 +54,5 @@ public class WorkplaceCreateRequest {
 
     @NotNull(message = "Furnished information must be specified")
     private Boolean furnished;
-
-
 
 }

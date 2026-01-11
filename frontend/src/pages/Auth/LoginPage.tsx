@@ -49,8 +49,12 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mb-4">
-            <LogIn className="h-8 w-8 text-white" />
+          <div className="mx-auto mb-6 flex justify-center">
+            <img
+              src="/vesta-logo.png"
+              alt="Vesta Logo"
+              className="h-20 w-auto"
+            />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Giriş Yap</h2>
           <p className="mt-2 text-gray-600">
@@ -63,20 +67,14 @@ export const LoginPage: React.FC = () => {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {/* Test Users Info */}
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
-            <p className="text-sm font-medium mb-2">Test Kullanıcıları:</p>
-            <div className="text-xs space-y-1">
-              <p><strong>Kullanıcı:</strong> burak / 123456 veya burak@example.com / 123456</p>
-              <p><strong>Admin:</strong> admin / admin123 veya admin@example.com / admin123</p>
-            </div>
-          </div>
+
 
           {successMessage && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
               {successMessage}
             </div>
           )}
-          
+
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {error}
@@ -147,9 +145,9 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div className="text-sm">
-              <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
+              <Link to="/forgot-password" className="text-primary-600 hover:text-primary-700 font-medium">
                 Şifremi unuttum
-              </a>
+              </Link>
             </div>
           </div>
 

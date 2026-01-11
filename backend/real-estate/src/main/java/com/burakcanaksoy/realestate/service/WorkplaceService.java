@@ -6,6 +6,7 @@ import com.burakcanaksoy.realestate.model.User;
 import com.burakcanaksoy.realestate.model.Workplace;
 import com.burakcanaksoy.realestate.model.enums.Role;
 import com.burakcanaksoy.realestate.repository.CategoryRepository;
+import com.burakcanaksoy.realestate.repository.ImageRepository;
 import com.burakcanaksoy.realestate.repository.WorkplaceRepository;
 import com.burakcanaksoy.realestate.request.WorkplaceCreateRequest;
 import com.burakcanaksoy.realestate.request.WorkplaceFilterRequest;
@@ -26,28 +27,28 @@ public class WorkplaceService {
     private final WorkplaceRepository workplaceRepository;
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
+    private final ImageRepository imageRepository; // Inject
 
-    public WorkplaceService(WorkplaceRepository workplaceRepository,CategoryRepository categoryRepository,AuthService authService){
+    public WorkplaceService(WorkplaceRepository workplaceRepository, CategoryRepository categoryRepository,
+            AuthService authService, ImageRepository imageRepository) {
         this.workplaceRepository = workplaceRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
+        this.imageRepository = imageRepository;
     }
 
     public List<WorkplaceResponse> getAllWorkplaces() {
         List<Workplace> workplaceList = this.workplaceRepository.findAll();
         return workplaceList.stream()
-                .map(WorkplaceMapper::toResponse)
+                .map(this::convertToResponse)
                 .toList();
     }
 
     public WorkplaceResponse createWorkplace(@Valid WorkplaceCreateRequest request) {
 
         Category category = categoryRepository.findBySlug(request.getCategorySlug())
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Category not found with slug: " + request.getCategorySlug()
-                        )
-                );
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Category not found with slug: " + request.getCategorySlug()));
 
         User currentUser = authService.getCurrentUser();
 
@@ -58,10 +59,9 @@ public class WorkplaceService {
         return WorkplaceMapper.toResponse(savedWorkplace);
     }
 
-
-
     public WorkplaceResponse getWorkplaceById(Long workplaceId) {
-        Workplace workplace = this.workplaceRepository.findById(workplaceId).orElseThrow(() -> new EntityNotFoundException("Workplace not found with this id : "+workplaceId));
+        Workplace workplace = this.workplaceRepository.findById(workplaceId)
+                .orElseThrow(() -> new EntityNotFoundException("Workplace not found with this id : " + workplaceId));
         return WorkplaceMapper.toResponse(workplace);
     }
 
@@ -76,18 +76,17 @@ public class WorkplaceService {
 
     public void deleteWorkplace(Long workplaceId) {
         User currentUser = this.authService.getCurrentUser();
-        Workplace workplace = this.workplaceRepository.findById(workplaceId).orElseThrow(() -> new EntityNotFoundException("Workplace not found with this id : "+workplaceId));
-        assertOwnerOrAdmin(workplace,currentUser);
+        Workplace workplace = this.workplaceRepository.findById(workplaceId)
+                .orElseThrow(() -> new EntityNotFoundException("Workplace not found with this id : " + workplaceId));
+        assertOwnerOrAdmin(workplace, currentUser);
         this.workplaceRepository.delete(workplace);
     }
 
     public WorkplaceResponse updateWorkplace(Long workplaceId, @Valid WorkplaceUpdateRequest request) {
         User currentUser = this.authService.getCurrentUser();
         Workplace workplace = workplaceRepository.findById(workplaceId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Workplace not found with id: " + workplaceId)
-                );
-        assertOwnerOrAdmin(workplace,currentUser);
+                .orElseThrow(() -> new EntityNotFoundException("Workplace not found with id: " + workplaceId));
+        assertOwnerOrAdmin(workplace, currentUser);
 
         /* -------- BaseListing fields -------- */
 
@@ -118,11 +117,8 @@ public class WorkplaceService {
         if (request.getCategorySlug() != null) {
             Category category = categoryRepository
                     .findBySlug(request.getCategorySlug())
-                    .orElseThrow(() ->
-                            new EntityNotFoundException(
-                                    "Category not found with slug: " + request.getCategorySlug()
-                            )
-                    );
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Category not found with slug: " + request.getCategorySlug()));
             workplace.setCategory(category);
         }
 
@@ -151,12 +147,19 @@ public class WorkplaceService {
 
     public Page<WorkplaceResponse> getAllWorkplaces(Pageable pageable) {
         Page<Workplace> workplacePage = this.workplaceRepository.findAll(pageable);
-        return workplacePage.map(WorkplaceMapper::toResponse);
+        return workplacePage.map(this::convertToResponse);
 
     }
 
     public Page<WorkplaceResponse> search(WorkplaceFilterRequest filter, Pageable pageable) {
         Page<Workplace> workplacePage = this.workplaceRepository.search(filter, pageable);
-        return workplacePage.map(WorkplaceMapper::toResponse);
+        return workplacePage.map(this::convertToResponse);
+    }
+
+    private WorkplaceResponse convertToResponse(Workplace workplace) {
+        WorkplaceResponse response = WorkplaceMapper.toResponse(workplace);
+        imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(workplace.getId(), "WORKPLACE")
+                .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+        return response;
     }
 }

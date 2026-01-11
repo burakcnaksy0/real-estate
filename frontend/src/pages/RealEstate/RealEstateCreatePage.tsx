@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -6,7 +6,9 @@ import * as yup from 'yup';
 import { ArrowLeft, Home, Save } from 'lucide-react';
 import { useRealEstate } from '../../hooks/useRealEstate';
 import { useCategories } from '../../hooks/useCategories';
-import { RealEstateCreateRequest, Currency, RealEstateType, HeatingType } from '../../types';
+import { RealEstateCreateRequest, Currency, RealEstateType, HeatingType, OfferType } from '../../types';
+import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
+import { ImageService } from '../../services/imageService';
 
 // Validation schema
 const realEstateSchema = yup.object({
@@ -60,12 +62,27 @@ const realEstateSchema = yup.object({
   furnished: yup
     .boolean()
     .required('Eşyalı bilgisi gereklidir'),
+  offerType: yup
+    .mixed<OfferType>()
+    .required('İşlem tipi gereklidir'),
 });
 
-export const RealEstateCreatePage: React.FC = () => {
+interface ImageFile {
+  file: File;
+  preview: string;
+  isPrimary: boolean;
+}
+
+interface RealEstateCreatePageProps {
+  defaultCategorySlug?: string;
+}
+
+export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defaultCategorySlug = 'emlak' }) => {
   const navigate = useNavigate();
   const { create, isLoading } = useRealEstate();
   const { getActiveCategories } = useCategories();
+  const [images, setImages] = useState<ImageFile[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const activeCategories = getActiveCategories();
 
@@ -81,6 +98,8 @@ export const RealEstateCreatePage: React.FC = () => {
       realEstateType: RealEstateType.APARTMENT,
       heatingType: HeatingType.NATURAL_GAS,
       furnished: false,
+      offerType: OfferType.FOR_SALE,
+      categorySlug: defaultCategorySlug,
     },
   });
 
@@ -88,7 +107,29 @@ export const RealEstateCreatePage: React.FC = () => {
     try {
       const result = await create(data);
       if (result.type.endsWith('/fulfilled')) {
-        navigate(`/real-estate/${(result.payload as any).id}`);
+        const listingId = (result.payload as any).id;
+
+        // Upload images if any
+        if (images.length > 0) {
+          setUploadingImages(true);
+          try {
+            for (const image of images) {
+              await ImageService.uploadImage(
+                image.file,
+                listingId,
+                'REAL_ESTATE',
+                image.isPrimary
+              );
+            }
+          } catch (imageError) {
+            console.error('Error uploading images:', imageError);
+            // Continue to navigate even if image upload fails
+          } finally {
+            setUploadingImages(false);
+          }
+        }
+
+        navigate(`/real-estates/${listingId}`);
       }
     } catch (error) {
       console.error('Error creating real estate:', error);
@@ -117,34 +158,13 @@ export const RealEstateCreatePage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Geri Dön</span>
-          </button>
-          
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-2">
-              <Home className="h-8 w-8 text-primary-600" />
-              <span>Emlak İlanı Ver</span>
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Emlak ilanınızın detaylarını girin
-            </p>
-          </div>
-        </div>
-      </div>
+
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Information */}
         <div className="card p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Temel Bilgiler</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Title */}
             <div className="md:col-span-2">
@@ -163,27 +183,7 @@ export const RealEstateCreatePage: React.FC = () => {
               )}
             </div>
 
-            {/* Category */}
-            <div>
-              <label htmlFor="categorySlug" className="block text-sm font-medium text-gray-700 mb-1">
-                Kategori *
-              </label>
-              <select
-                {...register('categorySlug')}
-                id="categorySlug"
-                className={`input-field ${errors.categorySlug ? 'border-red-500 focus:ring-red-500' : ''}`}
-              >
-                <option value="">Kategori seçin</option>
-                {activeCategories.map((category) => (
-                  <option key={category.id} value={category.slug}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              {errors.categorySlug && (
-                <p className="mt-1 text-sm text-red-600">{errors.categorySlug.message}</p>
-              )}
-            </div>
+
 
             {/* Real Estate Type */}
             <div>
@@ -262,7 +262,7 @@ export const RealEstateCreatePage: React.FC = () => {
         {/* Property Details */}
         <div className="card p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Emlak Detayları</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Room Count */}
             <div>
@@ -392,8 +392,21 @@ export const RealEstateCreatePage: React.FC = () => {
         {/* Price Information */}
         <div className="card p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Fiyat Bilgileri</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">İşlem Tipi *</label>
+              <div className="flex space-x-4 mt-2">
+                <label className="flex items-center cursor-pointer">
+                  <input {...register('offerType')} type="radio" value={OfferType.FOR_SALE} className="w-4 h-4 text-primary-600" />
+                  <span className="ml-2">Satılık</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input {...register('offerType')} type="radio" value={OfferType.FOR_RENT} className="w-4 h-4 text-primary-600" />
+                  <span className="ml-2">Kiralık</span>
+                </label>
+              </div>
+            </div>
             {/* Price */}
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
@@ -435,6 +448,17 @@ export const RealEstateCreatePage: React.FC = () => {
           </div>
         </div>
 
+        {/* Images */}
+        <div className="card p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Görseller</h2>
+          <ImageUpload
+            images={images}
+            onImagesChange={setImages}
+            maxImages={10}
+            maxSizeMB={10}
+          />
+        </div>
+
         {/* Submit Button */}
         <div className="flex justify-end space-x-4">
           <button
@@ -446,13 +470,13 @@ export const RealEstateCreatePage: React.FC = () => {
           </button>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || uploadingImages}
             className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
+            {isLoading || uploadingImages ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Kaydediliyor...</span>
+                <span>{uploadingImages ? 'Görseller yükleniyor...' : 'Kaydediliyor...'}</span>
               </>
             ) : (
               <>

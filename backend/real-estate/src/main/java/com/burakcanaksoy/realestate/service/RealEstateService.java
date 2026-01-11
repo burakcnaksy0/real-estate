@@ -6,6 +6,7 @@ import com.burakcanaksoy.realestate.model.RealEstate;
 import com.burakcanaksoy.realestate.model.User;
 import com.burakcanaksoy.realestate.model.enums.Role;
 import com.burakcanaksoy.realestate.repository.CategoryRepository;
+import com.burakcanaksoy.realestate.repository.ImageRepository;
 import com.burakcanaksoy.realestate.repository.RealEstateRepository;
 import com.burakcanaksoy.realestate.request.RealEstateCreateRequest;
 import com.burakcanaksoy.realestate.request.RealEstateFilterRequest;
@@ -26,30 +27,30 @@ public class RealEstateService {
     private final RealEstateRepository realEstateRepository;
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
+    private final ImageRepository imageRepository;
 
-    public RealEstateService(RealEstateRepository realEstateRepository,CategoryRepository categoryRepository,AuthService authService){
+    public RealEstateService(RealEstateRepository realEstateRepository, CategoryRepository categoryRepository,
+            AuthService authService, ImageRepository imageRepository) {
         this.realEstateRepository = realEstateRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
+        this.imageRepository = imageRepository;
     }
 
     public List<RealEstateResponse> getAllRealEstates() {
         List<RealEstate> realEstateList = this.realEstateRepository.findAll();
         return realEstateList.stream()
-                .map(RealEstateMapper::toResponse)
+                .map(this::convertToResponse)
                 .toList();
     }
 
     public RealEstateResponse createRealEstate(@Valid RealEstateCreateRequest realEstateCreateRequest) {
         Category category = categoryRepository.findBySlug(realEstateCreateRequest.getCategorySlug())
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Category not found with slug: " + realEstateCreateRequest.getCategorySlug()
-                        )
-                );
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Category not found with slug: " + realEstateCreateRequest.getCategorySlug()));
         User currentUser = this.authService.getCurrentUser();
 
-        RealEstate realEstate = RealEstateMapper.toEntity(realEstateCreateRequest,category);
+        RealEstate realEstate = RealEstateMapper.toEntity(realEstateCreateRequest, category);
         realEstate.setCreatedBy(currentUser);
 
         RealEstate savedRealEstate = this.realEstateRepository.save(realEstate);
@@ -58,7 +59,8 @@ public class RealEstateService {
     }
 
     public RealEstateResponse getRealEstateById(Long realEstateId) {
-        RealEstate realEstate = this.realEstateRepository.findById(realEstateId).orElseThrow(() -> new EntityNotFoundException("Real Estate not found with this id : "+realEstateId));
+        RealEstate realEstate = this.realEstateRepository.findById(realEstateId)
+                .orElseThrow(() -> new EntityNotFoundException("Real Estate not found with this id : " + realEstateId));
         return RealEstateMapper.toResponse(realEstate);
     }
 
@@ -73,20 +75,18 @@ public class RealEstateService {
 
     public void deleteRealEstate(Long realEstateId) {
         User currentUser = this.authService.getCurrentUser();
-        RealEstate realEstate = this.realEstateRepository.findById(realEstateId).orElseThrow(() -> new EntityNotFoundException("Real Estate not found with this id : "+realEstateId));
-        assertOwnerOrAdmin(realEstate,currentUser);
+        RealEstate realEstate = this.realEstateRepository.findById(realEstateId)
+                .orElseThrow(() -> new EntityNotFoundException("Real Estate not found with this id : " + realEstateId));
+        assertOwnerOrAdmin(realEstate, currentUser);
         this.realEstateRepository.delete(realEstate);
     }
 
     public RealEstateResponse updateRealEstate(Long realEstateId, @Valid RealEstateUpdateRequest request) {
         User currentUser = this.authService.getCurrentUser();
         RealEstate realEstate = realEstateRepository.findById(realEstateId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Real estate not found with id: " + realEstateId
-                        )
-                );
-        assertOwnerOrAdmin(realEstate,currentUser);
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Real estate not found with id: " + realEstateId));
+        assertOwnerOrAdmin(realEstate, currentUser);
 
         /* ---------------- BaseListing fields ---------------- */
 
@@ -117,11 +117,8 @@ public class RealEstateService {
         if (request.getCategorySlug() != null) {
             Category category = categoryRepository
                     .findBySlug(request.getCategorySlug())
-                    .orElseThrow(() ->
-                            new EntityNotFoundException(
-                                    "Category not found with slug: " + request.getCategorySlug()
-                            )
-                    );
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Category not found with slug: " + request.getCategorySlug()));
             realEstate.setCategory(category);
         }
 
@@ -162,12 +159,19 @@ public class RealEstateService {
 
     public Page<RealEstateResponse> getAllRealEstates(Pageable pageable) {
         Page<RealEstate> realEstatePage = this.realEstateRepository.findAll(pageable);
-        return realEstatePage.map(RealEstateMapper::toResponse);
+        return realEstatePage.map(this::convertToResponse);
 
     }
 
     public Page<RealEstateResponse> search(RealEstateFilterRequest filter, Pageable pageable) {
         Page<RealEstate> realEstatePage = this.realEstateRepository.search(filter, pageable);
-        return realEstatePage.map(RealEstateMapper::toResponse);
+        return realEstatePage.map(this::convertToResponse);
+    }
+
+    private RealEstateResponse convertToResponse(RealEstate realEstate) {
+        RealEstateResponse response = RealEstateMapper.toResponse(realEstate);
+        imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(realEstate.getId(), "REAL_ESTATE")
+                .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+        return response;
     }
 }

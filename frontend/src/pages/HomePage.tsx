@@ -1,9 +1,56 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { ListingService, CategoryStatsResponse } from '../services/listingService';
+
+interface CategoryStats {
+  name: string;
+  href: string;
+  icon: string;
+  count: number;
+  description: string;
+  categorySlug: string;
+}
 
 export const HomePage: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
+  const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([
+    { name: 'Emlak', href: '/real-estates', icon: '🏠', count: 0, description: 'Ev, daire, villa', categorySlug: 'konut' },
+    { name: 'Araçlar', href: '/vehicles', icon: '🚗', count: 0, description: 'Otomobil, motosiklet', categorySlug: 'vasita' },
+    { name: 'Arsalar', href: '/lands', icon: '🌾', count: 0, description: 'Tarla, bahçe, arsa', categorySlug: 'arsa' },
+    { name: 'İşyerleri', href: '/workplaces', icon: '🏢', count: 0, description: 'Ofis, dükkan, fabrika', categorySlug: 'isyeri' },
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategoryCounts = async () => {
+      try {
+        setLoading(true);
+        const stats = await ListingService.getCategoryStats();
+
+        // Backend'den gelen verileri mevcut kategori bilgileriyle birleştir
+        const updatedStats = categoryStats.map(category => {
+          const backendStat = stats.find(s => s.categorySlug === category.categorySlug);
+          return {
+            ...category,
+            count: backendStat ? backendStat.count : 0
+          };
+        });
+
+        setCategoryStats(updatedStats);
+      } catch (error) {
+        console.error('Error fetching category stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategoryCounts();
+  }, []);
+
+  const formatCount = (count: number): string => {
+    return new Intl.NumberFormat('tr-TR').format(count);
+  };
 
   return (
     <div className="space-y-16">
@@ -32,35 +79,20 @@ export const HomePage: React.FC = () => {
       <section className="text-center py-20 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl">
         <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Hayalinizdeki Mülkü Bulun
+            Hayalinizdeki Yaşam, <br className="hidden md:block" /> Vesta Güvencesiyle Başlar
           </h1>
-          <p className="text-xl md:text-2xl mb-8">
-            Emlak, araç, arsa ve işyeri ilanlarında Türkiye'nin en güvenilir platformu
+          <p className="text-xl md:text-2xl mb-8 text-blue-100">
+            Emlak, araç, arsa ve iş yeri arayışlarınızda güvenilir limanınız. Modern arayüzümüz ve geniş portföyümüzle hayallerinizdeki yatırımı bulmak artık çok daha kolay.
           </p>
 
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-4 p-4 bg-white rounded-lg shadow-lg">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="Ne arıyorsunuz?"
-                  className="w-full px-4 py-3 text-gray-900 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex-1">
-                <select className="w-full px-4 py-3 text-gray-900 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">Kategori Seçin</option>
-                  <option value="emlak">Emlak</option>
-                  <option value="arac">Araç</option>
-                  <option value="arsa">Arsa</option>
-                  <option value="isyeri">İşyeri</option>
-                </select>
-              </div>
-              <button className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200">
-                Ara
-              </button>
-            </div>
+          {/* Quick Access to All Listings */}
+          <div>
+            <Link
+              to="/listings"
+              className="inline-block bg-white text-blue-600 hover:bg-blue-50 font-bold py-4 px-8 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              Tüm İlanları Görüntüle ve Filtrele
+            </Link>
           </div>
         </div>
       </section>
@@ -73,12 +105,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { name: 'Emlak', href: '/real-estate', icon: '🏠', count: '5,234', description: 'Ev, daire, villa' },
-            { name: 'Araçlar', href: '/vehicles', icon: '🚗', count: '3,456', description: 'Otomobil, motosiklet' },
-            { name: 'Arsalar', href: '/lands', icon: '🌾', count: '1,234', description: 'Tarla, bahçe, arsa' },
-            { name: 'İşyerleri', href: '/workplaces', icon: '🏢', count: '567', description: 'Ofis, dükkan, fabrika' },
-          ].map((category) => (
+          {categoryStats.map((category) => (
             <Link
               key={category.name}
               to={category.href}
@@ -89,7 +116,13 @@ export const HomePage: React.FC = () => {
                 {category.name}
               </h3>
               <p className="text-gray-500 text-sm mb-2">{category.description}</p>
-              <p className="text-blue-600 font-medium">{category.count} ilan</p>
+              <p className="text-blue-600 font-medium">
+                {loading ? (
+                  <span className="inline-block animate-pulse">...</span>
+                ) : (
+                  `${formatCount(category.count)} ilan`
+                )}
+              </p>
             </Link>
           ))}
         </div>
@@ -104,14 +137,14 @@ export const HomePage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { icon: '🔒', title: 'Güvenli', description: 'Tüm ilanlar doğrulanır' },
-            { icon: '⚡', title: 'Hızlı', description: 'Anında ilan yayınlama' },
-            { icon: '📱', title: 'Kolay', description: 'Kullanıcı dostu arayüz' },
+            { icon: '🛡️', title: 'Doğrulanmış Güven', description: 'Sahte ilanlarla vakit kaybetmeyin. Tüm ilanlar ekibimiz tarafından titizlikle kontrol edilir.' },
+            { icon: '⚡', title: 'Hız ve Kolaylık', description: 'Karmaşık menülerle uğraşmayın. İlan vermek de, aradığınızı bulmak da saniyeler sürer.' },
+            { icon: '🌐', title: 'Geniş Portföy', description: 'Konut, araç, arsa ve iş yeri... Yatırım yapabileceğiniz tüm kategoriler tek bir platformda.' },
           ].map((feature, index) => (
-            <div key={index} className="text-center">
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+            <div key={index} className="text-center bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="text-5xl mb-4">{feature.icon}</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>

@@ -6,6 +6,7 @@ import com.burakcanaksoy.realestate.model.User;
 import com.burakcanaksoy.realestate.model.Vehicle;
 import com.burakcanaksoy.realestate.model.enums.Role;
 import com.burakcanaksoy.realestate.repository.CategoryRepository;
+import com.burakcanaksoy.realestate.repository.ImageRepository;
 import com.burakcanaksoy.realestate.repository.VehicleRepository;
 import com.burakcanaksoy.realestate.request.VehicleCreateRequest;
 import com.burakcanaksoy.realestate.request.VehicleFilterRequest;
@@ -26,32 +27,37 @@ public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
+    private final ImageRepository imageRepository; // Inject ImageRepository
 
-    public VehicleService(VehicleRepository vehicleRepository,CategoryRepository categoryRepository,AuthService authService){
+    public VehicleService(VehicleRepository vehicleRepository, CategoryRepository categoryRepository,
+            AuthService authService, ImageRepository imageRepository) {
         this.vehicleRepository = vehicleRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
+        this.imageRepository = imageRepository;
     }
 
     public List<VehicleResponse> getAllVehicles() {
         List<Vehicle> vehicleList = this.vehicleRepository.findAll();
         return vehicleList.stream()
-                .map(VehicleMapper::toResponse)
+                .map(this::convertToResponse)
                 .toList();
     }
 
     public VehicleResponse createVehicle(@Valid VehicleCreateRequest request) {
         User currentUser = this.authService.getCurrentUser();
         Category category = this.categoryRepository.findBySlug(request.getCategorySlug())
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with this slug : "+ request.getCategorySlug()));
-        Vehicle vehicle = VehicleMapper.toEntity(request,category);
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Category not found with this slug : " + request.getCategorySlug()));
+        Vehicle vehicle = VehicleMapper.toEntity(request, category);
         vehicle.setCreatedBy(currentUser);
         Vehicle savedVehicle = this.vehicleRepository.save(vehicle);
         return VehicleMapper.toResponse(savedVehicle);
     }
 
     public VehicleResponse getVehicleById(Long vehicleId) {
-        Vehicle vehicle = this.vehicleRepository.findById(vehicleId).orElseThrow(() -> new EntityNotFoundException("Vehicle not found with this id : "+vehicleId));
+        Vehicle vehicle = this.vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with this id : " + vehicleId));
         return VehicleMapper.toResponse(vehicle);
     }
 
@@ -75,9 +81,7 @@ public class VehicleService {
     public VehicleResponse updateVehicle(Long vehicleId, @Valid VehicleUpdateRequest request) {
         User currentUser = authService.getCurrentUser();
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Vehicle not found with id: " + vehicleId)
-                );
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with id: " + vehicleId));
         assertOwnerOrAdmin(vehicle, currentUser);
 
         if (request.getTitle() != null) {
@@ -107,11 +111,8 @@ public class VehicleService {
         if (request.getCategorySlug() != null) {
             Category category = categoryRepository
                     .findBySlug(request.getCategorySlug())
-                    .orElseThrow(() ->
-                            new EntityNotFoundException(
-                                    "Category not found with slug: " + request.getCategorySlug()
-                            )
-                    );
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Category not found with slug: " + request.getCategorySlug()));
             vehicle.setCategory(category);
         }
         if (request.getBrand() != null) {
@@ -149,12 +150,19 @@ public class VehicleService {
 
     public Page<VehicleResponse> getAllVehicles(Pageable pageable) {
         Page<Vehicle> vehiclePage = this.vehicleRepository.findAll(pageable);
-        return vehiclePage.map(VehicleMapper::toResponse);
+        return vehiclePage.map(this::convertToResponse);
 
     }
 
     public Page<VehicleResponse> search(VehicleFilterRequest filter, Pageable pageable) {
         Page<Vehicle> vehiclePage = this.vehicleRepository.search(filter, pageable);
-        return vehiclePage.map(VehicleMapper::toResponse);
+        return vehiclePage.map(this::convertToResponse);
+    }
+
+    private VehicleResponse convertToResponse(Vehicle vehicle) {
+        VehicleResponse response = VehicleMapper.toResponse(vehicle);
+        imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(vehicle.getId(), "VEHICLE")
+                .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+        return response;
     }
 }

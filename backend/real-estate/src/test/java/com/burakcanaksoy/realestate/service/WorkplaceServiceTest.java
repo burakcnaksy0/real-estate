@@ -632,8 +632,8 @@ public class WorkplaceServiceTest {
         filter.setCity("Istanbul");
         filter.setDistrict("Levent");
         filter.setCategorySlug("isyeri");
-        filter.setMinPrice(10000);
-        filter.setMaxPrice(50000);
+        filter.setMinPrice(new BigDecimal("10000"));
+        filter.setMaxPrice(new BigDecimal("50000"));
         filter.setWorkplaceType(WorkplaceType.OFFICE);
         filter.setMinSquareMeter(100);
         filter.setMaxSquareMeter(200);
@@ -686,8 +686,8 @@ public class WorkplaceServiceTest {
     void testSearch_PriceRangeFilter() {
         // Arrange
         WorkplaceFilterRequest filter = new WorkplaceFilterRequest();
-        filter.setMinPrice(20000);
-        filter.setMaxPrice(30000);
+        filter.setMinPrice(new BigDecimal("20000"));
+        filter.setMaxPrice(new BigDecimal("30000"));
 
         Pageable pageable = PageRequest.of(0, 10);
         List<Workplace> workplaceList = new ArrayList<>();

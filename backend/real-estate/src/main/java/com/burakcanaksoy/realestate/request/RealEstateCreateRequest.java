@@ -37,6 +37,9 @@ public class RealEstateCreateRequest {
     @Size(max = 50, message = "District must not exceed 50 characters")
     private String district;
 
+    @NotNull(message = "Offer type must be specified")
+    private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
+
     /* ---------------- RealEstateType-specific fields ---------------- */
 
     @NotNull(message = "Real estate type must be specified")

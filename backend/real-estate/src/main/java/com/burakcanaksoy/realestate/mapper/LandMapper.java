@@ -29,7 +29,9 @@ public class LandMapper {
         land.setCity(request.getCity());
         land.setDistrict(request.getDistrict());
         land.setCategory(category);
+        land.setCategory(category);
         land.setStatus(ListingStatus.ACTIVE);
+        land.setOfferType(request.getOfferType());
 
         /* ---------- Land-specific fields ---------- */
         land.setLandType(request.getLandType());
@@ -60,6 +62,7 @@ public class LandMapper {
         response.setStatus(land.getStatus());
         response.setCreatedAt(land.getCreatedAt());
         response.setUpdatedAt(land.getUpdatedAt());
+        response.setOfferType(land.getOfferType());
 
         if (land.getCategory() != null) {
             response.setCategorySlug(land.getCategory().getSlug());
@@ -74,7 +77,7 @@ public class LandMapper {
         response.setIslandNumber(land.getIslandNumber());
 
         // user relationship
-        if (land.getCreatedBy() != null){
+        if (land.getCreatedBy() != null) {
             response.setOwnerId(land.getCreatedBy().getId());
             response.setOwnerUsername(land.getCreatedBy().getUsername());
         }

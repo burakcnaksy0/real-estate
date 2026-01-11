@@ -10,7 +10,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class RealEstateMapper {
 
-    public static RealEstate toEntity(RealEstateCreateRequest request, Category category){
+    public static RealEstate toEntity(RealEstateCreateRequest request, Category category) {
         if (request == null) {
             throw new IllegalArgumentException("RealEstateCreateRequest cannot be null");
         }
@@ -26,7 +26,9 @@ public class RealEstateMapper {
         realEstate.setCity(request.getCity());
         realEstate.setDistrict(request.getDistrict());
         realEstate.setCategory(category);
+        realEstate.setCategory(category);
         realEstate.setStatus(ListingStatus.ACTIVE);
+        realEstate.setOfferType(request.getOfferType());
 
         realEstate.setRealEstateType(request.getRealEstateType());
         realEstate.setRoomCount(request.getRoomCount());
@@ -37,10 +39,10 @@ public class RealEstateMapper {
         realEstate.setFurnished(request.getFurnished());
 
         return realEstate;
-   }
+    }
 
-    public static RealEstateResponse toResponse(RealEstate realEstate){
-        if (realEstate == null){
+    public static RealEstateResponse toResponse(RealEstate realEstate) {
+        if (realEstate == null) {
             throw new IllegalArgumentException("Real Estate cannot be null");
         }
         RealEstateResponse response = new RealEstateResponse();
@@ -55,6 +57,7 @@ public class RealEstateMapper {
         response.setStatus(realEstate.getStatus());
         response.setCreatedAt(realEstate.getCreatedAt());
         response.setUpdatedAt(realEstate.getUpdatedAt());
+        response.setOfferType(realEstate.getOfferType());
 
         if (realEstate.getCategory() != null) {
             response.setCategorySlug(realEstate.getCategory().getSlug());
@@ -70,7 +73,7 @@ public class RealEstateMapper {
         response.setFurnished(realEstate.getFurnished());
 
         // user relationship
-        if (realEstate.getCreatedBy() != null){
+        if (realEstate.getCreatedBy() != null) {
             response.setOwnerId(realEstate.getCreatedBy().getId());
             response.setOwnerUsername(realEstate.getCreatedBy().getUsername());
         }

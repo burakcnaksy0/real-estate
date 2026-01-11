@@ -29,7 +29,9 @@ public class VehicleMapper {
         vehicle.setCity(request.getCity());
         vehicle.setDistrict(request.getDistrict());
         vehicle.setCategory(category);
+        vehicle.setCategory(category);
         vehicle.setStatus(ListingStatus.ACTIVE);
+        vehicle.setOfferType(request.getOfferType());
 
         vehicle.setBrand(request.getBrand());
         vehicle.setModel(request.getModel());
@@ -39,11 +41,8 @@ public class VehicleMapper {
         vehicle.setKilometer(request.getKilometer());
         vehicle.setEngineVolume(request.getEngineVolume());
 
-
-
         return vehicle;
     }
-
 
     // Vehicle → VehicleResponse
     public static VehicleResponse toResponse(Vehicle vehicle) {
@@ -71,10 +70,12 @@ public class VehicleMapper {
         response.setKilometer(vehicle.getKilometer());
         response.setEngineVolume(vehicle.getEngineVolume());
         response.setCreatedAt(vehicle.getCreatedAt());
+        response.setCreatedAt(vehicle.getCreatedAt());
         response.setUpdatedAt(vehicle.getUpdatedAt());
+        response.setOfferType(vehicle.getOfferType());
 
         // user relationship
-        if (vehicle.getCreatedBy() != null){
+        if (vehicle.getCreatedBy() != null) {
             response.setOwnerId(vehicle.getCreatedBy().getId());
             response.setOwnerUsername(vehicle.getCreatedBy().getUsername());
         }

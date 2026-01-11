@@ -8,14 +8,16 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">RE</span>
-              </div>
-              <span className="text-xl font-bold">RealEstate</span>
+            <div className="flex items-center space-x-3 mb-4">
+              <img
+                src="/vesta-logo.png"
+                alt="Vesta Logo"
+                className="h-10 w-auto brightness-0 invert"
+              />
+              <span className="text-xl font-bold">Vesta</span>
             </div>
             <p className="text-gray-300 mb-4 max-w-md">
-              Türkiye'nin en güvenilir emlak, araç ve işyeri ilan platformu. 
+              Türkiye'nin en güvenilir emlak, araç ve işyeri ilan platformu.
               Hayalinizdeki mülkü bulun veya mülkünüzü satın.
             </p>
             <div className="flex space-x-4">
@@ -36,7 +38,7 @@ export const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Hızlı Linkler</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/real-estate" className="text-gray-300 hover:text-white transition-colors duration-200">
+                <Link to="/real-estates" className="text-gray-300 hover:text-white transition-colors duration-200">
                   Emlak İlanları
                 </Link>
               </li>
@@ -88,7 +90,7 @@ export const Footer: React.FC = () => {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-300">
-            © 2024 RealEstate. Tüm hakları saklıdır.
+            © 2024 Vesta. Tüm hakları saklıdır.
           </p>
         </div>
       </div>

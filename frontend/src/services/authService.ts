@@ -1,186 +1,88 @@
 import { api } from './api';
-import { MockAuthService } from './mockAuthService';
 import {
   LoginRequest,
   RegisterRequest,
   AuthResponse,
+  User,
   MessageResponse,
-  User
+  Role
 } from '../types';
 
-// Development mode için mock service kullanma - gerçek backend'e bağlan
-const USE_MOCK = false; // Mock service'i devre dışı bıraktık
+interface ForgotPasswordRequest {
+  email: string;
+}
 
+interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
 
-export class AuthService {
-  private static readonly TOKEN_KEY = 'token';
-  private static readonly USER_KEY = 'user';
+const TOKEN_KEY = 'token';
+const USER_KEY = 'user';
 
-  // Login işlemi
-  static async login(credentials: LoginRequest): Promise<AuthResponse> {
-    console.log('Login attempt with credentials:', credentials);
+export const AuthService = {
+  login: async (data: LoginRequest): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/login', data);
+    if (response.token) {
+      localStorage.setItem(TOKEN_KEY, response.token);
 
-    if (USE_MOCK) {
-      return MockAuthService.login(credentials);
-    }
-
-    try {
-      const response = await api.post<AuthResponse>('/auth/login', credentials);
-      console.log('Login response:', response);
-
-      // Token ve user bilgilerini localStorage'a kaydet
-      this.setToken(response.token);
-      this.setUser({
+      const user: User = {
         id: response.id,
         username: response.username,
         email: response.email,
-        roles: response.roles.map(role => role as any),
         name: response.name || '',
         surname: response.surname || '',
+        phoneNumber: response.phoneNumber,
+        roles: response.roles.map(r => r as Role), // Assuming roles match
         enabled: true,
-        phoneNumber: response.phoneNumber || '',
-        createdAt: response.createdAt || '',
-        updatedAt: response.updatedAt || ''
-      });
+        createdAt: response.createdAt || new Date().toISOString(),
+        updatedAt: response.updatedAt || new Date().toISOString()
+      };
 
-      return response;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
     }
-  }
+    return response;
+  },
 
-  // Register işlemi
-  static async register(userData: RegisterRequest): Promise<MessageResponse> {
-    if (USE_MOCK) {
-      return MockAuthService.register(userData);
-    }
+  register: async (data: RegisterRequest): Promise<MessageResponse> => {
+    return await api.post<MessageResponse>('/auth/register', data);
+  },
 
-    return await api.post<MessageResponse>('/auth/register', userData);
-  }
+  logout: () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  },
 
-  // Logout işlemi
-  static logout(): void {
-    if (USE_MOCK) {
-      MockAuthService.logout();
-    } else {
-      localStorage.removeItem(this.TOKEN_KEY);
-      localStorage.removeItem(this.USER_KEY);
-    }
-  }
-
-  // Token işlemleri
-  static setToken(token: string): void {
-    if (USE_MOCK) {
-      MockAuthService.setToken(token);
-    } else {
-      localStorage.setItem(this.TOKEN_KEY, token);
-    }
-  }
-
-  static getToken(): string | null {
-    if (USE_MOCK) {
-      return MockAuthService.getToken();
-    }
-    return localStorage.getItem(this.TOKEN_KEY);
-  }
-
-  static removeToken(): void {
-    if (USE_MOCK) {
-      MockAuthService.removeToken();
-    } else {
-      localStorage.removeItem(this.TOKEN_KEY);
-    }
-  }
-
-  // User işlemleri
-  static setUser(user: User): void {
-    if (USE_MOCK) {
-      MockAuthService.setUser(user);
-    } else {
-      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-    }
-  }
-
-  static getUser(): User | null {
-    if (USE_MOCK) {
-      return MockAuthService.getUser();
-    }
-    const userStr = localStorage.getItem(this.USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
-  }
-
-  static removeUser(): void {
-    if (USE_MOCK) {
-      MockAuthService.removeUser();
-    } else {
-      localStorage.removeItem(this.USER_KEY);
-    }
-  }
-
-  // Authentication durumu kontrolleri
-  static isAuthenticated(): boolean {
-    if (USE_MOCK) {
-      return MockAuthService.isAuthenticated();
-    }
-
-    const token = this.getToken();
-    if (!token) return false;
-
-    try {
-      // JWT token'ın geçerliliğini kontrol et (basit expiry check)
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Date.now() / 1000;
-
-      if (payload.exp < currentTime) {
-        this.logout();
-        return false;
+  getUser: (): User | null => {
+    const userStr = localStorage.getItem(USER_KEY);
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch (e) {
+        return null;
       }
-
-      return true;
-    } catch (error) {
-      this.logout();
-      return false;
     }
-  }
+    return null;
+  },
 
-  static hasRole(role: string): boolean {
-    if (USE_MOCK) {
-      return MockAuthService.hasRole(role);
-    }
-    const user = this.getUser();
-    return user?.roles?.includes(role as any) || false;
-  }
+  getToken: (): string | null => {
+    return localStorage.getItem(TOKEN_KEY);
+  },
 
-  static isAdmin(): boolean {
-    if (USE_MOCK) {
-      return MockAuthService.isAdmin();
-    }
-    return this.hasRole('ROLE_ADMIN');
-  }
+  isAuthenticated: (): boolean => {
+    return !!localStorage.getItem(TOKEN_KEY);
+  },
 
-  static isUser(): boolean {
-    if (USE_MOCK) {
-      return MockAuthService.isUser();
-    }
-    return this.hasRole('ROLE_USER');
-  }
+  setUser: (user: User) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  },
 
-  // Token'dan user ID'sini al
-  static getCurrentUserId(): number | null {
-    if (USE_MOCK) {
-      return MockAuthService.getCurrentUserId();
-    }
-    const user = this.getUser();
-    return user?.id || null;
-  }
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<MessageResponse> => {
+    return await api.post<MessageResponse>('/auth/forgot-password', data);
+  },
 
-  // Token'dan username'i al
-  static getCurrentUsername(): string | null {
-    if (USE_MOCK) {
-      return MockAuthService.getCurrentUsername();
-    }
-    const user = this.getUser();
-    return user?.username || null;
+  resetPassword: async (data: ResetPasswordRequest): Promise<MessageResponse> => {
+    return await api.post<MessageResponse>('/auth/reset-password', data);
   }
-}
+};

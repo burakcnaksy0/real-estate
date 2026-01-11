@@ -8,7 +8,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class        LandCreateRequest {
+public class LandCreateRequest {
 
     /* ---------------- BaseListing fields ---------------- */
 
@@ -37,6 +37,9 @@ public class        LandCreateRequest {
     @NotBlank(message = "District cannot be blank")
     @Size(max = 50, message = "District must not exceed 50 characters")
     private String district;
+
+    @NotNull(message = "Offer type must be specified")
+    private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
 
     /* ---------------- Land-specific fields ---------------- */
 

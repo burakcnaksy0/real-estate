@@ -1,5 +1,14 @@
 import { api, buildQueryString, buildPageParams } from './api';
-import { BaseListing, PageResponse, PageRequest } from '../types';
+import { BaseListing, PageResponse, PageRequest, ListingStatus } from '../types';
+
+export interface GeneralFilterRequest {
+  city?: string;
+  district?: string;
+  categorySlug?: string;
+  status?: ListingStatus;
+  minPrice?: number;
+  maxPrice?: number;
+}
 
 export class ListingService {
   private static readonly BASE_URL = '/listings';
@@ -16,12 +25,23 @@ export class ListingService {
     return await api.get<PageResponse<BaseListing>>(`${this.BASE_URL}/page?${queryString}`);
   }
 
+  // Filtrelenmiş arama - Backend'deki yeni search endpoint'ini kullanır
+  static async search(
+    filter: GeneralFilterRequest,
+    pageRequest: PageRequest
+  ): Promise<PageResponse<BaseListing>> {
+    const pageParams = buildPageParams(pageRequest.page, pageRequest.size, pageRequest.sort);
+    const allParams = { ...filter, ...pageParams };
+    const queryString = buildQueryString(allParams);
+    return await api.get<PageResponse<BaseListing>>(`${this.BASE_URL}/search?${queryString}`);
+  }
+
   // Son eklenen ilanları getir
   static async getLatest(limit: number = 10): Promise<BaseListing[]> {
-    const response = await this.getAllPaged({ 
-      page: 0, 
-      size: limit, 
-      sort: 'createdAt,desc' 
+    const response = await this.getAllPaged({
+      page: 0,
+      size: limit,
+      sort: 'createdAt,desc'
     });
     return response.content;
   }
@@ -34,69 +54,36 @@ export class ListingService {
 
   // Şehre göre ilanları getir
   static async getByCity(city: string, pageRequest: PageRequest): Promise<PageResponse<BaseListing>> {
-    // Bu endpoint backend'de yok, ancak gelecekte eklenebilir
-    // Şimdilik tüm ilanları getirip frontend'de filtreleyebiliriz
-    const allListings = await this.getAllPaged(pageRequest);
-    const filteredContent = allListings.content.filter(listing => 
-      listing.city.toLowerCase().includes(city.toLowerCase())
-    );
-    
-    return {
-      ...allListings,
-      content: filteredContent,
-      numberOfElements: filteredContent.length
-    };
+    return await this.search({ city }, pageRequest);
   }
 
   // Kategoriye göre ilanları getir
   static async getByCategory(categorySlug: string, pageRequest: PageRequest): Promise<PageResponse<BaseListing>> {
-    // Bu endpoint backend'de yok, ancak gelecekte eklenebilir
-    const allListings = await this.getAllPaged(pageRequest);
-    const filteredContent = allListings.content.filter(listing => 
-      listing.categorySlug === categorySlug
-    );
-    
-    return {
-      ...allListings,
-      content: filteredContent,
-      numberOfElements: filteredContent.length
-    };
+    return await this.search({ categorySlug }, pageRequest);
   }
 
   // Fiyat aralığına göre ilanları getir
   static async getByPriceRange(
-    minPrice: number, 
-    maxPrice: number, 
+    minPrice: number,
+    maxPrice: number,
     pageRequest: PageRequest
   ): Promise<PageResponse<BaseListing>> {
-    const allListings = await this.getAllPaged(pageRequest);
-    const filteredContent = allListings.content.filter(listing => 
-      listing.price >= minPrice && listing.price <= maxPrice
-    );
-    
-    return {
-      ...allListings,
-      content: filteredContent,
-      numberOfElements: filteredContent.length
-    };
+    return await this.search({ minPrice, maxPrice }, pageRequest);
   }
 
-  // Arama (title ve description'da)
-  static async search(
-    query: string, 
-    pageRequest: PageRequest
-  ): Promise<PageResponse<BaseListing>> {
-    const allListings = await this.getAllPaged(pageRequest);
-    const searchTerm = query.toLowerCase();
-    const filteredContent = allListings.content.filter(listing => 
-      listing.title.toLowerCase().includes(searchTerm) ||
-      (listing.description && listing.description.toLowerCase().includes(searchTerm))
-    );
-    
-    return {
-      ...allListings,
-      content: filteredContent,
-      numberOfElements: filteredContent.length
-    };
+  // Kategori istatistiklerini getir
+  static async getCategoryStats(): Promise<CategoryStatsResponse[]> {
+    return await api.get<CategoryStatsResponse[]>(`${this.BASE_URL}/stats`);
   }
+
+  // Kullanıcının kendi ilanlarını getir
+  static async getMyListings(): Promise<BaseListing[]> {
+    return await api.get<BaseListing[]>(`${this.BASE_URL}/my-listings`);
+  }
+}
+
+export interface CategoryStatsResponse {
+  categorySlug: string;
+  categoryName: string;
+  count: number;
 }

@@ -59,6 +59,11 @@ export enum WorkplaceType {
   WAREHOUSE = 'WAREHOUSE'
 }
 
+export enum OfferType {
+  FOR_SALE = 'FOR_SALE',
+  FOR_RENT = 'FOR_RENT'
+}
+
 // Backend entity'lerine karşılık gelen interface'ler
 
 export interface User {
@@ -96,6 +101,10 @@ export interface BaseListing {
   ownerUsername: string;
   createdAt: string;
   updatedAt: string;
+  listingType: string;
+
+  imageUrl?: string;
+  offerType: OfferType;
 }
 
 export interface RealEstate extends BaseListing {
@@ -174,6 +183,18 @@ export interface ApiError {
 }
 
 // Create Request tipleri
+export interface UpdateProfileRequest {
+  name?: string;
+  surname?: string;
+  phoneNumber?: string;
+  email?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface RealEstateCreateRequest {
   title: string;
   description?: string;
@@ -189,6 +210,7 @@ export interface RealEstateCreateRequest {
   floor: number;
   heatingType: HeatingType;
   furnished: boolean;
+  offerType: OfferType;
 }
 
 export interface VehicleCreateRequest {
@@ -206,6 +228,7 @@ export interface VehicleCreateRequest {
   transmission: Transmission;
   kilometer: number;
   engineVolume?: string;
+  offerType: OfferType;
 }
 
 export interface LandCreateRequest {
@@ -221,6 +244,7 @@ export interface LandCreateRequest {
   zoningStatus?: string;
   parcelNumber: number;
   islandNumber: number;
+  offerType: OfferType;
 }
 
 export interface WorkplaceCreateRequest {
@@ -235,6 +259,7 @@ export interface WorkplaceCreateRequest {
   squareMeter: number;
   floorCount: number;
   furnished: boolean;
+  offerType: OfferType;
 }
 
 // Filter Request tipleri
@@ -319,4 +344,20 @@ export interface PageResponse<T> {
   first: boolean;
   last: boolean;
   numberOfElements: number;
+}
+
+// Favorite types
+export interface Favorite {
+  id: number;
+  listingId: number;
+  listingType: string;
+  createdAt: string;
+  title: string;
+  description?: string;
+  price: number;
+  currency: string;
+  city: string;
+  district: string;
+  imageUrl?: string;
+  status: string;
 }

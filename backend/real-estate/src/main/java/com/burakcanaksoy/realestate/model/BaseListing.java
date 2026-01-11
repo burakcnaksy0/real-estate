@@ -2,6 +2,7 @@ package com.burakcanaksoy.realestate.model;
 
 import com.burakcanaksoy.realestate.model.enums.Currency;
 import com.burakcanaksoy.realestate.model.enums.ListingStatus;
+import com.burakcanaksoy.realestate.model.enums.OfferType;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -35,6 +36,10 @@ public abstract class BaseListing {
     @Column(nullable = false, length = 20)
     private ListingStatus status = ListingStatus.ACTIVE;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20) DEFAULT 'FOR_SALE'")
+    private OfferType offerType = OfferType.FOR_SALE;
+
     @Column(nullable = false, length = 50)
     private String city;
 
@@ -46,7 +51,7 @@ public abstract class BaseListing {
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="created_by", nullable=false)
+    @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     @Column(nullable = false, updatable = false)
@@ -68,8 +73,10 @@ public abstract class BaseListing {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BaseListing)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof BaseListing))
+            return false;
         return id != null && id.equals(((BaseListing) o).id);
     }
 

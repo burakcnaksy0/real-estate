@@ -6,5 +6,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
 public interface BaseListingRepository<T extends BaseListing>
-        extends JpaRepository<T, Long> {
+                extends JpaRepository<T, Long> {
+
+        java.util.List<T> findAllByCreatedById(Long userId);
 }

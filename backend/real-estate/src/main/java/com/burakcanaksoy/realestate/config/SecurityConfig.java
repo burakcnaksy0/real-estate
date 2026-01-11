@@ -69,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers("GET", "/api/workplaces/**").permitAll()
                         .requestMatchers("GET", "/api/categories/**").permitAll()
                         .requestMatchers("GET", "/api/listings/**").permitAll()
+                        .requestMatchers("GET", "/api/images/**").permitAll()
 
                         // POST, PUT, DELETE istekleri - sadece authenticated kullanıcılar
                         .anyRequest().authenticated())

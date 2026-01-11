@@ -35,10 +35,11 @@ export const Header: React.FC = () => {
 
   const navigationItems = [
     { name: 'Ana Sayfa', href: '/' },
-    { name: 'Emlak', href: '/real-estate' },
+    { name: 'Emlak', href: '/real-estates' },
     { name: 'Araçlar', href: '/vehicles' },
     { name: 'Arsalar', href: '/lands' },
     { name: 'İşyerleri', href: '/workplaces' },
+    { name: 'Favorilerim', href: '/favorites' },
   ];
 
   return (
@@ -46,11 +47,13 @@ export const Header: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">V</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">Vesta</span>
+          <Link to="/" className="flex items-center space-x-3">
+            <img
+              src="/vesta-logo.png"
+              alt="Vesta Logo"
+              className="h-10 w-auto"
+            />
+            <span className="text-xl font-bold text-gray-900 hidden sm:block">Vesta</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -84,7 +87,7 @@ export const Header: React.FC = () => {
               <>
                 {/* Create Listing Button */}
                 <Link
-                  to="/real-estate/create"
+                  to="/real-estates/create"
                   className="hidden md:flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
                 >
                   <Plus className="h-4 w-4" />
@@ -244,7 +247,7 @@ export const Header: React.FC = () => {
               {/* Mobile Create Listing Button */}
               {isAuthenticated && (
                 <Link
-                  to="/real-estate/create"
+                  to="/real-estates/create"
                   className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200 mt-4"
                   onClick={() => setIsMenuOpen(false)}
                 >

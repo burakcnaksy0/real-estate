@@ -6,9 +6,10 @@ import com.burakcanaksoy.realestate.model.Land;
 import com.burakcanaksoy.realestate.model.User;
 import com.burakcanaksoy.realestate.model.enums.Role;
 import com.burakcanaksoy.realestate.repository.CategoryRepository;
+import com.burakcanaksoy.realestate.repository.ImageRepository;
 import com.burakcanaksoy.realestate.repository.LandRepository;
 import com.burakcanaksoy.realestate.request.LandCreateRequest;
- import com.burakcanaksoy.realestate.request.LandFilterRequest;
+import com.burakcanaksoy.realestate.request.LandFilterRequest;
 import com.burakcanaksoy.realestate.request.LandUpdateRequest;
 import com.burakcanaksoy.realestate.response.LandResponse;
 import com.burakcanaksoy.realestate.security.AuthService;
@@ -26,41 +27,47 @@ public class LandService {
     private final LandRepository landRepository;
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
+    private final ImageRepository imageRepository;
 
-
-    public LandService(LandRepository landRepository,CategoryRepository categoryRepository,AuthService authService){
+    public LandService(LandRepository landRepository, CategoryRepository categoryRepository, AuthService authService,
+            ImageRepository imageRepository) {
         this.landRepository = landRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
+        this.imageRepository = imageRepository;
     }
 
     public List<LandResponse> getAllLands() {
         List<Land> landList = this.landRepository.findAll();
         return landList.stream()
-                .map(LandMapper::toResponse)
+                .map(this::convertToResponse)
                 .toList();
     }
 
     public Page<LandResponse> getAllLands(Pageable pageable) {
         Page<Land> landPage = this.landRepository.findAll(pageable);
-        return landPage.map(LandMapper::toResponse);
+        return landPage.map(this::convertToResponse);
     }
 
     public Page<LandResponse> search(LandFilterRequest filter, Pageable pageable) {
         Page<Land> landPage = this.landRepository.search(filter, pageable);
-        return landPage.map(LandMapper::toResponse);
+        return landPage.map(this::convertToResponse);
+    }
+
+    private LandResponse convertToResponse(Land land) {
+        LandResponse response = LandMapper.toResponse(land);
+        imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(land.getId(), "LAND")
+                .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+        return response;
     }
 
     public LandResponse createLand(@Valid LandCreateRequest landCreateRequest) {
         Category category = categoryRepository.findBySlug(landCreateRequest.getCategorySlug())
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Category not found with slug: " + landCreateRequest.getCategorySlug()
-                        )
-                );
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Category not found with slug: " + landCreateRequest.getCategorySlug()));
         User currentUser = this.authService.getCurrentUser();
 
-        Land land = LandMapper.toEntity(landCreateRequest,category);
+        Land land = LandMapper.toEntity(landCreateRequest, category);
         land.setCreatedBy(currentUser);
 
         Land savedLand = this.landRepository.save(land);
@@ -68,7 +75,8 @@ public class LandService {
     }
 
     public LandResponse getLandById(Long landId) {
-        Land land = this.landRepository.findById(landId).orElseThrow(() -> new EntityNotFoundException("Land not found with this id : "+landId));
+        Land land = this.landRepository.findById(landId)
+                .orElseThrow(() -> new EntityNotFoundException("Land not found with this id : " + landId));
         return LandMapper.toResponse(land);
     }
 
@@ -83,18 +91,17 @@ public class LandService {
 
     public void deleteLand(Long landId) {
         User currentUser = this.authService.getCurrentUser();
-        Land land = this.landRepository.findById(landId).orElseThrow(() -> new EntityNotFoundException("Land not found with this id : "+landId));
-        assertOwnerOrAdmin(land,currentUser);
+        Land land = this.landRepository.findById(landId)
+                .orElseThrow(() -> new EntityNotFoundException("Land not found with this id : " + landId));
+        assertOwnerOrAdmin(land, currentUser);
         this.landRepository.delete(land);
     }
 
     public LandResponse updateLand(Long id, LandUpdateRequest request) {
         User currentUser = this.authService.getCurrentUser();
         Land land = landRepository.findById(id)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Land not found with id: " + id)
-                );
-        assertOwnerOrAdmin(land,currentUser);
+                .orElseThrow(() -> new EntityNotFoundException("Land not found with id: " + id));
+        assertOwnerOrAdmin(land, currentUser);
 
         if (request.getTitle() != null) {
             land.setTitle(request.getTitle());
@@ -116,15 +123,11 @@ public class LandService {
 
             Category category = categoryRepository
                     .findBySlug(request.getCategorySlug())
-                    .orElseThrow(() ->
-                            new EntityNotFoundException(
-                                    "Category not found with slug: " + request.getCategorySlug()
-                            )
-                    );
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Category not found with slug: " + request.getCategorySlug()));
 
             land.setCategory(category);
         }
-
 
         if (request.getCity() != null) {
             land.setCity(request.getCity());

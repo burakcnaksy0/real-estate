@@ -69,12 +69,12 @@ export const RegisterPage: React.FC = () => {
     try {
       const { confirmPassword, ...registerData } = data;
       await registerUser(registerData);
-      
+
       // Kayıt başarılı olduktan sonra login sayfasına yönlendir
-      navigate('/login', { 
-        state: { 
-          message: 'Kayıt başarıyla tamamlandı! Şimdi giriş yapabilirsiniz.' 
-        } 
+      navigate('/login', {
+        state: {
+          message: 'Kayıt başarıyla tamamlandı! Şimdi giriş yapabilirsiniz.'
+        }
       });
     } catch (error) {
       // Error handling is done in the auth slice
@@ -85,8 +85,12 @@ export const RegisterPage: React.FC = () => {
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mb-4">
-            <UserPlus className="h-8 w-8 text-white" />
+          <div className="mx-auto mb-6 flex justify-center">
+            <img
+              src="/vesta-logo.png"
+              alt="Vesta Logo"
+              className="h-20 w-auto"
+            />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Kayıt Ol</h2>
           <p className="mt-2 text-gray-600">

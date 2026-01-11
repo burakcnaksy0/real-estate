@@ -9,14 +9,11 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
-@Table(
-        name = "users",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "username"),
-                @UniqueConstraint(columnNames = "email"),
-                @UniqueConstraint(columnNames = "phone_number")
-        }
-)
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "username"),
+        @UniqueConstraint(columnNames = "email"),
+        @UniqueConstraint(columnNames = "phone_number")
+})
 @Getter
 @Setter
 public class User {
@@ -51,6 +48,12 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", length = 30)
     private Set<Role> roles = Set.of(Role.ROLE_USER);
+
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

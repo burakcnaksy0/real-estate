@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  MapPin, 
-  Calendar, 
-  User, 
-  Phone, 
-  Mail, 
-  Edit, 
-  Trash2, 
+import {
+  MapPin,
+  Calendar,
+  User,
+  Phone,
+  Mail,
+  Edit,
+  Trash2,
   ArrowLeft,
   Car,
   Fuel,
@@ -19,6 +19,10 @@ import { RootState, AppDispatch } from '../../store';
 import { fetchVehicleByIdAsync, deleteVehicleAsync } from '../../store/slices/vehicleSlice';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, FuelType, Transmission } from '../../types';
+import { EditVehicleModal } from '../../components/Modals/EditVehicleModal';
+import { ImageResponse, ImageService } from '../../services/imageService';
+import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
+import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
 
 export const VehicleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,10 +30,15 @@ export const VehicleDetailPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { currentVehicle, isLoading } = useSelector((state: RootState) => state.vehicles);
   const { user, isAuthenticated } = useAuth();
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [images, setImages] = React.useState<ImageResponse[]>([]);
 
   useEffect(() => {
     if (id) {
       dispatch(fetchVehicleByIdAsync(Number(id)));
+      ImageService.getListingImages(Number(id), 'VEHICLE')
+        .then(setImages)
+        .catch(console.error);
     }
   }, [id, dispatch]);
 
@@ -129,9 +138,10 @@ export const VehicleDetailPage: React.FC = () => {
       </button>
 
       {/* Image Gallery */}
-      <div className="h-64 md:h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-        <Car className="h-24 w-24 text-gray-400" />
-      </div>
+      <ImageGallery
+        images={images}
+        fallbackIcon={<Car className="w-24 h-24 text-gray-300" />}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
@@ -156,13 +166,13 @@ export const VehicleDetailPage: React.FC = () => {
 
             {isOwner && (
               <div className="flex space-x-2">
-                <Link
-                  to={`/vehicles/${currentVehicle.id}/edit`}
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
                   className="btn-secondary flex items-center space-x-2"
                 >
                   <Edit className="h-4 w-4" />
                   <span>Düzenle</span>
-                </Link>
+                </button>
                 <button
                   onClick={handleDelete}
                   className="btn-secondary text-red-600 hover:bg-red-50 flex items-center space-x-2"
@@ -171,6 +181,10 @@ export const VehicleDetailPage: React.FC = () => {
                   <span>Sil</span>
                 </button>
               </div>
+            )}
+
+            {!isOwner && (
+              <FavoriteButton listingId={currentVehicle.id} listingType="VEHICLE" />
             )}
           </div>
 
@@ -193,19 +207,19 @@ export const VehicleDetailPage: React.FC = () => {
                 <div className="text-lg font-semibold">{currentVehicle.brand}</div>
                 <div className="text-sm text-gray-600">Marka</div>
               </div>
-              
+
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Settings className="h-6 w-6 mx-auto mb-2 text-primary-600" />
                 <div className="text-lg font-semibold">{currentVehicle.model}</div>
                 <div className="text-sm text-gray-600">Model</div>
               </div>
-              
+
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Calendar className="h-6 w-6 mx-auto mb-2 text-primary-600" />
                 <div className="text-lg font-semibold">{currentVehicle.year}</div>
                 <div className="text-sm text-gray-600">Model Yılı</div>
               </div>
-              
+
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Gauge className="h-6 w-6 mx-auto mb-2 text-primary-600" />
                 <div className="text-lg font-semibold">{currentVehicle.kilometer.toLocaleString()}</div>
@@ -264,14 +278,14 @@ export const VehicleDetailPage: React.FC = () => {
                 <User className="h-5 w-5 text-gray-400" />
                 <span className="text-gray-900">{currentVehicle.ownerUsername}</span>
               </div>
-              
+
               {isAuthenticated ? (
                 <>
                   <button className="w-full btn-primary flex items-center justify-center space-x-2">
                     <Phone className="h-4 w-4" />
                     <span>Telefonu Göster</span>
                   </button>
-                  
+
                   <button className="w-full btn-secondary flex items-center justify-center space-x-2">
                     <Mail className="h-4 w-4" />
                     <span>Mesaj Gönder</span>
@@ -333,6 +347,20 @@ export const VehicleDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {currentVehicle && (
+        <EditVehicleModal
+          vehicle={currentVehicle}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSuccess={() => {
+            if (id) {
+              dispatch(fetchVehicleByIdAsync(Number(id)));
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

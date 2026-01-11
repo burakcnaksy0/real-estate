@@ -24,7 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3">
               <img
-                src="/logo.png"
+                src="/vesta-logo.png"
                 alt="Vesta Logo"
                 className="h-10 w-auto"
               />
@@ -36,7 +36,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 Ana Sayfa
               </Link>
-              <Link to="/real-estate" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
+              <Link to="/real-estates" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 Emlak
               </Link>
               <Link to="/vehicles" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
@@ -48,6 +48,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link to="/workplaces" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 İşyerleri
               </Link>
+              {isAuthenticated && (
+                <Link to="/favorites" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
+                  Favorilerim
+                </Link>
+              )}
             </nav>
 
             {/* Auth Buttons - Conditional Rendering */}

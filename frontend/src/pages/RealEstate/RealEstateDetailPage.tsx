@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { 
-  MapPin, 
-  Calendar, 
-  User, 
-  Phone, 
-  Mail, 
-  Edit, 
-  Trash2, 
+import {
+  MapPin,
+  Calendar,
+  User,
+  Phone,
+  Mail,
+  Edit,
+  Trash2,
   ArrowLeft,
   Home,
   Ruler,
@@ -17,16 +17,25 @@ import {
 import { useRealEstate } from '../../hooks/useRealEstate';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, RealEstateType, HeatingType } from '../../types';
+import { EditRealEstateModal } from '../../components/Modals/EditRealEstateModal';
+import { ImageResponse, ImageService } from '../../services/imageService';
+import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
+import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
 
 export const RealEstateDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentRealEstate, isLoading, fetchById, remove } = useRealEstate();
   const { user, isAuthenticated } = useAuth();
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [images, setImages] = React.useState<ImageResponse[]>([]);
 
   useEffect(() => {
     if (id) {
       fetchById(Number(id));
+      ImageService.getListingImages(Number(id), 'REAL_ESTATE')
+        .then(setImages)
+        .catch(console.error);
     }
   }, [id, fetchById]);
 
@@ -34,7 +43,7 @@ export const RealEstateDetailPage: React.FC = () => {
     if (currentRealEstate && window.confirm('Bu ilanı silmek istediğinizden emin misiniz?')) {
       try {
         await remove(currentRealEstate.id);
-        navigate('/real-estate');
+        navigate('/real-estates');
       } catch (error) {
         console.error('Error deleting real estate:', error);
       }
@@ -97,7 +106,7 @@ export const RealEstateDetailPage: React.FC = () => {
         <p className="text-gray-600 mb-4">
           Aradığınız ilan mevcut değil veya kaldırılmış olabilir.
         </p>
-        <Link to="/real-estate" className="btn-primary">
+        <Link to="/real-estates" className="btn-primary">
           İlanlara Geri Dön
         </Link>
       </div>
@@ -112,7 +121,7 @@ export const RealEstateDetailPage: React.FC = () => {
       <nav className="flex items-center space-x-2 text-sm text-gray-600">
         <Link to="/" className="hover:text-primary-600">Ana Sayfa</Link>
         <span>/</span>
-        <Link to="/real-estate" className="hover:text-primary-600">Emlak İlanları</Link>
+        <Link to="/real-estates" className="hover:text-primary-600">Emlak İlanları</Link>
         <span>/</span>
         <span className="text-gray-900">{currentRealEstate.title}</span>
       </nav>
@@ -127,9 +136,10 @@ export const RealEstateDetailPage: React.FC = () => {
       </button>
 
       {/* Image Gallery */}
-      <div className="h-64 md:h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-        <span className="text-gray-500 text-lg">Fotoğraf Galerisi (TODO)</span>
-      </div>
+      <ImageGallery
+        images={images}
+        fallbackIcon={<Home className="w-24 h-24 text-gray-300" />}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
@@ -154,13 +164,13 @@ export const RealEstateDetailPage: React.FC = () => {
 
             {isOwner && (
               <div className="flex space-x-2">
-                <Link
-                  to={`/real-estate/${currentRealEstate.id}/edit`}
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
                   className="btn-secondary flex items-center space-x-2"
                 >
                   <Edit className="h-4 w-4" />
                   <span>Düzenle</span>
-                </Link>
+                </button>
                 <button
                   onClick={handleDelete}
                   className="btn-secondary text-red-600 hover:bg-red-50 flex items-center space-x-2"
@@ -169,6 +179,10 @@ export const RealEstateDetailPage: React.FC = () => {
                   <span>Sil</span>
                 </button>
               </div>
+            )}
+
+            {!isOwner && (
+              <FavoriteButton listingId={currentRealEstate.id} listingType="REAL_ESTATE" />
             )}
           </div>
 
@@ -191,19 +205,19 @@ export const RealEstateDetailPage: React.FC = () => {
                 <div className="text-lg font-semibold">{currentRealEstate.roomCount}</div>
                 <div className="text-sm text-gray-600">Oda Sayısı</div>
               </div>
-              
+
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Ruler className="h-6 w-6 mx-auto mb-2 text-primary-600" />
                 <div className="text-lg font-semibold">{currentRealEstate.squareMeter}</div>
                 <div className="text-sm text-gray-600">m² (Brüt)</div>
               </div>
-              
+
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Building className="h-6 w-6 mx-auto mb-2 text-primary-600" />
                 <div className="text-lg font-semibold">{currentRealEstate.buildingAge}</div>
                 <div className="text-sm text-gray-600">Bina Yaşı</div>
               </div>
-              
+
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Thermometer className="h-6 w-6 mx-auto mb-2 text-primary-600" />
                 <div className="text-lg font-semibold">{currentRealEstate.floor}</div>
@@ -256,14 +270,14 @@ export const RealEstateDetailPage: React.FC = () => {
                 <User className="h-5 w-5 text-gray-400" />
                 <span className="text-gray-900">{currentRealEstate.ownerUsername}</span>
               </div>
-              
+
               {isAuthenticated ? (
                 <>
                   <button className="w-full btn-primary flex items-center justify-center space-x-2">
                     <Phone className="h-4 w-4" />
                     <span>Telefonu Göster</span>
                   </button>
-                  
+
                   <button className="w-full btn-secondary flex items-center justify-center space-x-2">
                     <Mail className="h-4 w-4" />
                     <span>Mesaj Gönder</span>
@@ -323,6 +337,20 @@ export const RealEstateDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {currentRealEstate && (
+        <EditRealEstateModal
+          realEstate={currentRealEstate}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSuccess={() => {
+            if (id) {
+              fetchById(Number(id));
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

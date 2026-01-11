@@ -22,4 +22,6 @@ public class BaseListingResponse {
     private LocalDateTime updatedAt;
     private String createdByUsername;
     private String listingType;
+    private String imageUrl;
+    private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
 }

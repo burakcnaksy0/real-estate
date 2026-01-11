@@ -37,6 +37,9 @@ public class VehicleCreateRequest {
     @Size(max = 50)
     private String district;
 
+    @NotNull(message = "Offer type must be specified")
+    private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
+
     @NotBlank(message = "Brand cannot be blank")
     @Size(max = 50)
     private String brand;

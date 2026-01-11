@@ -10,7 +10,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class WorkplaceMapper {
 
-    public static Workplace toEntity(WorkplaceCreateRequest request , Category category){
+    public static Workplace toEntity(WorkplaceCreateRequest request, Category category) {
         if (request == null) {
             throw new IllegalArgumentException("WorkplaceCreateRequest cannot be null");
         }
@@ -27,7 +27,9 @@ public class WorkplaceMapper {
         workplace.setCity(request.getCity());
         workplace.setDistrict(request.getDistrict());
         workplace.setCategory(category);
+        workplace.setCategory(category);
         workplace.setStatus(ListingStatus.ACTIVE);
+        workplace.setOfferType(request.getOfferType());
 
         workplace.setWorkplaceType(request.getWorkplaceType());
         workplace.setSquareMeter(request.getSquareMeter());
@@ -37,7 +39,7 @@ public class WorkplaceMapper {
         return workplace;
     }
 
-    public static WorkplaceResponse toResponse(Workplace workplace){
+    public static WorkplaceResponse toResponse(Workplace workplace) {
         if (workplace == null) {
             throw new IllegalArgumentException("workplace cannot be null");
         }
@@ -55,6 +57,7 @@ public class WorkplaceMapper {
         response.setStatus(workplace.getStatus());
         response.setCreatedAt(workplace.getCreatedAt());
         response.setUpdatedAt(workplace.getUpdatedAt());
+        response.setOfferType(workplace.getOfferType());
 
         if (workplace.getCategory() != null) {
             response.setCategorySlug(workplace.getCategory().getSlug());
@@ -67,7 +70,7 @@ public class WorkplaceMapper {
         response.setFurnished(workplace.getFurnished());
 
         // user relationship
-        if (workplace.getCreatedBy() != null){
+        if (workplace.getCreatedBy() != null) {
             response.setOwnerId(workplace.getCreatedBy().getId());
             response.setOwnerUsername(workplace.getCreatedBy().getUsername());
         }
