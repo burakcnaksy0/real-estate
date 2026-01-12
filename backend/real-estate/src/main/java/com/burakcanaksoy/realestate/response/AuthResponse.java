@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -13,6 +14,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class AuthResponse {
     private String token;
+    @Builder.Default
     private String type = "Bearer";
     private Long id;
     private String username;
@@ -20,5 +22,8 @@ public class AuthResponse {
     private String name;
     private String surname;
     private String phoneNumber;
+    private String profilePicture;
     private Set<String> roles;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

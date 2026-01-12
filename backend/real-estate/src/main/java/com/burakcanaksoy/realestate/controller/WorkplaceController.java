@@ -19,43 +19,51 @@ import java.util.List;
 public class WorkplaceController {
     private final WorkplaceService workplaceService;
 
-    public WorkplaceController(WorkplaceService workplaceService){
+    public WorkplaceController(WorkplaceService workplaceService) {
         this.workplaceService = workplaceService;
     }
 
     @GetMapping()
-    public ResponseEntity<List<WorkplaceResponse>> getAllWorkplaces(){
+    public ResponseEntity<List<WorkplaceResponse>> getAllWorkplaces() {
         return new ResponseEntity<>(this.workplaceService.getAllWorkplaces(), HttpStatus.OK);
     }
 
     @GetMapping("/page")
-    public ResponseEntity<Page<WorkplaceResponse>> getAllWorkplacePage(Pageable pageable){
-        return new ResponseEntity<>(this.workplaceService.getAllWorkplaces(pageable),HttpStatus.OK);
+    public ResponseEntity<Page<WorkplaceResponse>> getAllWorkplacePage(Pageable pageable) {
+        return new ResponseEntity<>(this.workplaceService.getAllWorkplaces(pageable), HttpStatus.OK);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<WorkplaceResponse>> searchWorkplaces(@ModelAttribute WorkplaceFilterRequest filter, Pageable pageable){
+    public ResponseEntity<Page<WorkplaceResponse>> searchWorkplaces(@ModelAttribute WorkplaceFilterRequest filter,
+            Pageable pageable) {
         return new ResponseEntity<>(this.workplaceService.search(filter, pageable), HttpStatus.OK);
     }
 
     @PostMapping()
-    public ResponseEntity<WorkplaceResponse> createWorkplace(@RequestBody @Valid WorkplaceCreateRequest workplaceCreateRequest){
-        return new ResponseEntity<>(this.workplaceService.createWorkplace(workplaceCreateRequest),HttpStatus.CREATED);
+    public ResponseEntity<WorkplaceResponse> createWorkplace(
+            @RequestBody @Valid WorkplaceCreateRequest workplaceCreateRequest) {
+        return new ResponseEntity<>(this.workplaceService.createWorkplace(workplaceCreateRequest), HttpStatus.CREATED);
     }
 
     @GetMapping("/{workplaceId}")
-    public ResponseEntity<WorkplaceResponse> getWorkplaceById(@PathVariable Long workplaceId){
-        return new ResponseEntity<>(this.workplaceService.getWorkplaceById(workplaceId),HttpStatus.OK);
+    public ResponseEntity<WorkplaceResponse> getWorkplaceById(@PathVariable Long workplaceId) {
+        return new ResponseEntity<>(this.workplaceService.getWorkplaceById(workplaceId), HttpStatus.OK);
     }
 
     @DeleteMapping("/{workplaceId}")
-    public ResponseEntity<String> deleteWorkplace(@PathVariable Long workplaceId){
+    public ResponseEntity<String> deleteWorkplace(@PathVariable Long workplaceId) {
         this.workplaceService.deleteWorkplace(workplaceId);
-        return ResponseEntity.ok("Workplace deleted with this id : "+workplaceId);
+        return ResponseEntity.ok("Workplace deleted with this id : " + workplaceId);
     }
 
     @PutMapping("/{workplaceId}")
-    public ResponseEntity<WorkplaceResponse> updateWorkplace(@PathVariable Long workplaceId , @Valid @RequestBody WorkplaceUpdateRequest request){
-        return new ResponseEntity<>(this.workplaceService.updateWorkplace(workplaceId,request),HttpStatus.OK);
+    public ResponseEntity<WorkplaceResponse> updateWorkplace(@PathVariable Long workplaceId,
+            @Valid @RequestBody WorkplaceUpdateRequest request) {
+        return new ResponseEntity<>(this.workplaceService.updateWorkplace(workplaceId, request), HttpStatus.OK);
+    }
+
+    @GetMapping("/{workplaceId}/similar")
+    public ResponseEntity<List<WorkplaceResponse>> getSimilarWorkplaces(@PathVariable Long workplaceId) {
+        return new ResponseEntity<>(this.workplaceService.getSimilarWorkplaces(workplaceId), HttpStatus.OK);
     }
 }

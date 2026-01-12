@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+            import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { WorkplaceService } from '../../services/workplaceService';
 import { Workplace, WorkplaceFilterRequest } from '../../types';
-import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon, Plus } from 'lucide-react';
 
 export const WorkplaceListPage: React.FC = () => {
+    const navigate = useNavigate();
     const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -120,10 +121,21 @@ export const WorkplaceListPage: React.FC = () => {
         <div className="space-y-8">
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-2xl p-8">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">İşyeri İlanları</h1>
-                <p className="text-purple-100">
-                    {totalElements > 0 ? `${totalElements} işyeri ilanı bulundu` : 'İşyeri ilanlarını keşfedin'}
-                </p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl md:text-4xl font-bold mb-2">İşyeri İlanları</h1>
+                        <p className="text-purple-100">
+                            {totalElements > 0 ? `${totalElements} işyeri ilanı bulundu` : 'İşyeri ilanlarını keşfedin'}
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => navigate('/workplaces/create')}
+                        className="bg-white text-purple-600 hover:bg-purple-50 font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                    >
+                        <Plus className="w-5 h-5" />
+                        <span className="hidden sm:inline">İlan Ver</span>
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}

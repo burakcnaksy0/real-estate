@@ -9,6 +9,7 @@ import { LandCreateRequest, Currency, LandType, OfferType } from '../../types';
 import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
 import { ImageService } from '../../services/imageService';
 import { LandService } from '../../services/landService';
+import { LocationPicker } from '../../components/LocationPicker/LocationPicker';
 
 const landSchema = yup.object({
     title: yup.string().required('Başlık gereklidir').max(150),
@@ -38,6 +39,7 @@ export const LandCreatePage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [images, setImages] = useState<ImageFile[]>([]);
     const [uploadingImages, setUploadingImages] = useState(false);
+    const [location, setLocation] = useState<{ latitude?: number; longitude?: number }>({});
 
     const activeCategories = getActiveCategories();
 
@@ -58,7 +60,12 @@ export const LandCreatePage: React.FC = () => {
     const onSubmit = async (data: LandCreateRequest) => {
         try {
             setIsLoading(true);
-            const result = await LandService.create(data);
+            const landData = {
+                ...data,
+                latitude: location.latitude,
+                longitude: location.longitude,
+            };
+            const result = await LandService.create(landData);
             const listingId = result.id;
 
             // Upload images if any
@@ -272,6 +279,17 @@ export const LandCreatePage: React.FC = () => {
                             </select>
                         </div>
                     </div>
+                </div>
+
+                {/* Location */}
+                <div className="card p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Konum</h2>
+                    <LocationPicker
+                        latitude={location.latitude}
+                        longitude={location.longitude}
+                        onLocationChange={(lat, lng) => setLocation({ latitude: lat, longitude: lng })}
+                        height="350px"
+                    />
                 </div>
 
                 {/* Images */}

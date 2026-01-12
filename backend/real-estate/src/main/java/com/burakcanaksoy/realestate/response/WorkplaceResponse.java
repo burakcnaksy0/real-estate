@@ -2,6 +2,7 @@ package com.burakcanaksoy.realestate.response;
 
 import com.burakcanaksoy.realestate.model.enums.Currency;
 import com.burakcanaksoy.realestate.model.enums.ListingStatus;
+import com.burakcanaksoy.realestate.model.enums.OfferType;
 import com.burakcanaksoy.realestate.model.enums.WorkplaceType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -20,6 +21,8 @@ public class WorkplaceResponse {
         private String city;
         private String category;
         private String district;
+        private Double latitude;
+        private Double longitude;
         private ListingStatus status;
 
         private WorkplaceType workplaceType;
@@ -27,7 +30,7 @@ public class WorkplaceResponse {
         private Integer floorCount;
         private Boolean furnished;
         private String imageUrl;
-        private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
+        private OfferType offerType;
 
         private Long ownerId;
         private String ownerUsername;

@@ -28,6 +28,8 @@ public class LandMapper {
         land.setCurrency(request.getCurrency());
         land.setCity(request.getCity());
         land.setDistrict(request.getDistrict());
+        land.setLatitude(request.getLatitude());
+        land.setLongitude(request.getLongitude());
         land.setCategory(category);
         land.setCategory(category);
         land.setStatus(ListingStatus.ACTIVE);
@@ -59,6 +61,8 @@ public class LandMapper {
         response.setCurrency(land.getCurrency());
         response.setCity(land.getCity());
         response.setDistrict(land.getDistrict());
+        response.setLatitude(land.getLatitude());
+        response.setLongitude(land.getLongitude());
         response.setStatus(land.getStatus());
         response.setCreatedAt(land.getCreatedAt());
         response.setUpdatedAt(land.getUpdatedAt());

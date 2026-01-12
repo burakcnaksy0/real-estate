@@ -10,6 +10,8 @@ import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { WorkplaceService } from '../../services/workplaceService';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
+import { MapView } from '../../components/MapView/MapView';
+import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
 
 export const WorkplaceDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -18,6 +20,7 @@ export const WorkplaceDetailPage: React.FC = () => {
     const [workplace, setWorkplace] = useState<Workplace | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [images, setImages] = useState<ImageResponse[]>([]);
+    const [similarWorkplaces, setSimilarWorkplaces] = useState<Workplace[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -34,6 +37,15 @@ export const WorkplaceDetailPage: React.FC = () => {
                 } catch (imgError) {
                     console.error('Error fetching images:', imgError);
                 }
+
+                // Fetch similar workplaces
+                try {
+                    const similar = await WorkplaceService.getSimilar(Number(id));
+                    setSimilarWorkplaces(similar);
+                } catch (error) {
+                    console.error('Error fetching similar workplaces:', error);
+                }
+
             } catch (error) {
                 console.error('Error fetching workplace:', error);
             } finally {
@@ -191,12 +203,26 @@ export const WorkplaceDetailPage: React.FC = () => {
                     )}
 
                     {/* Map */}
-                    <div className="card p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
-                        <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <span className="text-gray-500">Harita (TODO)</span>
+                    {workplace.latitude && workplace.longitude && (
+                        <div className="card p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
+                            <MapView
+                                latitude={workplace.latitude}
+                                longitude={workplace.longitude}
+                                title={workplace.title}
+                                height="300px"
+                            />
                         </div>
-                    </div>
+                    )}
+                    {/* Nearby Places */}
+                    {workplace.latitude && workplace.longitude && (
+                        <div className="card p-6">
+                            <NearbyPlaces
+                                latitude={workplace.latitude}
+                                longitude={workplace.longitude}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Sidebar (Contact, etc) */}
@@ -241,22 +267,36 @@ export const WorkplaceDetailPage: React.FC = () => {
                     <div className="card p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Benzer İlanlar</h3>
                         <div className="space-y-4">
-                            {[...Array(3)].map((_, index) => (
-                                <div key={index} className="flex space-x-3">
-                                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                        <Briefcase className="h-6 w-6 text-gray-400" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900 truncate">
-                                            Benzer İşyeri {index + 1}
-                                        </p>
-                                        <p className="text-xs text-gray-600">Ofis • 100 m²</p>
-                                        <p className="text-sm font-semibold text-primary-600">
-                                            150.000 TL
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                            {similarWorkplaces.length === 0 ? (
+                                <p className="text-gray-500 text-sm">Benzer ilan bulunamadı.</p>
+                            ) : (
+                                similarWorkplaces.map((listing) => (
+                                    <Link key={listing.id} to={`/workplaces/${listing.id}`} className="flex space-x-3 group">
+                                        {listing.imageUrl ? (
+                                            <img
+                                                src={`${process.env.REACT_APP_API_BASE_URL}${listing.imageUrl}`}
+                                                alt={listing.title}
+                                                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                            />
+                                        ) : (
+                                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                                <Briefcase className="h-6 w-6 text-gray-400" />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 truncate group-hover:text-primary-600">
+                                                {listing.title}
+                                            </p>
+                                            <p className="text-xs text-gray-600">
+                                                {getWorkplaceTypeLabel(listing.workplaceType)} • {listing.squareMeter} m²
+                                            </p>
+                                            <p className="text-sm font-semibold text-primary-600">
+                                                {formatPrice(listing.price, listing.currency)}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

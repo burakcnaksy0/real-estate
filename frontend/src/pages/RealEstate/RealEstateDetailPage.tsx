@@ -21,6 +21,8 @@ import { EditRealEstateModal } from '../../components/Modals/EditRealEstateModal
 import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
+import { MapView } from '../../components/MapView/MapView';
+import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
 
 export const RealEstateDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +31,7 @@ export const RealEstateDetailPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [images, setImages] = React.useState<ImageResponse[]>([]);
+  const [similarListings, setSimilarListings] = React.useState<import('../../types').RealEstate[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -36,6 +39,13 @@ export const RealEstateDetailPage: React.FC = () => {
       ImageService.getListingImages(Number(id), 'REAL_ESTATE')
         .then(setImages)
         .catch(console.error);
+
+      // Fetch similar listings
+      import('../../services/realEstateService').then(({ RealEstateService }) => {
+        RealEstateService.getSimilar(Number(id))
+          .then(setSimilarListings)
+          .catch(console.error);
+      });
     }
   }, [id, fetchById]);
 
@@ -252,12 +262,27 @@ export const RealEstateDetailPage: React.FC = () => {
           )}
 
           {/* Map */}
-          <div className="card p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
-            <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-              <span className="text-gray-500">Harita (TODO)</span>
+          {currentRealEstate.latitude && currentRealEstate.longitude && (
+            <div className="card p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
+              <MapView
+                latitude={currentRealEstate.latitude}
+                longitude={currentRealEstate.longitude}
+                title={currentRealEstate.title}
+                height="300px"
+              />
             </div>
-          </div>
+          )}
+
+          {/* Nearby Places */}
+          {currentRealEstate.latitude && currentRealEstate.longitude && (
+            <div className="card p-6">
+              <NearbyPlaces
+                latitude={currentRealEstate.latitude}
+                longitude={currentRealEstate.longitude}
+              />
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -278,10 +303,15 @@ export const RealEstateDetailPage: React.FC = () => {
                     <span>Telefonu Göster</span>
                   </button>
 
-                  <button className="w-full btn-secondary flex items-center justify-center space-x-2">
-                    <Mail className="h-4 w-4" />
-                    <span>Mesaj Gönder</span>
-                  </button>
+                  {user?.id !== currentRealEstate.ownerId && (
+                    <button
+                      onClick={() => navigate(`/messages/${currentRealEstate.ownerId}`)}
+                      className="w-full btn-secondary flex items-center justify-center space-x-2"
+                    >
+                      <Mail className="h-4 w-4" />
+                      <span>Mesaj Gönder</span>
+                    </button>
+                  )}
                 </>
               ) : (
                 <div className="text-center py-4">
@@ -319,20 +349,37 @@ export const RealEstateDetailPage: React.FC = () => {
           <div className="card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Benzer İlanlar</h3>
             <div className="space-y-4">
-              {[...Array(3)].map((_, index) => (
-                <div key={index} className="flex space-x-3">
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      Benzer İlan {index + 1}
-                    </p>
-                    <p className="text-xs text-gray-600">2+1 • 85 m²</p>
-                    <p className="text-sm font-semibold text-primary-600">
-                      450.000 TL
-                    </p>
-                  </div>
-                </div>
-              ))}
+              {similarListings.length === 0 ? (
+                <p className="text-gray-500 text-sm">Benzer ilan bulunamadı.</p>
+              ) : (
+                similarListings.map((listing) => (
+                  <Link key={listing.id} to={`/real-estates/${listing.id}`} className="flex space-x-3 group">
+                    {listing.imageUrl ? (
+                      <img
+                        src={`${process.env.REACT_APP_API_BASE_URL}${listing.imageUrl}`}
+                        alt={listing.title}
+                        className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                        <Home className="h-6 w-6 text-gray-400" />
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate group-hover:text-primary-600">
+                        {listing.title}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {getRealEstateTypeLabel(listing.realEstateType)} • {listing.roomCount} Oda • {listing.squareMeter} m²
+                      </p>
+                      <p className="text-sm font-semibold text-primary-600">
+                        {formatPrice(listing.price, listing.currency)}
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </div>

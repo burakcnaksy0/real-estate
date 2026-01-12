@@ -7,13 +7,15 @@ import { BaseListing, Role, UpdateProfileRequest, ChangePasswordRequest, Favorit
 import { Link } from 'react-router-dom';
 import {
     User, Settings, Lock, Package, Edit2, Trash2, Eye,
-    MapPin, Calendar, LogOut, Shield, Phone, Mail, Save, Heart
+    MapPin, Calendar, LogOut, Shield, Phone, Mail, Save, Heart,
+    TrendingUp, CheckCircle, XCircle, Clock, Star, Award as AwardIcon
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
-import { checkAuthStatus } from '../store/slices/authSlice';
+import { checkAuthStatus, setUser } from '../store/slices/authSlice';
 import { AppDispatch } from '../store';
+import { formatDate } from '../utils/formatters';
 
 export const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -24,7 +26,6 @@ export const ProfilePage: React.FC = () => {
     const [loadingListings, setLoadingListings] = useState(false);
     const [loadingFavorites, setLoadingFavorites] = useState(false);
 
-    // Forms
     const {
         register: registerProfile,
         handleSubmit: handleProfileSubmit,
@@ -83,7 +84,7 @@ export const ProfilePage: React.FC = () => {
         try {
             await UserService.updateProfile(data);
             toast.success('Profil bilgileriniz güncellendi.');
-            dispatch(checkAuthStatus()); // Refresh user data in store
+            dispatch(checkAuthStatus());
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Profil güncellenemedi.');
         }
@@ -107,126 +108,318 @@ export const ProfilePage: React.FC = () => {
         }
     };
 
-    const getDetailUrl = (listing: BaseListing): string => {
-        if (listing.listingType === 'REAL_ESTATE') return `/real-estates/${listing.id}`;
-        if (listing.listingType === 'VEHICLE') return `/vehicles/${listing.id}`;
-        if (listing.listingType === 'LAND') return `/lands/${listing.id}`;
-        if (listing.listingType === 'WORKPLACE') return `/workplaces/${listing.id}`;
+    const getDetailUrl = (listing: BaseListing | Favorite): string => {
+        // Favorite objeleri için listingId, BaseListing objeleri için id kullanılır
+        const listingId = 'listingId' in listing ? listing.listingId : listing.id;
 
-        const slug = listing.categorySlug?.toLowerCase();
-        switch (slug) {
-            case 'konut': case 'emlak': return `/real-estates/${listing.id}`;
-            case 'vasita': case 'arac': case 'vehicle': return `/vehicles/${listing.id}`;
-            case 'arsa': case 'land': return `/lands/${listing.id}`;
-            case 'isyeri': case 'workplace': return `/workplaces/${listing.id}`;
-            default: return `/listings/${listing.id}`;
+        if (listing.listingType === 'REAL_ESTATE') return `/real-estates/${listingId}`;
+        if (listing.listingType === 'VEHICLE') return `/vehicles/${listingId}`;
+        if (listing.listingType === 'LAND') return `/lands/${listingId}`;
+        if (listing.listingType === 'WORKPLACE') return `/workplaces/${listingId}`;
+
+        // categorySlug sadece BaseListing'de var
+        if ('categorySlug' in listing) {
+            const slug = listing.categorySlug?.toLowerCase();
+            switch (slug) {
+                case 'konut': case 'emlak': return `/real-estates/${listingId}`;
+                case 'vasita': case 'arac': case 'vehicle': return `/vehicles/${listingId}`;
+                case 'arsa': case 'land': return `/lands/${listingId}`;
+                case 'isyeri': case 'workplace': return `/workplaces/${listingId}`;
+            }
         }
-    };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('tr-TR', {
-            year: 'numeric', month: 'long', day: 'numeric'
-        });
+        return `/listings/${listingId}`;
     };
 
     if (!user) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <h2 className="text-2xl font-bold mb-4">Oturum Açmanız Gerekiyor</h2>
-                <Link to="/login" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Giriş Yap</Link>
+                <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-md text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <User className="h-10 w-10 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4">Oturum Açmanız Gerekiyor</h2>
+                    <p className="text-gray-600 mb-6">Profil sayfanıza erişmek için lütfen giriş yapın.</p>
+                    <Link to="/login" className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg transition-all">Giriş Yap</Link>
+                </div>
             </div>
         );
     }
 
+    const activeListings = myListings.filter(l => l.status === 'ACTIVE').length;
+    const soldListings = myListings.filter(l => l.status === 'SOLD').length;
+
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-            {/* Header Info */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-8 bg-gradient-to-r from-blue-50 to-white border border-blue-100">
-                <div className="w-24 h-24 md:w-32 md:h-32 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-bold border-4 border-white shadow-lg shrink-0">
-                    {user.name ? user.name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 text-center md:text-left">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{user.name} {user.surname}</h1>
-                    <p className="text-gray-500 font-medium text-lg">@{user.username}</p>
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-                            <Mail className="w-4 h-4 text-blue-500" />{user.email}
-                        </div>
-                        {user.phoneNumber && (
-                            <div className="flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-                                <Phone className="w-4 h-4 text-blue-500" />{user.phoneNumber}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            {/* Modern Hero Header */}
+            <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utb3BhY2l0eT0iLjEiLz48L2c+PC9zdmc+')] opacity-20"></div>
+
+                <div className="relative px-8 py-12">
+                    <div className="flex flex-col lg:flex-row items-center gap-8">
+                        {/* Avatar Section */}
+                        <div className="relative group">
+                            <div className="w-36 h-36 rounded-3xl bg-white/10 backdrop-blur-lg p-1.5 shadow-2xl border border-white/20 relative overflow-hidden">
+                                {user.profilePicture ? (
+                                    <img
+                                        src={`http://localhost:8080/uploads/users/${user.id}/${user.profilePicture.split('\\').pop()?.split('/').pop()}`}
+                                        alt={user.name}
+                                        className="w-full h-full rounded-[20px] object-cover"
+                                        onError={(e) => {
+                                            // Fallback if image fails to load
+                                            e.currentTarget.style.display = 'none';
+                                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                        }}
+                                    />
+                                ) : null}
+                                <div className={`w-full h-full rounded-[20px] bg-gradient-to-br from-white to-blue-100 flex items-center justify-center text-blue-600 text-5xl font-bold shadow-inner ${user.profilePicture ? 'hidden' : ''}`}>
+                                    {user.name ? user.name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
+                                </div>
                             </div>
-                        )}
-                        <div className="flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-                            <Shield className="w-4 h-4 text-green-600" />
-                            {user.roles.includes(Role.ROLE_ADMIN) ? 'Yönetici' : 'Bireysel Üye'}
+                            <input
+                                type="file"
+                                id="profilePictureInput"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                        const file = e.target.files[0];
+                                        if (file.size > 5000000) {
+                                            toast.error('Dosya boyutu 5MB dan küçük olmalı');
+                                            return;
+                                        }
+                                        try {
+                                            const updatedUser = await UserService.updateProfilePicture(file);
+                                            toast.success('Profil fotoğrafı güncellendi');
+                                            dispatch(setUser(updatedUser)); // Update global state and localStorage
+                                            // dispatch(checkAuthStatus()); // No longer needed if we set user directly
+                                        } catch (error) {
+                                            toast.error('Profil fotoğrafı güncellenemedi');
+                                        }
+                                    }
+                                }}
+                            />
+                            <button
+                                onClick={() => document.getElementById('profilePictureInput')?.click()}
+                                className="absolute -bottom-2 -right-2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all hover:scale-110 z-10"
+                            >
+                                <Edit2 className="h-5 w-5 text-blue-600" />
+                            </button>
                         </div>
+
+                        {/* User Info */}
+                        <div className="flex-1 text-center lg:text-left">
+                            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-white text-sm font-semibold mb-3 border border-white/30">
+                                <Shield className="w-4 h-4" />
+                                {user.roles.includes(Role.ROLE_ADMIN) ? 'Yönetici' : 'Bireysel Üye'}
+                            </div>
+                            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+                                {user.name} {user.surname}
+                            </h1>
+                            <p className="text-blue-100 text-xl mb-6">@{user.username}</p>
+
+                            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-white border border-white/30">
+                                    <Mail className="w-4 h-4" />
+                                    <span className="text-sm font-medium">{user.email}</span>
+                                </div>
+                                {user.phoneNumber && (
+                                    <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-white border border-white/30">
+                                        <Phone className="w-4 h-4" />
+                                        <span className="text-sm font-medium">{user.phoneNumber}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-white border border-white/30">
+                                    <Calendar className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Üyelik: {formatDate(user.createdAt)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Logout Button */}
+                        <button
+                            onClick={logout}
+                            className="flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-xl transition-all font-semibold border border-white/30 hover:border-white/50 shadow-lg"
+                        >
+                            <LogOut className="w-5 h-5" />
+                            Çıkış Yap
+                        </button>
                     </div>
-                </div>
-                <div className="shrink-0">
-                    <button onClick={logout} className="flex items-center gap-2 px-6 py-3 bg-white text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors font-medium shadow-sm hover:shadow-md">
-                        <LogOut className="w-5 h-5" />Çıkış Yap
-                    </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Sidebar */}
-                <div className="md:col-span-1">
-                    <div className="bg-white rounded-xl shadow-sm overflow-hidden sticky top-6">
-                        <nav className="flex flex-col p-2 space-y-1">
-                            <button onClick={() => setActiveTab('listings')} className={`flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${activeTab === 'listings' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                <Package className="w-5 h-5" /><span>İlanlarım ve Portföy</span>
-                            </button>
-                            <button onClick={() => setActiveTab('favorites')} className={`flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${activeTab === 'favorites' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                <Heart className="w-5 h-5" /><span>Favorilerim</span>
-                            </button>
-                            <button onClick={() => setActiveTab('profile')} className={`flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${activeTab === 'profile' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                <User className="w-5 h-5" /><span>Profil Bilgileri</span>
-                            </button>
-                            <button onClick={() => setActiveTab('security')} className={`flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${activeTab === 'security' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                <Lock className="w-5 h-5" /><span>Şifre ve Güvenlik</span>
-                            </button>
-                        </nav>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all hover:-translate-y-1 group">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="bg-blue-100 rounded-xl p-3 group-hover:scale-110 transition-transform">
+                            <Package className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <TrendingUp className="h-5 w-5 text-green-500" />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{myListings.length}</div>
+                    <div className="text-gray-600 font-medium">Toplam İlan</div>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all hover:-translate-y-1 group">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="bg-green-100 rounded-xl p-3 group-hover:scale-110 transition-transform">
+                            <CheckCircle className="h-6 w-6 text-green-600" />
+                        </div>
+                        <Star className="h-5 w-5 text-yellow-500" />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{activeListings}</div>
+                    <div className="text-gray-600 font-medium">Aktif İlan</div>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all hover:-translate-y-1 group">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="bg-red-100 rounded-xl p-3 group-hover:scale-110 transition-transform">
+                            <Heart className="h-6 w-6 text-red-600" />
+                        </div>
+                        <AwardIcon className="h-5 w-5 text-purple-500" />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{myFavorites.length}</div>
+                    <div className="text-gray-600 font-medium">Favori</div>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all hover:-translate-y-1 group">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="bg-purple-100 rounded-xl p-3 group-hover:scale-110 transition-transform">
+                            <XCircle className="h-6 w-6 text-purple-600" />
+                        </div>
+                        <Clock className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{soldListings}</div>
+                    <div className="text-gray-600 font-medium">Satılan</div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Modern Sidebar */}
+                <div className="lg:col-span-1">
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-6 border border-gray-100">
+                        <div className="p-2">
+                            <nav className="space-y-2">
+                                {[
+                                    { id: 'listings', icon: Package, label: 'İlanlarım', color: 'blue' },
+                                    { id: 'favorites', icon: Heart, label: 'Favorilerim', color: 'red' },
+                                    { id: 'profile', icon: User, label: 'Profil Bilgileri', color: 'green' },
+                                    { id: 'security', icon: Lock, label: 'Güvenlik', color: 'purple' }
+                                ].map(tab => {
+                                    const Icon = tab.icon;
+                                    const isActive = activeTab === tab.id;
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id as any)}
+                                            className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl transition-all font-semibold group ${isActive
+                                                ? `bg-gradient-to-r from-${tab.color}-500 to-${tab.color}-600 text-white shadow-lg shadow-${tab.color}-500/30`
+                                                : 'text-gray-600 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <Icon className={`w-5 h-5 ${isActive ? '' : 'group-hover:scale-110 transition-transform'}`} />
+                                            <span>{tab.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </nav>
+                        </div>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="md:col-span-3">
+                {/* Content Area */}
+                <div className="lg:col-span-3">
                     {activeTab === 'listings' && (
-                        <div className="bg-white rounded-xl shadow-sm p-6 min-h-[500px]">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-                                <div><h2 className="text-xl font-bold text-gray-900">İlanlarım</h2><p className="text-gray-500 text-sm mt-1">Yayınladığınız ve pasife aldığınız tüm ilanlar</p></div>
+                        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-2">İlanlarım</h2>
+                                    <p className="text-gray-600">Yayınladığınız ve pasife aldığınız tüm ilanlar</p>
+                                </div>
+                                <Link
+                                    to="/create"
+                                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 font-semibold shadow-lg transition-all hover:-translate-y-0.5"
+                                >
+                                    <Package className="w-5 h-5" />
+                                    Yeni İlan
+                                </Link>
                             </div>
+
                             {loadingListings ? (
-                                <div className="flex flex-col items-center justify-center py-12">
-                                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div><p className="text-gray-500">İlanlarınız yükleniyor...</p>
+                                <div className="flex flex-col items-center justify-center py-20">
+                                    <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+                                    <p className="text-gray-600 font-medium">İlanlarınız yükleniyor...</p>
                                 </div>
                             ) : myListings.length === 0 ? (
-                                <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"><Package className="w-8 h-8 text-blue-600" /></div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Henüz ilanınız bulunmuyor</h3>
-                                    <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">Hemen İlan Ver</Link>
+                                <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-dashed border-gray-300">
+                                    <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                                        <Package className="w-10 h-10 text-white" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-3">Henüz ilanınız bulunmuyor</h3>
+                                    <p className="text-gray-600 mb-6">İlk ilanınızı oluşturun ve satışa başlayın!</p>
+                                    <Link
+                                        to="/create"
+                                        className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg transition-all"
+                                    >
+                                        Hemen İlan Ver
+                                    </Link>
                                 </div>
                             ) : (
                                 <div className="space-y-4">
                                     {myListings.map(listing => (
-                                        <div key={listing.id} className="flex flex-col sm:flex-row gap-5 p-5 border border-gray-100 rounded-xl hover:border-blue-300 hover:shadow-md transition-all bg-white group">
-                                            <div className="w-full sm:w-48 h-32 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 border border-gray-200"><Package className="w-10 h-10 text-gray-400 group-hover:text-blue-500 transition-colors" /></div>
-                                            <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                                <div>
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <div className="flex-1 min-w-0">
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-1">{listing.categoryName || listing.listingType}</span>
-                                                            <h3 className="text-lg font-bold text-gray-900 truncate pr-2 group-hover:text-blue-600 transition-colors" title={listing.title}>{listing.title}</h3>
-                                                        </div>
-                                                        <span className={`shrink-0 whitespace-nowrap px-3 py-1 text-xs font-bold rounded-full border ${listing.status === 'ACTIVE' ? 'bg-green-100 text-green-700 border-green-200' : listing.status === 'SOLD' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>{listing.status === 'ACTIVE' ? 'Yayında' : listing.status === 'SOLD' ? 'Satıldı' : 'Pasif'}</span>
-                                                    </div>
-                                                    <div className="mt-3 flex items-center gap-4 text-sm text-gray-500"><span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {listing.city}, {listing.district}</span><span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {formatDate(listing.createdAt)}</span></div>
+                                        <div
+                                            key={listing.id}
+                                            className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all p-6"
+                                        >
+                                            <div className="flex flex-col md:flex-row gap-6">
+                                                <div className="w-full md:w-48 h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center overflow-hidden border-2 border-gray-200 group-hover:border-blue-300 transition-all">
+                                                    <Package className="w-12 h-12 text-gray-400 group-hover:text-blue-500 transition-colors group-hover:scale-110" />
                                                 </div>
-                                                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                    <div className="text-xl font-bold text-blue-700">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: listing.currency }).format(listing.price)}</div>
-                                                    <Link to={getDetailUrl(listing)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 font-medium transition-colors"><Eye className="w-4 h-4" /> Görüntüle</Link>
+
+                                                <div className="flex-1">
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex-1">
+                                                            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 mb-2">
+                                                                {listing.categoryName || listing.listingType}
+                                                            </span>
+                                                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                                                {listing.title}
+                                                            </h3>
+                                                        </div>
+                                                        <span className={`px-4 py-2 text-sm font-bold rounded-xl border-2 ${listing.status === 'ACTIVE'
+                                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                                            : listing.status === 'SOLD'
+                                                                ? 'bg-red-50 text-red-700 border-red-200'
+                                                                : 'bg-gray-50 text-gray-700 border-gray-200'
+                                                            }`}>
+                                                            {listing.status === 'ACTIVE' ? '✓ Yayında' : listing.status === 'SOLD' ? '✕ Satıldı' : '⊗ Pasif'}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+                                                        <span className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
+                                                            <MapPin className="w-4 h-4 text-blue-500" />
+                                                            {listing.city}, {listing.district}
+                                                        </span>
+                                                        <span className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
+                                                            <Calendar className="w-4 h-4 text-purple-500" />
+                                                            {formatDate(listing.createdAt)}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                                                        <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: listing.currency }).format(listing.price)}
+                                                        </div>
+                                                        <Link
+                                                            to={getDetailUrl(listing)}
+                                                            className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                            Görüntüle
+                                                        </Link>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -237,40 +430,88 @@ export const ProfilePage: React.FC = () => {
                     )}
 
                     {activeTab === 'favorites' && (
-                        <div className="bg-white rounded-xl shadow-sm p-6 min-h-[500px]">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-                                <div><h2 className="text-xl font-bold text-gray-900">Favorilerim</h2><p className="text-gray-500 text-sm mt-1">Beğendiğiniz ve kaydettiğiniz ilanlar</p></div>
+                        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Favorilerim</h2>
+                                    <p className="text-gray-600">Beğendiğiniz ve kaydettiğiniz ilanlar</p>
+                                </div>
                             </div>
+
                             {loadingFavorites ? (
-                                <div className="flex flex-col items-center justify-center py-12">
-                                    <div className="w-12 h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-4"></div><p className="text-gray-500">Favorileriniz yükleniyor...</p>
+                                <div className="flex flex-col items-center justify-center py-20">
+                                    <div className="w-16 h-16 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-6"></div>
+                                    <p className="text-gray-600 font-medium">Favorileriniz yükleniyor...</p>
                                 </div>
                             ) : myFavorites.length === 0 ? (
-                                <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><Heart className="w-8 h-8 text-red-600" /></div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Henüz favori ilanınız yok</h3>
-                                    <p className="text-gray-500 mb-4">Beğendiğiniz ilanları favorilere ekleyerek buradan kolayca erişebilirsiniz</p>
-                                    <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">İlanları Keşfet</Link>
+                                <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-red-50 rounded-2xl border-2 border-dashed border-gray-300">
+                                    <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                                        <Heart className="w-10 h-10 text-white" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-3">Henüz favori ilanınız yok</h3>
+                                    <p className="text-gray-600 mb-6">Beğendiğiniz ilanları favorilere ekleyerek buradan kolayca erişebilirsiniz</p>
+                                    <Link
+                                        to="/"
+                                        className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-xl hover:from-red-700 hover:to-pink-700 font-semibold shadow-lg transition-all"
+                                    >
+                                        İlanları Keşfet
+                                    </Link>
                                 </div>
                             ) : (
                                 <div className="space-y-4">
                                     {myFavorites.map(favorite => (
-                                        <div key={favorite.id} className="flex flex-col sm:flex-row gap-5 p-5 border border-gray-100 rounded-xl hover:border-red-300 hover:shadow-md transition-all bg-white group">
-                                            <div className="w-full sm:w-48 h-32 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 border border-gray-200"><Heart className="w-10 h-10 text-gray-400 group-hover:text-red-500 transition-colors" /></div>
-                                            <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                                <div>
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <div className="flex-1 min-w-0">
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 mb-1">{favorite.listingType}</span>
-                                                            <h3 className="text-lg font-bold text-gray-900 truncate pr-2 group-hover:text-red-600 transition-colors" title={favorite.title}>{favorite.title}</h3>
-                                                        </div>
-                                                        <span className={`shrink-0 whitespace-nowrap px-3 py-1 text-xs font-bold rounded-full border ${favorite.status === 'ACTIVE' ? 'bg-green-100 text-green-700 border-green-200' : favorite.status === 'SOLD' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>{favorite.status === 'ACTIVE' ? 'Yayında' : favorite.status === 'SOLD' ? 'Satıldı' : 'Pasif'}</span>
-                                                    </div>
-                                                    <div className="mt-3 flex items-center gap-4 text-sm text-gray-500"><span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {favorite.city}, {favorite.district}</span><span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {formatDate(favorite.createdAt)}</span></div>
+                                        <div
+                                            key={favorite.id}
+                                            className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 hover:border-red-300 hover:shadow-xl transition-all p-6"
+                                        >
+                                            <div className="flex flex-col md:flex-row gap-6">
+                                                <div className="w-full md:w-48 h-40 bg-gradient-to-br from-red-100 to-pink-100 rounded-xl flex items-center justify-center overflow-hidden border-2 border-red-200 group-hover:border-red-300 transition-all">
+                                                    <Heart className="w-12 h-12 text-red-400 group-hover:text-red-500 transition-colors group-hover:scale-110 fill-current" />
                                                 </div>
-                                                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                    <div className="text-xl font-bold text-red-700">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: favorite.currency }).format(favorite.price)}</div>
-                                                    <Link to={`/${favorite.listingType.toLowerCase().replace('_', '-')}s/${favorite.listingId}`} className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 font-medium transition-colors"><Eye className="w-4 h-4" /> Görüntüle</Link>
+
+                                                <div className="flex-1">
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex-1">
+                                                            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 mb-2">
+                                                                {favorite.listingType}
+                                                            </span>
+                                                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-red-600 transition-colors">
+                                                                {favorite.title}
+                                                            </h3>
+                                                        </div>
+                                                        <span className={`px-4 py-2 text-sm font-bold rounded-xl border-2 ${favorite.status === 'ACTIVE'
+                                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                                            : favorite.status === 'SOLD'
+                                                                ? 'bg-red-50 text-red-700 border-red-200'
+                                                                : 'bg-gray-50 text-gray-700 border-gray-200'
+                                                            }`}>
+                                                            {favorite.status === 'ACTIVE' ? '✓ Yayında' : favorite.status === 'SOLD' ? '✕ Satıldı' : '⊗ Pasif'}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
+                                                        <span className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
+                                                            <MapPin className="w-4 h-4 text-red-500" />
+                                                            {favorite.city}, {favorite.district}
+                                                        </span>
+                                                        <span className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
+                                                            <Calendar className="w-4 h-4 text-purple-500" />
+                                                            {formatDate(favorite.createdAt)}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                                                        <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
+                                                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: favorite.currency }).format(favorite.price)}
+                                                        </div>
+                                                        <Link
+                                                            to={getDetailUrl(favorite)}
+                                                            className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                            Görüntüle
+                                                        </Link>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -281,19 +522,71 @@ export const ProfilePage: React.FC = () => {
                     )}
 
                     {activeTab === 'profile' && (
-                        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-                            <div className="border-b border-gray-100 pb-6 mb-8"><h2 className="text-xl font-bold text-gray-900">Profil Bilgileri</h2><p className="text-gray-500 text-sm mt-1">Kişisel bilgilerinizi buradan güncelleyebilirsiniz</p></div>
-                            <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-6 max-w-2xl">
+                        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div className="mb-8">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Profil Bilgileri</h2>
+                                <p className="text-gray-600">Kişisel bilgilerinizi güncelleyin</p>
+                            </div>
+
+                            <form onSubmit={handleProfileSubmit(onProfileSubmit)} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div><label className="block text-sm font-semibold text-gray-700 mb-2">Ad</label><input {...registerProfile('name')} type="text" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" /></div>
-                                    <div><label className="block text-sm font-semibold text-gray-700 mb-2">Soyad</label><input {...registerProfile('surname')} type="text" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" /></div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Ad
+                                        </label>
+                                        <input
+                                            type="text"
+                                            {...registerProfile('name')}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                            placeholder="Adınız"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Soyad
+                                        </label>
+                                        <input
+                                            type="text"
+                                            {...registerProfile('surname')}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                            placeholder="Soyadınız"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            E-posta
+                                        </label>
+                                        <input
+                                            type="email"
+                                            {...registerProfile('email')}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                            placeholder="ornek@email.com"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Telefon
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            {...registerProfile('phoneNumber')}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                            placeholder="+90 555 123 45 67"
+                                        />
+                                    </div>
                                 </div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-2">Kullanıcı Adı</label><div className="relative"><span className="absolute left-4 top-3 text-gray-400">@</span><input type="text" value={user.username} readOnly className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2.5 bg-gray-50 text-gray-500 cursor-not-allowed" /></div></div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-2">E-posta</label><div className="relative"><Mail className="absolute left-4 top-3 w-5 h-5 text-gray-400" /><input {...registerProfile('email')} type="email" className="w-full border border-gray-300 rounded-lg pl-12 pr-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" /></div></div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-2">Telefon</label><div className="relative"><Phone className="absolute left-4 top-3 w-5 h-5 text-gray-400" /><input {...registerProfile('phoneNumber')} type="tel" className="w-full border border-gray-300 rounded-lg pl-12 pr-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" /></div></div>
-                                <div className="pt-6 flex items-center justify-end border-t border-gray-100">
-                                    <button type="submit" disabled={isProfileSubmitting} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm disabled:opacity-50">
-                                        {isProfileSubmitting ? 'Kaydediliyor...' : <><Save className="w-4 h-4" /> Değişiklikleri Kaydet</>}
+
+                                <div className="flex justify-end pt-6 border-t border-gray-200">
+                                    <button
+                                        type="submit"
+                                        disabled={isProfileSubmitting}
+                                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 font-semibold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Save className="w-5 h-5" />
+                                        {isProfileSubmitting ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
                                     </button>
                                 </div>
                             </form>
@@ -301,15 +594,71 @@ export const ProfilePage: React.FC = () => {
                     )}
 
                     {activeTab === 'security' && (
-                        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-                            <div className="border-b border-gray-100 pb-6 mb-8"><h2 className="text-xl font-bold text-gray-900">Şifre ve Güvenlik</h2><p className="text-gray-500 text-sm mt-1">Hesap şifrenizi güncelleyin</p></div>
-                            <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-6 max-w-lg">
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-2">Mevcut Şifre</label><input {...registerPassword('currentPassword', { required: 'Mevcut şifre gereklidir' })} type="password" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />{passwordErrors.currentPassword && <p className="text-red-500 text-xs mt-1">{passwordErrors.currentPassword.message}</p>}</div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-2">Yeni Şifre</label><input {...registerPassword('newPassword', { required: 'Yeni şifre gereklidir', minLength: { value: 6, message: 'En az 6 karakter olmalı' } })} type="password" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" /><p className="text-xs text-gray-500 mt-1">En az 6 karakter olmalı</p>{passwordErrors.newPassword && <p className="text-red-500 text-xs mt-1">{passwordErrors.newPassword.message}</p>}</div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-2">Yeni Şifre (Tekrar)</label><input {...registerPassword('confirmPassword', { required: 'Şifre tekrarı gereklidir' })} type="password" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />{passwordErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{passwordErrors.confirmPassword.message}</p>}</div>
-                                <div className="pt-6 flex items-center justify-end border-t border-gray-100">
-                                    <button type="submit" disabled={isPasswordSubmitting} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm disabled:opacity-50">
-                                        {isPasswordSubmitting ? 'Güncelleniyor...' : <><Lock className="w-4 h-4" /> Şifreyi Güncelle</>}
+                        <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                            <div className="mb-8">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Güvenlik Ayarları</h2>
+                                <p className="text-gray-600">Şifrenizi değiştirin ve hesabınızı güvende tutun</p>
+                            </div>
+
+                            <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-6">
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Mevcut Şifre
+                                        </label>
+                                        <input
+                                            type="password"
+                                            {...registerPassword('currentPassword', { required: 'Mevcut şifre gerekli' })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                                            placeholder="••••••••"
+                                        />
+                                        {passwordErrors.currentPassword && (
+                                            <p className="mt-2 text-sm text-red-600">{passwordErrors.currentPassword.message}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Yeni Şifre
+                                        </label>
+                                        <input
+                                            type="password"
+                                            {...registerPassword('newPassword', {
+                                                required: 'Yeni şifre gerekli',
+                                                minLength: { value: 6, message: 'Şifre en az 6 karakter olmalı' }
+                                            })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                                            placeholder="••••••••"
+                                        />
+                                        {passwordErrors.newPassword && (
+                                            <p className="mt-2 text-sm text-red-600">{passwordErrors.newPassword.message}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Yeni Şifre (Tekrar)
+                                        </label>
+                                        <input
+                                            type="password"
+                                            {...registerPassword('confirmPassword', { required: 'Şifre tekrarı gerekli' })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                                            placeholder="••••••••"
+                                        />
+                                        {passwordErrors.confirmPassword && (
+                                            <p className="mt-2 text-sm text-red-600">{passwordErrors.confirmPassword.message}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end pt-6 border-t border-gray-200">
+                                    <button
+                                        type="submit"
+                                        disabled={isPasswordSubmitting}
+                                        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 font-semibold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Lock className="w-5 h-5" />
+                                        {isPasswordSubmitting ? 'Değiştiriliyor...' : 'Şifreyi Değiştir'}
                                     </button>
                                 </div>
                             </form>

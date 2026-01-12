@@ -21,8 +21,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { Currency, FuelType, Transmission } from '../../types';
 import { EditVehicleModal } from '../../components/Modals/EditVehicleModal';
 import { ImageResponse, ImageService } from '../../services/imageService';
+import { VehicleService } from '../../services/vehicleService';
+import { Vehicle } from '../../types';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
+import { MapView } from '../../components/MapView/MapView';
 
 export const VehicleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,12 +35,17 @@ export const VehicleDetailPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [images, setImages] = React.useState<ImageResponse[]>([]);
+  const [similarVehicles, setSimilarVehicles] = React.useState<Vehicle[]>([]);
 
   useEffect(() => {
     if (id) {
       dispatch(fetchVehicleByIdAsync(Number(id)));
       ImageService.getListingImages(Number(id), 'VEHICLE')
         .then(setImages)
+        .catch(console.error);
+
+      VehicleService.getSimilar(Number(id))
+        .then(setSimilarVehicles)
         .catch(console.error);
     }
   }, [id, dispatch]);
@@ -260,12 +268,17 @@ export const VehicleDetailPage: React.FC = () => {
           )}
 
           {/* Map */}
-          <div className="card p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
-            <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-              <span className="text-gray-500">Harita (TODO)</span>
+          {currentVehicle.latitude && currentVehicle.longitude && (
+            <div className="card p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
+              <MapView
+                latitude={currentVehicle.latitude}
+                longitude={currentVehicle.longitude}
+                title={currentVehicle.title}
+                height="300px"
+              />
             </div>
-          </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -286,10 +299,15 @@ export const VehicleDetailPage: React.FC = () => {
                     <span>Telefonu Göster</span>
                   </button>
 
-                  <button className="w-full btn-secondary flex items-center justify-center space-x-2">
-                    <Mail className="h-4 w-4" />
-                    <span>Mesaj Gönder</span>
-                  </button>
+                  {user?.id !== currentVehicle.ownerId && (
+                    <button
+                      onClick={() => navigate(`/messages/${currentVehicle.ownerId}`)}
+                      className="w-full btn-secondary flex items-center justify-center space-x-2"
+                    >
+                      <Mail className="h-4 w-4" />
+                      <span>Mesaj Gönder</span>
+                    </button>
+                  )}
                 </>
               ) : (
                 <div className="text-center py-4">
@@ -327,22 +345,42 @@ export const VehicleDetailPage: React.FC = () => {
           <div className="card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Benzer İlanlar</h3>
             <div className="space-y-4">
-              {[...Array(3)].map((_, index) => (
-                <div key={index} className="flex space-x-3">
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
-                    <Car className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      Benzer Araç {index + 1}
-                    </p>
-                    <p className="text-xs text-gray-600">2020 • 50.000 km</p>
-                    <p className="text-sm font-semibold text-primary-600">
-                      250.000 TL
-                    </p>
-                  </div>
-                </div>
-              ))}
+              {similarVehicles.length === 0 ? (
+                <p className="text-gray-500 text-sm">Benzer ilan bulunamadı.</p>
+              ) : (
+                similarVehicles.map((vehicle: Vehicle) => (
+                  <Link
+                    key={vehicle.id}
+                    to={`/vehicles/${vehicle.id}`}
+                    className="flex space-x-3 group cursor-pointer"
+                  >
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 relative overflow-hidden">
+                      {vehicle.imageUrl ? (
+                        <img
+                          src={process.env.REACT_APP_API_BASE_URL + vehicle.imageUrl}
+                          alt={vehicle.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                          <Car className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">
+                        {vehicle.title}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {vehicle.year} • {vehicle.kilometer?.toLocaleString()} km
+                      </p>
+                      <p className="text-sm font-semibold text-primary-600">
+                        {formatPrice(vehicle.price, vehicle.currency)}
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </div>

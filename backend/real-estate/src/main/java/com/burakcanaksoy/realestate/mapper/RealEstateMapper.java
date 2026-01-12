@@ -25,6 +25,8 @@ public class RealEstateMapper {
         realEstate.setCurrency(request.getCurrency());
         realEstate.setCity(request.getCity());
         realEstate.setDistrict(request.getDistrict());
+        realEstate.setLatitude(request.getLatitude());
+        realEstate.setLongitude(request.getLongitude());
         realEstate.setCategory(category);
         realEstate.setCategory(category);
         realEstate.setStatus(ListingStatus.ACTIVE);
@@ -54,6 +56,8 @@ public class RealEstateMapper {
         response.setCurrency(realEstate.getCurrency());
         response.setCity(realEstate.getCity());
         response.setDistrict(realEstate.getDistrict());
+        response.setLatitude(realEstate.getLatitude());
+        response.setLongitude(realEstate.getLongitude());
         response.setStatus(realEstate.getStatus());
         response.setCreatedAt(realEstate.getCreatedAt());
         response.setUpdatedAt(realEstate.getUpdatedAt());

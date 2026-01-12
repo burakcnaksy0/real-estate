@@ -1,10 +1,10 @@
 import { api, buildQueryString, buildPageParams } from './api';
-import { 
-  Workplace, 
-  WorkplaceCreateRequest, 
+import {
+  Workplace,
+  WorkplaceCreateRequest,
   WorkplaceFilterRequest,
-  PageResponse, 
-  PageRequest 
+  PageResponse,
+  PageRequest
 } from '../types';
 
 export interface WorkplaceUpdateRequest {
@@ -38,7 +38,7 @@ export class WorkplaceService {
 
   // Filtrelenmiş arama
   static async search(
-    filter: WorkplaceFilterRequest, 
+    filter: WorkplaceFilterRequest,
     pageRequest: PageRequest
   ): Promise<PageResponse<Workplace>> {
     const pageParams = buildPageParams(pageRequest.page, pageRequest.size, pageRequest.sort);
@@ -65,5 +65,10 @@ export class WorkplaceService {
   // İşyeri ilanı sil
   static async delete(id: number): Promise<string> {
     return await api.delete<string>(`${this.BASE_URL}/${id}`);
+  }
+
+  // Benzer işyeri ilanlarını getir
+  static async getSimilar(id: number): Promise<Workplace[]> {
+    return await api.get<Workplace[]>(`${this.BASE_URL}/${id}/similar`);
   }
 }

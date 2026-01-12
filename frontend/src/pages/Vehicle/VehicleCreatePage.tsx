@@ -11,6 +11,7 @@ import { useCategories } from '../../hooks/useCategories';
 import { VehicleCreateRequest, Currency, FuelType, Transmission, OfferType } from '../../types';
 import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
 import { ImageService } from '../../services/imageService';
+import { LocationPicker } from '../../components/LocationPicker/LocationPicker';
 
 // Validation schema
 const vehicleSchema = yup.object({
@@ -83,6 +84,7 @@ export const VehicleCreatePage: React.FC = () => {
   const { getActiveCategories } = useCategories();
   const [images, setImages] = useState<ImageFile[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [location, setLocation] = useState<{ latitude?: number; longitude?: number }>({});
 
   const activeCategories = getActiveCategories();
 
@@ -103,7 +105,13 @@ export const VehicleCreatePage: React.FC = () => {
 
   const onSubmit = async (data: VehicleCreateRequest) => {
     try {
-      const result = await dispatch(createVehicleAsync(data));
+      // Add location data
+      const vehicleData = {
+        ...data,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      };
+      const result = await dispatch(createVehicleAsync(vehicleData));
       if (result.meta.requestStatus === 'fulfilled') {
         const listingId = (result.payload as any).id;
 
@@ -428,6 +436,17 @@ export const VehicleCreatePage: React.FC = () => {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Location */}
+        <div className="card p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Konum</h2>
+          <LocationPicker
+            latitude={location.latitude}
+            longitude={location.longitude}
+            onLocationChange={(lat, lng) => setLocation({ latitude: lat, longitude: lng })}
+            height="350px"
+          />
         </div>
 
         {/* Images */}

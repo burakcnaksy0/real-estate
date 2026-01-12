@@ -28,6 +28,8 @@ public class VehicleMapper {
         vehicle.setCurrency(request.getCurrency());
         vehicle.setCity(request.getCity());
         vehicle.setDistrict(request.getDistrict());
+        vehicle.setLatitude(request.getLatitude());
+        vehicle.setLongitude(request.getLongitude());
         vehicle.setCategory(category);
         vehicle.setCategory(category);
         vehicle.setStatus(ListingStatus.ACTIVE);
@@ -56,6 +58,8 @@ public class VehicleMapper {
         response.setStatus(vehicle.getStatus());
         response.setCity(vehicle.getCity());
         response.setDistrict(vehicle.getDistrict());
+        response.setLatitude(vehicle.getLatitude());
+        response.setLongitude(vehicle.getLongitude());
 
         if (vehicle.getCategory() != null) {
             response.setCategorySlug(vehicle.getCategory().getSlug());

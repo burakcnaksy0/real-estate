@@ -32,6 +32,7 @@ import { WorkplaceListPage } from './pages/Workplace/WorkplaceListPage';
 import { WorkplaceCreatePage } from './pages/Workplace/WorkplaceCreatePage';
 import { FavoritesPage } from './pages/FavoritesPage';
 import { WorkplaceDetailPage } from './pages/Workplace/WorkplaceDetailPage';
+import { MessagesPage } from './pages/Messages/MessagesPage';
 
 // Styles
 import './index.css';
@@ -87,6 +88,8 @@ const AppContent: React.FC = () => {
             </div>
           } />
           <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/messages/:userId" element={<MessagesPage />} />
 
           {/* Error Routes */}
           <Route path="/unauthorized" element={<UnauthorizedPage />} />

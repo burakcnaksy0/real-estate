@@ -62,4 +62,17 @@ public class UserController {
         List<FavoriteResponse> favorites = favoriteService.getUserFavorites(userId);
         return ResponseEntity.ok(favorites);
     }
+
+    @PutMapping(value = "/profile-picture", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProfilePicture(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        try {
+            Long userId = authService.getCurrentUser().getId();
+            User updatedUser = userService.updateProfilePicture(userId, file);
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Profil fotoğrafı güncellenirken hata oluştu: " + e.getMessage()));
+        }
+    }
 }

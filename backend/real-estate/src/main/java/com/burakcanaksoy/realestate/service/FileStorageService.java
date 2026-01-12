@@ -165,4 +165,57 @@ public class FileStorageService {
                 .orElseThrow(() -> new RuntimeException("Image not found " + imageId));
         return image.getFileType();
     }
+
+    public String uploadUserProfileImage(MultipartFile file, Long userId) {
+        try {
+            // Create upload directory if it doesn't exist
+            Path uploadPath = Paths.get(uploadDir, "users", userId.toString());
+            Files.createDirectories(uploadPath);
+
+            // Generate unique filename
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : "";
+            String filename = "profile_" + UUID.randomUUID().toString() + extension;
+
+            // Save file
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Return relative path or whatever you want to save in the User entity
+            // For simplicity, we can return the filename if we serve it via a controller,
+            // or a path.
+            // Let's stick to the pattern used in uploadImage but we are not returning an
+            // ImageResponse here, just the string path.
+            return filePath.toString();
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file: " + e.getMessage(), e);
+        }
+    }
+
+    public void deleteUserProfileImage(Long userId) {
+        try {
+            Path uploadPath = Paths.get(uploadDir, "users", userId.toString());
+            if (Files.exists(uploadPath)) {
+                // Delete all files in the directory (should be only one profile picture but
+                // let's be safe)
+                // Or better, just delete the directory recursively if we want to cleanup
+                // For now, let's keep it simple. If we store the path in User entity, we
+                // usually pass that path here.
+                // But since we only have userId, we might need to look it up or clear the
+                // folder.
+
+                // Let's assume we want to clear the folder
+                java.nio.file.Files.walk(uploadPath)
+                        .sorted(java.util.Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(java.io.File::delete);
+            }
+        } catch (IOException e) {
+            // Log but don't fail hard
+            System.err.println("Failed to delete user profile images: " + e.getMessage());
+        }
+    }
 }

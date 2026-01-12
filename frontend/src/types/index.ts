@@ -75,6 +75,7 @@ export interface User {
   email: string;
   enabled: boolean;
   roles: Role[];
+  profilePicture?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -95,6 +96,8 @@ export interface BaseListing {
   status: ListingStatus;
   city: string;
   district: string;
+  latitude?: number;
+  longitude?: number;
   categorySlug: string;
   categoryName?: string;
   ownerId: number;
@@ -167,6 +170,7 @@ export interface AuthResponse {
   name?: string;
   surname?: string;
   phoneNumber?: string;
+  profilePicture?: string;
   roles: string[];
   createdAt?: string;
   updatedAt?: string;
@@ -203,6 +207,8 @@ export interface RealEstateCreateRequest {
   categorySlug: string;
   city: string;
   district: string;
+  latitude?: number;
+  longitude?: number;
   realEstateType: RealEstateType;
   roomCount: number;
   squareMeter: number;
@@ -221,6 +227,8 @@ export interface VehicleCreateRequest {
   categorySlug: string;
   city: string;
   district: string;
+  latitude?: number;
+  longitude?: number;
   brand: string;
   model: string;
   year: number;
@@ -239,6 +247,8 @@ export interface LandCreateRequest {
   categorySlug: string;
   city: string;
   district: string;
+  latitude?: number;
+  longitude?: number;
   landType: LandType;
   squareMeter: number;
   zoningStatus?: string;
@@ -255,6 +265,8 @@ export interface WorkplaceCreateRequest {
   categorySlug: string;
   city: string;
   district: string;
+  latitude?: number;
+  longitude?: number;
   workplaceType: WorkplaceType;
   squareMeter: number;
   floorCount: number;
@@ -360,4 +372,33 @@ export interface Favorite {
   district: string;
   imageUrl?: string;
   status: string;
+}
+
+// Message types
+export interface MessageCreateRequest {
+  receiverId: number;
+  listingId?: number;
+  content: string;
+}
+
+export interface MessageDetailResponse {
+  id: number;
+  senderId: number;
+  senderUsername: string;
+  receiverId: number;
+  receiverUsername: string;
+  listingId?: number;
+  listingTitle?: string;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface ConversationResponse {
+  otherUserId: number;
+  otherUserUsername: string;
+  lastMessage: MessageDetailResponse;
+  unreadCount: number;
+  listingId?: number;
+  listingTitle?: string;
 }

@@ -26,6 +26,8 @@ public class WorkplaceMapper {
         workplace.setCurrency(request.getCurrency());
         workplace.setCity(request.getCity());
         workplace.setDistrict(request.getDistrict());
+        workplace.setLatitude(request.getLatitude());
+        workplace.setLongitude(request.getLongitude());
         workplace.setCategory(category);
         workplace.setCategory(category);
         workplace.setStatus(ListingStatus.ACTIVE);
@@ -54,6 +56,8 @@ public class WorkplaceMapper {
         response.setCurrency(workplace.getCurrency());
         response.setCity(workplace.getCity());
         response.setDistrict(workplace.getDistrict());
+        response.setLatitude(workplace.getLatitude());
+        response.setLongitude(workplace.getLongitude());
         response.setStatus(workplace.getStatus());
         response.setCreatedAt(workplace.getCreatedAt());
         response.setUpdatedAt(workplace.getUpdatedAt());

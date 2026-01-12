@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("GET", "/api/categories/**").permitAll()
                         .requestMatchers("GET", "/api/listings/**").permitAll()
                         .requestMatchers("GET", "/api/images/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
 
                         // POST, PUT, DELETE istekleri - sadece authenticated kullanıcılar
                         .anyRequest().authenticated())

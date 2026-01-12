@@ -1,10 +1,10 @@
 import { api, buildQueryString, buildPageParams } from './api';
-import { 
-  Land, 
-  LandCreateRequest, 
+import {
+  Land,
+  LandCreateRequest,
   LandFilterRequest,
-  PageResponse, 
-  PageRequest 
+  PageResponse,
+  PageRequest
 } from '../types';
 
 export interface LandUpdateRequest {
@@ -39,7 +39,7 @@ export class LandService {
 
   // Filtrelenmiş arama
   static async search(
-    filter: LandFilterRequest, 
+    filter: LandFilterRequest,
     pageRequest: PageRequest
   ): Promise<PageResponse<Land>> {
     const pageParams = buildPageParams(pageRequest.page, pageRequest.size, pageRequest.sort);
@@ -66,5 +66,10 @@ export class LandService {
   // Arsa ilanı sil
   static async delete(id: number): Promise<string> {
     return await api.delete<string>(`${this.BASE_URL}/${id}`);
+  }
+
+  // Benzer arsa ilanlarını getir
+  static async getSimilar(id: number): Promise<Land[]> {
+    return await api.get<Land[]>(`${this.BASE_URL}/${id}/similar`);
   }
 }

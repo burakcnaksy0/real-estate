@@ -32,7 +32,7 @@ export const loginAsync = createAsyncThunk(
     } catch (error: any) {
       console.error('Auth slice - login error:', error);
       const message = error.response?.data?.message || 'Giriş yapılırken hata oluştu';
-      console.error('Auth slice - error message:', message);
+      toast.error(message);
       return rejectWithValue(message);
     }
   }
@@ -102,6 +102,7 @@ const authSlice = createSlice({
           surname: action.payload.surname || '',
           enabled: true,
           phoneNumber: action.payload.phoneNumber || '',
+          profilePicture: action.payload.profilePicture, // Add profilePicture
           createdAt: action.payload.createdAt || '',
           updatedAt: action.payload.updatedAt || ''
         };

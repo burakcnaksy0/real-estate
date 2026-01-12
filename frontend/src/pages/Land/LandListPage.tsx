@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+                                                                                                                                                                                                                                import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { LandService } from '../../services/landService';
 import { Land, LandFilterRequest } from '../../types';
-import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon, Plus } from 'lucide-react';
 
 export const LandListPage: React.FC = () => {
+    const navigate = useNavigate();
     const [lands, setLands] = useState<Land[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -111,10 +112,21 @@ export const LandListPage: React.FC = () => {
         <div className="space-y-8">
             {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-2xl p-8">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">Arsa İlanları</h1>
-                <p className="text-green-100">
-                    {totalElements > 0 ? `${totalElements} arsa ilanı bulundu` : 'Arsa ilanlarını keşfedin'}
-                </p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl md:text-4xl font-bold mb-2">Arsa İlanları</h1>
+                        <p className="text-green-100">
+                            {totalElements > 0 ? `${totalElements} arsa ilanı bulundu` : 'Arsa ilanlarını keşfedin'}
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => navigate('/lands/create')}
+                        className="bg-white text-green-600 hover:bg-green-50 font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                    >
+                        <Plus className="w-5 h-5" />
+                        <span className="hidden sm:inline">İlan Ver</span>
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}

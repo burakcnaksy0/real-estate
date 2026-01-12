@@ -10,6 +10,8 @@ import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { LandService } from '../../services/landService';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
+import { MapView } from '../../components/MapView/MapView';
+import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
 
 export const LandDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -18,6 +20,7 @@ export const LandDetailPage: React.FC = () => {
     const [land, setLand] = useState<Land | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [images, setImages] = useState<ImageResponse[]>([]);
+    const [similarLands, setSimilarLands] = useState<Land[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -34,6 +37,15 @@ export const LandDetailPage: React.FC = () => {
                 } catch (imgError) {
                     console.error('Error fetching images:', imgError);
                 }
+
+                // Fetch similar lands
+                try {
+                    const similar = await LandService.getSimilar(Number(id));
+                    setSimilarLands(similar);
+                } catch (error) {
+                    console.error('Error fetching similar lands:', error);
+                }
+
             } catch (error) {
                 console.error('Error fetching land:', error);
             } finally {
@@ -191,12 +203,26 @@ export const LandDetailPage: React.FC = () => {
                     )}
 
                     {/* Map */}
-                    <div className="card p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
-                        <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <span className="text-gray-500">Harita (TODO)</span>
+                    {land.latitude && land.longitude && (
+                        <div className="card p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
+                            <MapView
+                                latitude={land.latitude}
+                                longitude={land.longitude}
+                                title={land.title}
+                                height="300px"
+                            />
                         </div>
-                    </div>
+                    )}
+                    {/* Nearby Places */}
+                    {land.latitude && land.longitude && (
+                        <div className="card p-6">
+                            <NearbyPlaces
+                                latitude={land.latitude}
+                                longitude={land.longitude}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Sidebar (Contact, etc) */}
@@ -241,22 +267,36 @@ export const LandDetailPage: React.FC = () => {
                     <div className="card p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Benzer İlanlar</h3>
                         <div className="space-y-4">
-                            {[...Array(3)].map((_, index) => (
-                                <div key={index} className="flex space-x-3">
-                                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                        <MapIcon className="h-6 w-6 text-gray-400" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900 truncate">
-                                            Benzer Arsa {index + 1}
-                                        </p>
-                                        <p className="text-xs text-gray-600">Tarla • 500 m²</p>
-                                        <p className="text-sm font-semibold text-primary-600">
-                                            300.000 TL
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                            {similarLands.length === 0 ? (
+                                <p className="text-gray-500 text-sm">Benzer ilan bulunamadı.</p>
+                            ) : (
+                                similarLands.map((listing) => (
+                                    <Link key={listing.id} to={`/lands/${listing.id}`} className="flex space-x-3 group">
+                                        {listing.imageUrl ? (
+                                            <img
+                                                src={`${process.env.REACT_APP_API_BASE_URL}${listing.imageUrl}`}
+                                                alt={listing.title}
+                                                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                            />
+                                        ) : (
+                                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                                <MapIcon className="h-6 w-6 text-gray-400" />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 truncate group-hover:text-primary-600">
+                                                {listing.title}
+                                            </p>
+                                            <p className="text-xs text-gray-600">
+                                                {getLandTypeLabel(listing.landType)} • {listing.squareMeter} m²
+                                            </p>
+                                            <p className="text-sm font-semibold text-primary-600">
+                                                {formatPrice(listing.price, listing.currency)}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

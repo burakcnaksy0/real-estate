@@ -161,4 +161,18 @@ public class LandService {
         return LandMapper.toResponse(land);
     }
 
+    public List<LandResponse> getSimilarLands(Long id) {
+        Land land = landRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Land not found with id: " + id));
+
+        List<Land> similarLands = landRepository.findTop3ByCityAndDistrictAndLandTypeAndIdNot(
+                land.getCity(),
+                land.getDistrict(),
+                land.getLandType(),
+                id);
+
+        return similarLands.stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
 }

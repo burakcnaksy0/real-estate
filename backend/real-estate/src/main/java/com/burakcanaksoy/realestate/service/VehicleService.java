@@ -17,6 +17,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -164,5 +165,21 @@ public class VehicleService {
         imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(vehicle.getId(), "VEHICLE")
                 .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
         return response;
+    }
+
+    public List<VehicleResponse> getSimilarVehicles(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with id: " + id));
+
+        List<Vehicle> similarVehicles = vehicleRepository.findByCityAndDistrictAndBrandAndIdNot(
+                vehicle.getCity(),
+                vehicle.getDistrict(),
+                vehicle.getBrand(),
+                id,
+                PageRequest.of(0, 3));
+
+        return similarVehicles.stream()
+                .map(this::convertToResponse)
+                .toList();
     }
 }

@@ -23,18 +23,36 @@ public class AuthController {
     private final AuthService authService;
     private final UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    @PostMapping(value = "/register", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> register(@Valid @ModelAttribute RegisterRequest request,
+            @RequestParam(value = "file", required = false) org.springframework.web.multipart.MultipartFile file) {
         try {
+            // Register user (without image first)
             MessageResponse response = authService.register(request);
+
+            // If file is present, upload it
+            if (file != null && !file.isEmpty()) {
+                // We need the userId. AuthService.register returns MessageResponse which might
+                // not have ID.
+                // We need to fetch the user by username or email.
+                // Or update AuthService to return something else.
+                // However, looking at AuthController, it returns MessageResponse.
+
+                // Let's modify AuthService logic or just fetch user here?
+                // Fetching is easier for now to avoid changing AuthService signature deeply if
+                // not needed.
+                com.burakcanaksoy.realestate.model.User user = userService.findByUsername(request.getUsername())
+                        .orElseThrow(() -> new RuntimeException("User not found after registration"));
+
+                userService.updateProfilePicture(user.getId(), file);
+            }
+
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
-            // Hata mesajını direkt olarak döndür (AuthService'den gelen mesaj)
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         } catch (Exception e) {
-            // Beklenmeyen hatalar için genel mesaj
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new MessageResponse("Kayıt işlemi sırasında bir hata oluştu."));
+                    .body(new MessageResponse("Kayıt işlemi sırasında bir hata oluştu: " + e.getMessage()));
         }
     }
 
@@ -52,8 +70,11 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
         try {
-            userService.processForgotPassword(request.getEmail());
-            return ResponseEntity.ok(new MessageResponse("Şifre sıfırlama kodu e-posta adresinize gönderildi."));
+            userService.processForgotPassword(request.getEmail(), request.getPhoneNumber(), request.getMethod());
+            String message = "SMS".equalsIgnoreCase(request.getMethod())
+                    ? "Doğrulama kodu telefonunuza gönderildi (Simülasyon: Sunucu loglarına bakınız)."
+                    : "Şifre sıfırlama kodu e-posta adresinize gönderildi.";
+            return ResponseEntity.ok(new MessageResponse(message));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }

@@ -1,10 +1,10 @@
 import { api, buildQueryString, buildPageParams } from './api';
-import { 
-  Vehicle, 
-  VehicleCreateRequest, 
+import {
+  Vehicle,
+  VehicleCreateRequest,
   VehicleFilterRequest,
-  PageResponse, 
-  PageRequest 
+  PageResponse,
+  PageRequest
 } from '../types';
 
 export interface VehicleUpdateRequest {
@@ -41,7 +41,7 @@ export class VehicleService {
 
   // Filtrelenmiş arama
   static async search(
-    filter: VehicleFilterRequest, 
+    filter: VehicleFilterRequest,
     pageRequest: PageRequest
   ): Promise<PageResponse<Vehicle>> {
     const pageParams = buildPageParams(pageRequest.page, pageRequest.size, pageRequest.sort);
@@ -77,7 +77,7 @@ export class VehicleService {
 
   // Yakıt tipine göre araç ilanlarını getir
   static async getByFuelType(
-    fuelType: string, 
+    fuelType: string,
     pageRequest: PageRequest
   ): Promise<PageResponse<Vehicle>> {
     return await this.search({ fuelType: fuelType as any }, pageRequest);
@@ -85,8 +85,8 @@ export class VehicleService {
 
   // Yıl aralığına göre araç ilanlarını getir
   static async getByYearRange(
-    minYear: number, 
-    maxYear: number, 
+    minYear: number,
+    maxYear: number,
     pageRequest: PageRequest
   ): Promise<PageResponse<Vehicle>> {
     return await this.search({ minYear, maxYear }, pageRequest);
@@ -94,10 +94,15 @@ export class VehicleService {
 
   // Kilometre aralığına göre araç ilanlarını getir
   static async getByKilometerRange(
-    minKilometer: number, 
-    maxKilometer: number, 
+    minKilometer: number,
+    maxKilometer: number,
     pageRequest: PageRequest
   ): Promise<PageResponse<Vehicle>> {
     return await this.search({ minKilometer, maxKilometer }, pageRequest);
+  }
+
+  // Benzer araçları getir
+  static async getSimilar(id: number): Promise<Vehicle[]> {
+    return await api.get<Vehicle[]>(`${this.BASE_URL}/${id}/similar`);
   }
 }

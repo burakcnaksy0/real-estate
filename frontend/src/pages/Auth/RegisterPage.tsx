@@ -45,10 +45,15 @@ const registerSchema = yup.object({
     .string()
     .required('Şifre tekrarı gereklidir')
     .oneOf([yup.ref('password')], 'Şifreler eşleşmiyor'),
+  profilePicture: yup.mixed().test('fileSize', 'Dosya boyutu 5MB dan küçük olmalı', (value: any) => {
+    if (!value || value.length === 0) return true;
+    return value[0].size <= 5000000;
+  })
 });
 
 type RegisterFormData = RegisterRequest & {
   confirmPassword: string;
+  profilePicture?: FileList;
 };
 
 export const RegisterPage: React.FC = () => {
@@ -67,8 +72,12 @@ export const RegisterPage: React.FC = () => {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      const { confirmPassword, ...registerData } = data;
-      await registerUser(registerData);
+      const { confirmPassword, profilePicture, ...registerData } = data;
+
+      const file = profilePicture && profilePicture.length > 0 ? profilePicture[0] : undefined;
+
+      // @ts-ignore
+      await registerUser({ ...registerData, profilePicture: file });
 
       // Kayıt başarılı olduktan sonra login sayfasına yönlendir
       navigate('/login', {
@@ -85,6 +94,7 @@ export const RegisterPage: React.FC = () => {
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
+          {/* Logo and Header... */}
           <div className="mx-auto mb-6 flex justify-center">
             <img
               src="/vesta-logo.png"
@@ -109,6 +119,25 @@ export const RegisterPage: React.FC = () => {
           )}
 
           <div className="space-y-4">
+
+            {/* Profile Picture Upload */}
+            <div>
+              <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700 mb-1">
+                Profil Fotoğrafı
+              </label>
+              <input
+                {...register('profilePicture')}
+                type="file"
+                id="profilePicture"
+                accept="image/*"
+                className={`input-field ${errors.profilePicture ? 'border-red-500 focus:ring-red-500' : ''}`}
+              />
+              <p className="mt-1 text-xs text-gray-500">İsteğe bağlı. JPG, PNG (Max 5MB)</p>
+              {errors.profilePicture && (
+                <p className="mt-1 text-sm text-red-600">{errors.profilePicture.message}</p>
+              )}
+            </div>
+
             {/* Name & Surname */}
             <div className="grid grid-cols-2 gap-4">
               <div>

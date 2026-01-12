@@ -162,4 +162,19 @@ public class WorkplaceService {
                 .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
         return response;
     }
+
+    public List<WorkplaceResponse> getSimilarWorkplaces(Long id) {
+        Workplace workplace = workplaceRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Workplace not found with id: " + id));
+
+        List<Workplace> similarWorkplaces = workplaceRepository.findTop3ByCityAndDistrictAndWorkplaceTypeAndIdNot(
+                workplace.getCity(),
+                workplace.getDistrict(),
+                workplace.getWorkplaceType(),
+                id);
+
+        return similarWorkplaces.stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
 }

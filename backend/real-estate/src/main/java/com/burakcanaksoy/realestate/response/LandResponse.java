@@ -3,6 +3,7 @@ package com.burakcanaksoy.realestate.response;
 import com.burakcanaksoy.realestate.model.enums.Currency;
 import com.burakcanaksoy.realestate.model.enums.LandType;
 import com.burakcanaksoy.realestate.model.enums.ListingStatus;
+import com.burakcanaksoy.realestate.model.enums.OfferType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -20,6 +21,8 @@ public class LandResponse {
         private String city;
         private String category;
         private String district;
+        private Double latitude;
+        private Double longitude;
         private ListingStatus status;
 
         /* ---------------- Land-specific fields ---------------- */
@@ -29,7 +32,7 @@ public class LandResponse {
         private Integer parcelNumber;
         private Integer islandNumber;
         private String imageUrl;
-        private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
+        private OfferType offerType;
 
         private Long ownerId;
         private String ownerUsername;

@@ -174,4 +174,19 @@ public class RealEstateService {
                 .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
         return response;
     }
+
+    public List<RealEstateResponse> getSimilarRealEstates(Long id) {
+        RealEstate realEstate = realEstateRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Real Estate not found with id: " + id));
+
+        List<RealEstate> similarRealEstates = realEstateRepository.findTop3ByCityAndDistrictAndRealEstateTypeAndIdNot(
+                realEstate.getCity(),
+                realEstate.getDistrict(),
+                realEstate.getRealEstateType(),
+                id);
+
+        return similarRealEstates.stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
 }

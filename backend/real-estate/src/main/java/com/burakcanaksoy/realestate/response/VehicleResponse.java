@@ -1,9 +1,6 @@
 package com.burakcanaksoy.realestate.response;
 
-import com.burakcanaksoy.realestate.model.enums.Currency;
-import com.burakcanaksoy.realestate.model.enums.FuelType;
-import com.burakcanaksoy.realestate.model.enums.ListingStatus;
-import com.burakcanaksoy.realestate.model.enums.Transmission;
+import com.burakcanaksoy.realestate.model.enums.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -24,6 +21,8 @@ public class VehicleResponse {
         private String category;
         private String city;
         private String district;
+        private Double latitude;
+        private Double longitude;
 
         private String brand;
         private String model;
@@ -33,7 +32,7 @@ public class VehicleResponse {
         private Integer kilometer;
         private String engineVolume;
         private String imageUrl;
-        private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
+        private OfferType offerType;
 
         private Long ownerId;
         private String ownerUsername;

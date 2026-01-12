@@ -40,6 +40,9 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
+    @Column(name = "profile_picture", length = 255)
+    private String profilePicture;
+
     @Column(nullable = false)
     private Boolean enabled = true;
 

@@ -9,7 +9,9 @@ import {
 } from '../types';
 
 interface ForgotPasswordRequest {
-  email: string;
+  email?: string;
+  phoneNumber?: string;
+  method: 'EMAIL' | 'SMS';
 }
 
 interface ResetPasswordRequest {
@@ -34,6 +36,7 @@ export const AuthService = {
         name: response.name || '',
         surname: response.surname || '',
         phoneNumber: response.phoneNumber,
+        profilePicture: response.profilePicture,
         roles: response.roles.map(r => r as Role), // Assuming roles match
         enabled: true,
         createdAt: response.createdAt || new Date().toISOString(),
@@ -45,8 +48,27 @@ export const AuthService = {
     return response;
   },
 
-  register: async (data: RegisterRequest): Promise<MessageResponse> => {
-    return await api.post<MessageResponse>('/auth/register', data);
+  register: async (data: RegisterRequest & { profilePicture?: File }): Promise<MessageResponse> => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('surname', data.surname);
+    formData.append('username', data.username);
+    formData.append('email', data.email);
+    formData.append('password', data.password);
+
+    if (data.phoneNumber) {
+      formData.append('phoneNumber', data.phoneNumber);
+    }
+
+    if (data.profilePicture) {
+      formData.append('file', data.profilePicture);
+    }
+
+    return await api.post<MessageResponse>('/auth/register', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 
   logout: () => {

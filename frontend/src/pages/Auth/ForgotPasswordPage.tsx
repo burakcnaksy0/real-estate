@@ -6,18 +6,33 @@ import { AuthService } from '../../services/authService';
 import { toast } from 'react-toastify';
 
 interface ForgotPasswordForm {
-    email: string;
+    email?: string;
+    phoneNumber?: string;
+    method: 'EMAIL' | 'SMS';
 }
 
 export const ForgotPasswordPage: React.FC = () => {
     const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ForgotPasswordForm>();
+    const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<ForgotPasswordForm>({
+        defaultValues: { method: 'EMAIL' }
+    });
+
+    const method = watch('method');
 
     const onSubmit = async (data: ForgotPasswordForm) => {
         try {
-            await AuthService.forgotPassword({ email: data.email });
-            toast.success('Doğrulama kodu e-posta adresinize gönderildi. (Geliştirme ortamında Backend loglarına bakın)');
-            navigate('/reset-password', { state: { email: data.email } });
+            await AuthService.forgotPassword({
+                email: data.email,
+                phoneNumber: data.phoneNumber,
+                method: data.method
+            });
+
+            const message = data.method === 'SMS'
+                ? 'Doğrulama kodu telefonunuza gönderildi.'
+                : 'Doğrulama kodu e-posta adresinize gönderildi.';
+
+            toast.success(`${message} (Geliştirme ortamında Backend loglarına bakın)`);
+            navigate('/reset-password', { state: { email: data.email || data.phoneNumber } }); // Pass either identifier
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'İşlem başarısız oldu.');
         }
@@ -32,26 +47,85 @@ export const ForgotPasswordPage: React.FC = () => {
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900">Şifremi Unuttum</h2>
                     <p className="text-gray-500 mt-2">
-                        Hesabınıza ait e-posta adresini girin, size şifrenizi sıfırlamanız için bir kod gönderelim.
+                        Doğrulama yönteminizi seçin ve bilgilerinizi girin.
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                            E-posta Adresi
+                    {/* Method Selection */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <label className={`
+                            relative flex flex-col items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-all
+                            ${method === 'EMAIL' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
+                        `}>
+                            <input
+                                {...register('method')}
+                                type="radio"
+                                value="EMAIL"
+                                className="peer sr-only"
+                            />
+                            <Mail className="w-6 h-6 mb-2 text-gray-600 peer-checked:text-blue-600" />
+                            <span className="text-sm font-medium text-gray-900">E-posta</span>
+                            <div className="absolute inset-0 border-2 border-transparent peer-checked:border-blue-500 rounded-xl pointer-events-none"></div>
                         </label>
-                        <input
-                            {...register('email', {
-                                required: 'E-posta adresi gereklidir',
-                                pattern: { value: /^\S+@\S+$/i, message: 'Geçerli bir e-posta adresi girin' }
-                            })}
-                            type="email"
-                            className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition-all ${errors.email ? 'border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
-                            placeholder="ornek@email.com"
-                        />
-                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+
+                        <label className={`
+                            relative flex flex-col items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50 transition-all
+                            ${method === 'SMS' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
+                        `}>
+                            <input
+                                {...register('method')}
+                                type="radio"
+                                value="SMS"
+                                className="peer sr-only"
+                            />
+                            <div className="w-6 h-6 mb-2 flex items-center justify-center">
+                                {/* Simple Phone Icon */}
+                                <svg className="w-6 h-6 text-gray-600 peer-checked:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <span className="text-sm font-medium text-gray-900">SMS</span>
+                            <div className="absolute inset-0 border-2 border-transparent peer-checked:border-blue-500 rounded-xl pointer-events-none"></div>
+                        </label>
                     </div>
+
+                    {method === 'EMAIL' && (
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                                E-posta Adresi
+                            </label>
+                            <input
+                                {...register('email', {
+                                    required: method === 'EMAIL' ? 'E-posta adresi gereklidir' : false,
+                                    pattern: { value: /^\S+@\S+$/i, message: 'Geçerli bir e-posta adresi girin' }
+                                })}
+                                type="email"
+                                className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition-all ${errors.email ? 'border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
+                                placeholder="ornek@email.com"
+                            />
+                            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+                        </div>
+                    )}
+
+                    {method === 'SMS' && (
+                        <div>
+                            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                                Telefon Numarası
+                            </label>
+                            <input
+                                {...register('phoneNumber', {
+                                    required: method === 'SMS' ? 'Telefon numarası gereklidir' : false,
+                                    pattern: { value: /^[0-9]+$/, message: 'Sadece rakam giriniz' },
+                                    minLength: { value: 10, message: 'En az 10 hane olmalıdır' }
+                                })}
+                                type="tel"
+                                className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition-all ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
+                                placeholder="5XXXXXXXXX"
+                            />
+                            {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber.message}</p>}
+                        </div>
+                    )}
 
                     <button
                         type="submit"

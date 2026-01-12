@@ -46,6 +46,12 @@ public abstract class BaseListing {
     @Column(nullable = false, length = 50)
     private String district;
 
+    @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;

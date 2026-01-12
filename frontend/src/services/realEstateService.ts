@@ -1,10 +1,10 @@
 import { api, buildQueryString, buildPageParams } from './api';
-import { 
-  RealEstate, 
-  RealEstateCreateRequest, 
+import {
+  RealEstate,
+  RealEstateCreateRequest,
   RealEstateFilterRequest,
-  PageResponse, 
-  PageRequest 
+  PageResponse,
+  PageRequest
 } from '../types';
 
 export interface RealEstateUpdateRequest {
@@ -41,7 +41,7 @@ export class RealEstateService {
 
   // Filtrelenmiş arama
   static async search(
-    filter: RealEstateFilterRequest, 
+    filter: RealEstateFilterRequest,
     pageRequest: PageRequest
   ): Promise<PageResponse<RealEstate>> {
     const pageParams = buildPageParams(pageRequest.page, pageRequest.size, pageRequest.sort);
@@ -77,8 +77,8 @@ export class RealEstateService {
 
   // Fiyat aralığına göre emlak ilanlarını getir
   static async getByPriceRange(
-    minPrice: number, 
-    maxPrice: number, 
+    minPrice: number,
+    maxPrice: number,
     pageRequest: PageRequest
   ): Promise<PageResponse<RealEstate>> {
     return await this.search({ minPrice, maxPrice }, pageRequest);
@@ -86,7 +86,7 @@ export class RealEstateService {
 
   // Oda sayısına göre emlak ilanlarını getir
   static async getByRoomCount(
-    roomCount: number, 
+    roomCount: number,
     pageRequest: PageRequest
   ): Promise<PageResponse<RealEstate>> {
     return await this.search({ minRoomCount: roomCount, maxRoomCount: roomCount }, pageRequest);
@@ -94,9 +94,14 @@ export class RealEstateService {
 
   // Emlak tipine göre ilanları getir
   static async getByType(
-    realEstateType: string, 
+    realEstateType: string,
     pageRequest: PageRequest
   ): Promise<PageResponse<RealEstate>> {
     return await this.search({ realEstateType: realEstateType as any }, pageRequest);
+  }
+
+  // Benzer emlak ilanlarını getir
+  static async getSimilar(id: number): Promise<RealEstate[]> {
+    return await api.get<RealEstate[]>(`${this.BASE_URL}/${id}/similar`);
   }
 }
