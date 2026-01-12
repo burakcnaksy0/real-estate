@@ -97,4 +97,33 @@ public class AuthService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
     }
+
+    public AuthResponse getUserInfoFromToken(String token) {
+        // Extract username from token
+        String username = tokenProvider.getUsernameFromToken(token);
+
+        // Fetch user from database
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+
+        // Build and return AuthResponse
+        Set<String> roles = user.getRoles().stream()
+                .map(Role::name)
+                .collect(Collectors.toSet());
+
+        return AuthResponse.builder()
+                .token(token)
+                .type("Bearer")
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .roles(roles)
+                .name(user.getName())
+                .surname(user.getSurname())
+                .phoneNumber(user.getPhoneNumber())
+                .profilePicture(user.getProfilePicture())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
+    }
 }

@@ -106,5 +106,36 @@ export const AuthService = {
 
   resetPassword: async (data: ResetPasswordRequest): Promise<MessageResponse> => {
     return await api.post<MessageResponse>('/auth/reset-password', data);
+  },
+
+  getCurrentUserInfo: async (): Promise<AuthResponse> => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      throw new Error('No token found');
+    }
+
+    const response = await api.get<AuthResponse>('/auth/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    // Store user data in localStorage
+    const user: User = {
+      id: response.id,
+      username: response.username,
+      email: response.email,
+      name: response.name || '',
+      surname: response.surname || '',
+      phoneNumber: response.phoneNumber,
+      profilePicture: response.profilePicture,
+      roles: response.roles.map(r => r as Role),
+      enabled: true,
+      createdAt: response.createdAt || new Date().toISOString(),
+      updatedAt: response.updatedAt || new Date().toISOString()
+    };
+
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    return response;
   }
 };

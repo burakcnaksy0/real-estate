@@ -14,6 +14,7 @@ import { LoginPage } from './pages/Auth/LoginPage';
 import { RegisterPage } from './pages/Auth/RegisterPage';
 import { ForgotPasswordPage } from './pages/Auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/Auth/ResetPasswordPage';
+import { OAuth2RedirectHandler } from './pages/Auth/OAuth2RedirectHandler';
 import { RealEstateListPage } from './pages/RealEstate/RealEstateListPage';
 import { RealEstateDetailPage } from './pages/RealEstate/RealEstateDetailPage';
 import { RealEstateCreatePage } from './pages/RealEstate/RealEstateCreatePage';
@@ -55,6 +56,7 @@ const AppContent: React.FC = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
 
           {/* Real Estate Routes */}
           <Route path="/real-estates" element={<RealEstateListPage />} />

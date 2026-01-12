@@ -17,39 +17,39 @@ interface CategoryStats {
 export const HomePage: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([
-    { 
-      name: 'Emlak', 
-      href: '/real-estates', 
-      icon: '🏠', 
-      count: 0, 
-      description: 'Ev, daire, villa', 
+    {
+      name: 'Emlak',
+      href: '/real-estates',
+      icon: '🏠',
+      count: 0,
+      description: 'Ev, daire, villa',
       categorySlug: 'konut',
       gradient: 'from-blue-500 to-cyan-500'
     },
-    { 
-      name: 'Araçlar', 
-      href: '/vehicles', 
-      icon: '🚗', 
-      count: 0, 
-      description: 'Otomobil, motosiklet', 
+    {
+      name: 'Araçlar',
+      href: '/vehicles',
+      icon: '🚗',
+      count: 0,
+      description: 'Otomobil, motosiklet',
       categorySlug: 'vasita',
       gradient: 'from-purple-500 to-pink-500'
     },
-    { 
-      name: 'Arsalar', 
-      href: '/lands', 
-      icon: '🌾', 
-      count: 0, 
-      description: 'Tarla, bahçe, arsa', 
+    {
+      name: 'Arsalar',
+      href: '/lands',
+      icon: '🌾',
+      count: 0,
+      description: 'Tarla, bahçe, arsa',
       categorySlug: 'arsa',
       gradient: 'from-green-500 to-emerald-500'
     },
-    { 
-      name: 'İşyerleri', 
-      href: '/workplaces', 
-      icon: '🏢', 
-      count: 0, 
-      description: 'Ofis, dükkan, fabrika', 
+    {
+      name: 'İşyerleri',
+      href: '/workplaces',
+      icon: '🏢',
+      count: 0,
+      description: 'Ofis, dükkan, fabrika',
       categorySlug: 'isyeri',
       gradient: 'from-orange-500 to-red-500'
     },
@@ -96,11 +96,19 @@ export const HomePage: React.FC = () => {
             <div className="flex items-center gap-5">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl blur-lg opacity-50"></div>
-                <div className="relative w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-2xl">
-                    {user.name ? user.name.charAt(0).toUpperCase() : user.username?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                {user.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt={user.name || user.username}
+                    className="relative w-16 h-16 rounded-2xl object-cover shadow-lg border-2 border-white"
+                  />
+                ) : (
+                  <div className="relative w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-2xl">
+                      {user.name ? user.name.charAt(0).toUpperCase() : user.username?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -130,13 +138,13 @@ export const HomePage: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5 rounded-3xl"></div>
         <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/30 to-cyan-400/30 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        
+
         <div className="relative text-center py-24 px-4">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-blue-200/50 rounded-full px-5 py-2 mb-8">
             <Star className="h-4 w-4 text-blue-600 fill-blue-600" />
             <span className="text-sm font-semibold text-slate-700">Türkiye'nin En Güvenilir Platformu</span>
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
             <span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
               Hayalinizdeki Yaşam,
@@ -146,9 +154,9 @@ export const HomePage: React.FC = () => {
               Vesta Güvencesiyle Başlar
             </span>
           </h1>
-          
+
           <p className="text-xl md:text-2xl mb-12 text-slate-600 max-w-4xl mx-auto leading-relaxed">
-            Emlak, araç, arsa ve iş yeri arayışlarınızda güvenilir limanınız. Modern arayüzümüz ve geniş portföyümüzle 
+            Emlak, araç, arsa ve iş yeri arayışlarınızda güvenilir limanınız. Modern arayüzümüz ve geniş portföyümüzle
             hayallerinizdeki yatırımı bulmak artık <span className="font-semibold text-slate-800">çok daha kolay</span>.
           </p>
 
@@ -161,7 +169,7 @@ export const HomePage: React.FC = () => {
               Tüm İlanları Keşfet
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            
+
             {!isAuthenticated && (
               <Link
                 to="/register"
@@ -199,20 +207,20 @@ export const HomePage: React.FC = () => {
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
-              
+
               <div className="relative p-8">
                 <div className={`w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br ${category.gradient} flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   {category.icon}
                 </div>
-                
+
                 <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-slate-900 group-hover:to-slate-600 transition-all">
                   {category.name}
                 </h3>
-                
+
                 <p className="text-slate-500 mb-4 text-sm">
                   {category.description}
                 </p>
-                
+
                 <div className="flex items-center justify-between">
                   <p className={`font-bold text-lg bg-gradient-to-r ${category.gradient} bg-clip-text text-transparent`}>
                     {loading ? (
@@ -232,7 +240,7 @@ export const HomePage: React.FC = () => {
       {/* Features Section */}
       <section className="relative">
         <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white rounded-3xl"></div>
-        
+
         <div className="relative py-16">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full px-5 py-2 mb-4">
@@ -249,43 +257,43 @@ export const HomePage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { 
-                icon: Shield, 
-                title: 'Doğrulanmış Güven', 
+              {
+                icon: Shield,
+                title: 'Doğrulanmış Güven',
                 description: 'Sahte ilanlarla vakit kaybetmeyin. Tüm ilanlar ekibimiz tarafından titizlikle kontrol edilir.',
                 gradient: 'from-blue-500 to-cyan-500',
                 bgGradient: 'from-blue-50 to-cyan-50'
               },
-              { 
-                icon: Zap, 
-                title: 'Hız ve Kolaylık', 
+              {
+                icon: Zap,
+                title: 'Hız ve Kolaylık',
                 description: 'Karmaşık menülerle uğraşmayın. İlan vermek de, aradığınızı bulmak da saniyeler sürer.',
                 gradient: 'from-purple-500 to-pink-500',
                 bgGradient: 'from-purple-50 to-pink-50'
               },
-              { 
-                icon: Globe, 
-                title: 'Geniş Portföy', 
+              {
+                icon: Globe,
+                title: 'Geniş Portföy',
                 description: 'Konut, araç, arsa ve iş yeri... Yatırım yapabileceğiniz tüm kategoriler tek bir platformda.',
                 gradient: 'from-green-500 to-emerald-500',
                 bgGradient: 'from-green-50 to-emerald-50'
               },
             ].map((feature, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-slate-100"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl`}></div>
-                
+
                 <div className="relative">
                   <div className={`w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     <feature.icon className="h-8 w-8 text-white" />
                   </div>
-                  
+
                   <h3 className="text-2xl font-bold text-slate-900 mb-4">
                     {feature.title}
                   </h3>
-                  
+
                   <p className="text-slate-600 leading-relaxed">
                     {feature.description}
                   </p>
@@ -301,24 +309,24 @@ export const HomePage: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        
+
         <div className="relative text-center py-20 px-4">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-5 py-2 mb-6">
             <Sparkles className="h-4 w-4 text-white" />
             <span className="text-sm font-semibold text-white">Başlamak İçin Hazır Mısınız?</span>
           </div>
-          
+
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             {isAuthenticated ? 'İlanınızı Hemen Verin' : 'Üye Olun ve İlan Verin'}
           </h2>
-          
+
           <p className="text-white/90 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
             {isAuthenticated
               ? 'Mülkünüzü satmak veya kiralamak mı istiyorsunuz? Ücretsiz ilan vererek binlerce potansiyel alıcıya ulaşın.'
               : 'Ücretsiz üye olun ve mülkünüzü satmak veya kiralamak için ilan verin. Binlerce potansiyel alıcıya ulaşın.'
             }
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {isAuthenticated ? (
               <Link

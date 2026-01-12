@@ -43,6 +43,12 @@ public class User {
     @Column(name = "profile_picture", length = 255)
     private String profilePicture;
 
+    @Column(length = 20)
+    private String provider; // LOCAL, GOOGLE, FACEBOOK
+
+    @Column(name = "provider_id", length = 255)
+    private String providerId; // OAuth provider's user ID
+
     @Column(nullable = false)
     private Boolean enabled = true;
 

@@ -100,11 +100,19 @@ export const Header: React.FC = () => {
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                   >
-                    <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium text-sm">
-                        {user?.name ? user.name.charAt(0).toUpperCase() : user?.username?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    {user?.profilePicture ? (
+                      <img
+                        src={user.profilePicture}
+                        alt={user.name || user.username}
+                        className="w-8 h-8 rounded-full object-cover border-2 border-primary-200"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-medium text-sm">
+                          {user?.name ? user.name.charAt(0).toUpperCase() : user?.username?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <div className="hidden md:block text-left">
                       <p className="text-sm font-medium text-gray-900">
                         {user?.name && user?.surname

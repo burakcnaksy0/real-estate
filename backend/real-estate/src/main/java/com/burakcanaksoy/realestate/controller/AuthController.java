@@ -90,4 +90,17 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String token) {
+        try {
+            // Extract username from token
+            String jwtToken = token.replace("Bearer ", "");
+            AuthResponse userInfo = authService.getUserInfoFromToken(jwtToken);
+            return ResponseEntity.ok(userInfo);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Geçersiz token"));
+        }
+    }
 }

@@ -40,6 +40,21 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public String generateTokenFromOAuth2(Authentication authentication) {
+        com.burakcanaksoy.realestate.security.oauth2.CustomOAuth2User oauth2User = (com.burakcanaksoy.realestate.security.oauth2.CustomOAuth2User) authentication
+                .getPrincipal();
+
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+
+        return Jwts.builder()
+                .subject(oauth2User.getUser().getUsername())
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
     public String getUsernameFromToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())
