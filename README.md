@@ -1,4 +1,4 @@
-# 🏠 Vesta
+# 🏠 Vesta - Modern İlan Platformu
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-Demo-orange.svg)
@@ -6,58 +6,74 @@
 ![React](https://img.shields.io/badge/React-18-blue)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
 
-**Vesta**, modern web teknolojileriyle geliştirilmiş, ölçeklenebilir; Emlak, Vasıta ve İşyeri ilanlarını tek bir çatı altında toplayan Full-Stack bir ilan platformudur.
-
-Kullanıcı dostu arayüzü, güçlü backend mimarisi ve güvenli altyapısı ile Vesta, hem geliştiriciler için modern bir referans proje hem de kullanıcılar için pratik bir çözüm sunmayı hedefler.
-
-## � Proje Görselleri
-
-| Ana Sayfa | Kullanıcı Paneli |
-|:---:|:---:|
-| ![Ana Sayfa](assets/screenshot-1.png) | ![Panel](assets/screenshot-2.png) |
-
-| İlan Detay | Arama & Filtreleme |
-|:---:|:---:|
-| ![İlan Detay](assets/screenshot-3.png) | ![Filtreleme](assets/screenshot-4.png) |
+**Vesta**, kullanıcıların emlak, vasıta, arsa ve işyeri gibi çeşitli kategorilerde güvenle ilan verip arama yapabileceği, modern ve ölçeklenebilir bir Full-Stack web platformudur. Güvenli altyapısı, şık tasarımı ve kullanıcı dostu özellikleriyle uçtan uca eksiksiz bir deneyim sunar.
 
 ---
 
-## 🚀 Özellikler
+## ✨ Özellikler
 
-*   **Çoklu Kategori Desteği:** Emlak (Konut, Arsa, İşyeri) ve Vasıta ilanları için özelleştirilmiş alanlar.
-*   **Güvenli Kimlik Doğrulama:** JWT (JSON Web Token) tabanlı güvenli giriş ve kayıt sistemi.
-*   **Gelişmiş Filtreleme:** Kategoriye özel dinamik filtreleme seçenekleri.
-*   **Kullanıcı Paneli:** İlan yönetimi, favoriler ve profil düzenleme.
-*   **Responsive Tasarım:** Mobil uyumlu, modern ve şık arayüz (Tailwind CSS).
-*   **Docker Desteği:** Veritabanı (PostgreSQL) ve servisler için konteynerizasyon.
+*   **Çoklu Kategori Yapısı:** Konut, Arsa, İşyeri ve Vasıta gibi farklı ihtiyaçlara özel ilan tipleri ve detaylı filtreleme seçenekleri.
+*   **Güvenli Kimlik Doğrulama:** JWT tabanlı güvenli giriş, kayıt ve oturum yönetimi.
+*   **Kullanıcı Paneli:** Profil düzenleme, şifre değişikliği ve hesap yönetimi.
+*   **İlan Yönetimi:** Kullanıcıların kolayca ilan oluşturabilmesi, düzenleyebilmesi ve pasife alabilmesi.
+*   **Mesajlaşma Sistemi:** Alıcı ve satıcılar arasında platform içi anlık iletişim.
+*   **Favoriler:** Beğenilen ilanları kaydetme ve hızlı erişim.
+*   **Modern Arayüz:** Mobil uyumlu, hızlı ve estetik tasarım (Tailwind CSS & Lucide Icons).
+
+---
+
+## 📸 Proje Görselleri
+
+Uygulamamızdan bazı ekran görüntüleri:
+
+### 🔐 Giriş ve Kayıt
+Kullanıcıların güvenle sisteme dahil olabileceği modern arayüzler.
+
+| Giriş Yap | Kayıt Ol |
+|:---:|:---:|
+| ![Login Page](assets/login_page.png) | ![Register Page](assets/register_page.png) |
+
+### 🏠 Ana Sayfa ve İlanlar
+Kategorilere hızlı erişim ve vitrin ilanları.
+
+| Ana Sayfa | İlan Detayı |
+|:---:|:---:|
+| ![Home Page](assets/homepage.png) | ![Advert Page](assets/advert_page.png) |
+
+### 👤 Kullanıcı Deneyimi
+Kişiselleştirilmiş profil yönetimi ve iletişim.
+
+| Profil Sayfası | Mesajlaşma |
+|:---:|:---:|
+| ![Profile Page](assets/user_profile_page.png) | ![Message Page](assets/message_page.png) |
+
+---
 
 ## 🛠 Teknoloji Yığını (Tech Stack)
 
 ### Backend (Java & Spring Boot)
-*   **Dil:** Java 17
-*   **Framework:** Spring Boot 3
+*   **Core:** Java 17, Spring Boot 3
 *   **Veritabanı:** PostgreSQL
-*   **ORM:** Spring Data JPA / Hibernate
-*   **Güvenlik:** Spring Security & JWT
-*   **Dokümantasyon:** OpenAPI (Swagger)
+*   **ORM:** Hibernate / Spring Data JPA
+*   **Güvenlik:** Spring Security, JWT Auth
+*   **API Dokümantasyonu:** OpenAPI (Swagger)
 
 ### Frontend (React & TypeScript)
-*   **Framework:** React 18
-*   **Dil:** TypeScript
+*   **Core:** React 18, TypeScript
 *   **State Management:** Redux Toolkit
-*   **Styling:** Tailwind CSS & Lucide Icons
-*   **Form & Validation:** React Hook Form & Yup
-*   **HTTP Client:** Axios
+*   **Styling:** Tailwind CSS
+*   **Form Yönetimi:** React Hook Form, Yup
+*   **İkon Seti:** Lucide React
+
+### DevOps & Araçlar
+*   **Containerization:** Docker & Docker Compose
+*   **Versiyon Kontrol:** Git
+
+---
 
 ## 📦 Kurulum ve Çalıştırma
 
-Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyebilirsiniz.
-
-### Ön Hazırlık
-*   Git
-*   Docker & Docker Compose
-*   Java 17 JDK
-*   Node.js 18+
+Projeyi yerel ortamınızda çalıştırmak için:
 
 ### 1. Repoyu Klonlayın
 ```bash
@@ -65,51 +81,35 @@ git clone https://github.com/burakcnaksy0/real-estate.git
 cd real-estate
 ```
 
-### 2. Backend (Sunucu) Kurulumu
-Veritabanını Docker ile ayağa kaldırın ve uygulamayı başlatın:
-
+### 2. Backend Kurulumu
+Veritabanını ve backend servisini başlatın:
 ```bash
 cd backend/real-estate
-
-# Veritabanını başlat
-docker-compose up -d
-
-# Uygulamayı çalıştır
-./mvnw spring-boot:run
+docker-compose up -d  # PostgreSQL'i başlatır
+./mvnw spring-boot:run # Uygulamayı başlatır
 ```
-*Backend `http://localhost:8080` adresinde çalışacaktır.*
 
-### 3. Frontend (Arayüz) Kurulumu
-Yeni bir terminalde frontend klasörüne gidin:
-
+### 3. Frontend Kurulumu
+Arayüzü başlatın:
 ```bash
 cd frontend
-
-# Bağımlılıkları yükle
 npm install
-
-# Uygulamayı başlat
 npm start
 ```
-*Uygulama `http://localhost:3000` adresinde açılacaktır.*
+*Frontend: http://localhost:3000 | Backend: http://localhost:8080*
 
-## 🤝 Katkıda Bulunma (Contributing)
+---
 
-Bu bir açık kaynak projesidir ve katkılarınıza her zaman açıktır!
-1. Bu repoyu fork'layın.
-2. Yeni bir feature branch oluşturun (`git checkout -b feature/harika-ozellik`).
-3. Değişikliklerinizi commit'leyin (`git commit -m 'Harika özellik eklendi'`).
-4. Branch'inizi push'layın (`git push origin feature/harika-ozellik`).
-5. Bir Pull Request (PR) oluşturun.
+## 🤝 Katkıda Bulunma
 
-## � TODO / Yol Haritası
+1. Forklayın
+2. Feature branch oluşturun (`git checkout -b feature/yeni-ozellik`)
+3. Commitileyin (`git commit -m 'Yeni özellik eklendi'`)
+4. Pushlayın (`git push origin feature/yeni-ozellik`)
+5. Pull Request açın
 
-- [ ] Unit & Integration Testlerinin artırılması
-- [ ] Harita entegrasyonu (Google Maps / Leaflet)
-- [ ] Çoklu dil desteği (i18n)
-- [ ] CI/CD Pipeline kurulumu
-- [ ] Cloudinary/S3 resim upload entegrasyonu
+---
 
 ## 📄 Lisans
 
-Bu proje [MIT](LICENSE) lisansı ile lisanslanmıştır.
+Bu proje MIT lisansı ile korunmaktadır.

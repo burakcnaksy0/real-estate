@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Menu, X, User, LogOut, Plus, Search } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUtils';
 
 export const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -102,7 +103,7 @@ export const Header: React.FC = () => {
                   >
                     {user?.profilePicture ? (
                       <img
-                        src={user.profilePicture}
+                        src={getImageUrl(user.profilePicture)}
                         alt={user.name || user.username}
                         className="w-8 h-8 rounded-full object-cover border-2 border-primary-200"
                       />

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ListingService } from '../services/listingService';
 import { Sparkles, TrendingUp, Shield, Zap, Globe, ArrowRight, Search, Star } from 'lucide-react';
+import { getImageUrl } from '../utils/imageUtils';
 
 interface CategoryStats {
   name: string;
@@ -98,7 +99,7 @@ export const HomePage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl blur-lg opacity-50"></div>
                 {user.profilePicture ? (
                   <img
-                    src={user.profilePicture}
+                    src={getImageUrl(user.profilePicture)}
                     alt={user.name || user.username}
                     className="relative w-16 h-16 rounded-2xl object-cover shadow-lg border-2 border-white"
                   />

@@ -16,6 +16,7 @@ import { useDispatch } from 'react-redux';
 import { checkAuthStatus, setUser } from '../store/slices/authSlice';
 import { AppDispatch } from '../store';
 import { formatDate } from '../utils/formatters';
+import { getImageUrl } from '../utils/imageUtils';
 
 export const ProfilePage: React.FC = () => {
     const { user, logout } = useAuth();
@@ -162,7 +163,7 @@ export const ProfilePage: React.FC = () => {
                             <div className="w-36 h-36 rounded-3xl bg-white/10 backdrop-blur-lg p-1.5 shadow-2xl border border-white/20 relative overflow-hidden">
                                 {user.profilePicture ? (
                                     <img
-                                        src={`http://localhost:8080/uploads/users/${user.id}/${user.profilePicture.split('\\').pop()?.split('/').pop()}`}
+                                        src={getImageUrl(user.profilePicture)}
                                         alt={user.name}
                                         className="w-full h-full rounded-[20px] object-cover"
                                         onError={(e) => {

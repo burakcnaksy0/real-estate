@@ -183,12 +183,8 @@ public class FileStorageService {
             Path filePath = uploadPath.resolve(filename);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            // Return relative path or whatever you want to save in the User entity
-            // For simplicity, we can return the filename if we serve it via a controller,
-            // or a path.
-            // Let's stick to the pattern used in uploadImage but we are not returning an
-            // ImageResponse here, just the string path.
-            return filePath.toString();
+            // Return relative path for frontend access
+            return "uploads/users/" + userId + "/" + filename;
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to store file: " + e.getMessage(), e);
