@@ -1,6 +1,7 @@
 package com.burakcanaksoy.realestate.repository;
 
 import com.burakcanaksoy.realestate.model.Workplace;
+import com.burakcanaksoy.realestate.model.enums.ListingStatus;
 import com.burakcanaksoy.realestate.model.enums.WorkplaceType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.burakcanaksoy.realestate.request.WorkplaceFilterRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface WorkplaceRepository extends BaseListingRepository<Workplace> {
@@ -49,4 +51,11 @@ public interface WorkplaceRepository extends BaseListingRepository<Workplace> {
 
   List<Workplace> findTop3ByCityAndDistrictAndWorkplaceTypeAndIdNot(String city, String district,
       WorkplaceType workplaceType, Long id);
+
+  // Analytics queries
+  Long countByStatus(ListingStatus status);
+
+  Long countByCreatedAtAfter(LocalDateTime date);
+
+  List<Workplace> findTop10ByOrderByCreatedAtDesc();
 }

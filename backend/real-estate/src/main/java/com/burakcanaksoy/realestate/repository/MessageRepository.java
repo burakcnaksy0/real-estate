@@ -39,4 +39,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
         // Find messages received by a user
         List<Message> findByReceiverIdOrderByCreatedAtDesc(Long receiverId);
+
+        // Delete all messages where user is sender or receiver
+        void deleteBySenderOrReceiver(User sender, User receiver);
 }

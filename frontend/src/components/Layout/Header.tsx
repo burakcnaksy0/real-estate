@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Menu, X, User, LogOut, Plus, Search } from 'lucide-react';
+import { Menu, X, User, LogOut, Plus, Search, Shield } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
+import { Role } from '../../types';
 
 export const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -170,6 +171,18 @@ export const Header: React.FC = () => {
                           </svg>
                           Favorilerim
                         </Link>
+
+                        {/* Admin Panel Link - Only for admins */}
+                        {user?.roles?.includes(Role.ROLE_ADMIN) && (
+                          <Link
+                            to="/admin"
+                            className="flex items-center px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 transition-colors duration-200 font-medium"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <Shield className="h-4 w-4 mr-3" />
+                            Admin Paneli
+                          </Link>
+                        )}
                       </div>
 
                       <div className="border-t border-gray-200 pt-2">

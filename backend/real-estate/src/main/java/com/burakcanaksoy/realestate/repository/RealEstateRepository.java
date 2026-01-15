@@ -1,6 +1,7 @@
 package com.burakcanaksoy.realestate.repository;
 
 import com.burakcanaksoy.realestate.model.RealEstate;
+import com.burakcanaksoy.realestate.model.enums.ListingStatus;
 import com.burakcanaksoy.realestate.model.enums.RealEstateType;
 import com.burakcanaksoy.realestate.request.RealEstateFilterRequest;
 import org.springframework.data.domain.Page;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface RealEstateRepository extends BaseListingRepository<RealEstate> {
@@ -59,4 +61,11 @@ public interface RealEstateRepository extends BaseListingRepository<RealEstate> 
 
   List<RealEstate> findTop3ByCityAndDistrictAndRealEstateTypeAndIdNot(String city, String district,
       RealEstateType realEstateType, Long id);
+
+  // Analytics queries
+  Long countByStatus(ListingStatus status);
+
+  Long countByCreatedAtAfter(LocalDateTime date);
+
+  List<RealEstate> findTop10ByOrderByCreatedAtDesc();
 }

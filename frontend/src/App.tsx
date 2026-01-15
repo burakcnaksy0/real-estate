@@ -34,6 +34,8 @@ import { WorkplaceCreatePage } from './pages/Workplace/WorkplaceCreatePage';
 import { FavoritesPage } from './pages/FavoritesPage';
 import { WorkplaceDetailPage } from './pages/Workplace/WorkplaceDetailPage';
 import { MessagesPage } from './pages/Messages/MessagesPage';
+import { AdminDashboard } from './pages/Admin/AdminDashboard';
+import { AdminRoute } from './components/Admin/AdminRoute';
 
 // Styles
 import './index.css';
@@ -90,6 +92,14 @@ const AppContent: React.FC = () => {
             </div>
           } />
           <Route path="/favorites" element={<FavoritesPage />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          } />
+
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/messages/:userId" element={<MessagesPage />} />
 

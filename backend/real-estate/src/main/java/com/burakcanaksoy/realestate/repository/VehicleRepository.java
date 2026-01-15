@@ -1,7 +1,9 @@
 package com.burakcanaksoy.realestate.repository;
 
 import com.burakcanaksoy.realestate.model.Vehicle;
+import com.burakcanaksoy.realestate.model.enums.ListingStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import com.burakcanaksoy.realestate.request.VehicleFilterRequest;
 import org.springframework.data.domain.Page;
@@ -57,4 +59,11 @@ public interface VehicleRepository extends BaseListingRepository<Vehicle> {
 
   List<Vehicle> findByCityAndDistrictAndBrandAndIdNot(String city, String district, String brand, Long id,
       Pageable pageable);
+
+  // Analytics queries
+  Long countByStatus(ListingStatus status);
+
+  Long countByCreatedAtAfter(LocalDateTime date);
+
+  List<Vehicle> findTop10ByOrderByCreatedAtDesc();
 }

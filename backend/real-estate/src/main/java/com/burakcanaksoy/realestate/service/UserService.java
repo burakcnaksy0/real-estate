@@ -1,6 +1,9 @@
 package com.burakcanaksoy.realestate.service;
 
 import com.burakcanaksoy.realestate.model.User;
+import com.burakcanaksoy.realestate.repository.FavoriteRepository;
+import com.burakcanaksoy.realestate.repository.ListingRepository;
+import com.burakcanaksoy.realestate.repository.MessageRepository;
 import com.burakcanaksoy.realestate.repository.UserRepository;
 import com.burakcanaksoy.realestate.request.ChangePasswordRequest;
 import com.burakcanaksoy.realestate.request.UpdateProfileRequest;
@@ -10,6 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Random;
 import java.time.LocalDateTime;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.util.Set;
+import com.burakcanaksoy.realestate.model.enums.Role;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +24,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FavoriteRepository favoriteRepository;
+    private final ListingRepository listingRepository;
+    private final MessageRepository messageRepository;
     private final EmailService emailService;
     private final FileStorageService fileStorageService;
     private final SmsService smsService;
@@ -125,5 +135,52 @@ public class UserService {
 
     public java.util.Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    @Transactional
+    public void toggleUserStatus(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+        user.setEnabled(!user.getEnabled());
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateUserRoles(Long userId, Set<Role> roles) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+        user.setRoles(roles);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+        // Delete user's favorites
+        favoriteRepository.deleteByUser(user);
+
+        // Delete user's listings
+        listingRepository.deleteByCreatedBy(user);
+
+        // Delete user's messages (both sent and received)
+        messageRepository.deleteBySenderOrReceiver(user, user);
+
+        // Remove profile image if exists
+        if (user.getProfilePicture() != null) {
+            try {
+                fileStorageService.deleteUserProfileImage(userId);
+            } catch (Exception e) {
+                // Log warning but continue deletion
+                System.err.println("Could not delete profile picture for user " + userId);
+            }
+        }
+
+        userRepository.delete(user);
     }
 }

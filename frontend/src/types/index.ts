@@ -402,3 +402,39 @@ export interface ConversationResponse {
   listingId?: number;
   listingTitle?: string;
 }
+
+// Admin Analytics types
+export interface UserStats {
+  totalUsers: number;
+  activeUsers: number;
+  oauthUsers: number;
+  last7DaysUsers: number;
+  last30DaysUsers: number;
+}
+
+export interface ListingStats {
+  totalListings: number;
+  activeListings: number;
+  realEstateCount: number;
+  vehicleCount: number;
+  landCount: number;
+  workplaceCount: number;
+}
+
+export interface ActivityLog {
+  id: number;
+  type: 'USER_REGISTERED' | 'LISTING_CREATED' | 'FAVORITE_ADDED' | 'MESSAGE_SENT';
+  description: string;
+  timestamp: string;
+  userName?: string;
+}
+
+export interface GrowthData {
+  month: string;
+  count: number;
+}
+
+export interface CityDistribution {
+  city: string;
+  count: number;
+}

@@ -324,6 +324,19 @@ export const ProfilePage: React.FC = () => {
                                         </button>
                                     );
                                 })}
+
+                                {user?.roles?.includes(Role.ROLE_ADMIN) && (
+                                    <>
+                                        <div className="my-2 border-t border-gray-100"></div>
+                                        <Link
+                                            to="/admin"
+                                            className="w-full flex items-center gap-3 px-4 py-4 rounded-xl transition-all font-semibold group text-purple-700 hover:bg-purple-50"
+                                        >
+                                            <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                            <span>Admin Paneli</span>
+                                        </Link>
+                                    </>
+                                )}
                             </nav>
                         </div>
                     </div>
