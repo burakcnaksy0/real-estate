@@ -12,12 +12,14 @@ import {
   Home,
   Ruler,
   Thermometer,
-  Building
+  Building,
+  Share2
 } from 'lucide-react';
 import { useRealEstate } from '../../hooks/useRealEstate';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, RealEstateType, HeatingType } from '../../types';
 import { EditRealEstateModal } from '../../components/Modals/EditRealEstateModal';
+import { ShareListingModal } from '../../components/Modals/ShareListingModal';
 import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
@@ -30,6 +32,7 @@ export const RealEstateDetailPage: React.FC = () => {
   const { currentRealEstate, isLoading, fetchById, remove } = useRealEstate();
   const { user, isAuthenticated } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
   const [images, setImages] = React.useState<ImageResponse[]>([]);
   const [similarListings, setSimilarListings] = React.useState<import('../../types').RealEstate[]>([]);
 
@@ -191,7 +194,21 @@ export const RealEstateDetailPage: React.FC = () => {
               </div>
             )}
 
-            {!isOwner && (
+            {!isOwner && isAuthenticated && (
+              <div className="flex space-x-2">
+                <FavoriteButton listingId={currentRealEstate.id} listingType="REAL_ESTATE" />
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="btn-secondary flex items-center space-x-2"
+                  title="İlanı Paylaş"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>Paylaş</span>
+                </button>
+              </div>
+            )}
+
+            {!isAuthenticated && (
               <FavoriteButton listingId={currentRealEstate.id} listingType="REAL_ESTATE" />
             )}
           </div>
@@ -396,6 +413,17 @@ export const RealEstateDetailPage: React.FC = () => {
               fetchById(Number(id));
             }
           }}
+        />
+      )}
+
+      {/* Share Modal */}
+      {currentRealEstate && (
+        <ShareListingModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          listingId={currentRealEstate.id}
+          listingType="REAL_ESTATE"
+          listingTitle={currentRealEstate.title}
         />
       )}
     </div>

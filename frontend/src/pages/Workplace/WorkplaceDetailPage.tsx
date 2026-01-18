@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     MapPin, Calendar, User, Phone, Mail, Edit, Trash2, ArrowLeft,
-    Home, Ruler, Layers, Briefcase
+    Home, Ruler, Layers, Briefcase, Share2
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, WorkplaceType, Workplace, OfferType } from '../../types';
@@ -10,6 +10,7 @@ import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { WorkplaceService } from '../../services/workplaceService';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
+import { ShareListingModal } from '../../components/Modals/ShareListingModal';
 import { MapView } from '../../components/MapView/MapView';
 import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
 
@@ -19,6 +20,7 @@ export const WorkplaceDetailPage: React.FC = () => {
     const { user, isAuthenticated } = useAuth();
     const [workplace, setWorkplace] = useState<Workplace | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [images, setImages] = useState<ImageResponse[]>([]);
     const [similarWorkplaces, setSimilarWorkplaces] = useState<Workplace[]>([]);
 
@@ -154,7 +156,21 @@ export const WorkplaceDetailPage: React.FC = () => {
                             </div>
                         )}
 
-                        {!isOwner && (
+                        {!isOwner && isAuthenticated && (
+                            <div className="flex space-x-2">
+                                <FavoriteButton listingId={workplace.id} listingType="WORKPLACE" />
+                                <button
+                                    onClick={() => setIsShareModalOpen(true)}
+                                    className="btn-secondary flex items-center space-x-2"
+                                    title="İlanı Paylaş"
+                                >
+                                    <Share2 className="h-4 w-4" />
+                                    <span>Paylaş</span>
+                                </button>
+                            </div>
+                        )}
+
+                        {!isAuthenticated && (
                             <FavoriteButton listingId={workplace.id} listingType="WORKPLACE" />
                         )}
                     </div>
@@ -301,6 +317,17 @@ export const WorkplaceDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Share Modal */}
+            {workplace && (
+                <ShareListingModal
+                    isOpen={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    listingId={workplace.id}
+                    listingType="WORKPLACE"
+                    listingTitle={workplace.title}
+                />
+            )}
         </div>
     );
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     MapPin, Calendar, User, Phone, Edit, Trash2, ArrowLeft,
-    Home, Ruler, Map as MapIcon, FileText, Building
+    Home, Ruler, Map as MapIcon, FileText, Building, Share2
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, LandType, Land, OfferType } from '../../types';
@@ -10,6 +10,7 @@ import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { LandService } from '../../services/landService';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
+import { ShareListingModal } from '../../components/Modals/ShareListingModal';
 import { MapView } from '../../components/MapView/MapView';
 import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
 
@@ -19,6 +20,7 @@ export const LandDetailPage: React.FC = () => {
     const { user, isAuthenticated } = useAuth();
     const [land, setLand] = useState<Land | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [images, setImages] = useState<ImageResponse[]>([]);
     const [similarLands, setSimilarLands] = useState<Land[]>([]);
 
@@ -154,7 +156,21 @@ export const LandDetailPage: React.FC = () => {
                             </div>
                         )}
 
-                        {!isOwner && (
+                        {!isOwner && isAuthenticated && (
+                            <div className="flex space-x-2">
+                                <FavoriteButton listingId={land.id} listingType="LAND" />
+                                <button
+                                    onClick={() => setIsShareModalOpen(true)}
+                                    className="btn-secondary flex items-center space-x-2"
+                                    title="İlanı Paylaş"
+                                >
+                                    <Share2 className="h-4 w-4" />
+                                    <span>Paylaş</span>
+                                </button>
+                            </div>
+                        )}
+
+                        {!isAuthenticated && (
                             <FavoriteButton listingId={land.id} listingType="LAND" />
                         )}
                     </div>
@@ -301,6 +317,17 @@ export const LandDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Share Modal */}
+            {land && (
+                <ShareListingModal
+                    isOpen={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    listingId={land.id}
+                    listingType="LAND"
+                    listingTitle={land.title}
+                />
+            )}
         </div>
     );
 };

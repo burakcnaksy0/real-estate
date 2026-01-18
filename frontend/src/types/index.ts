@@ -389,6 +389,9 @@ export interface MessageDetailResponse {
   receiverUsername: string;
   listingId?: number;
   listingTitle?: string;
+  sharedListingType?: string;
+  sharedListingTitle?: string;
+  sharedListingImageUrl?: string;
   content: string;
   isRead: boolean;
   createdAt: string;

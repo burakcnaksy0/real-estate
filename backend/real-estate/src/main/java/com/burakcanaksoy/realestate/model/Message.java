@@ -30,6 +30,9 @@ public class Message {
     @JoinColumn(name = "listing_id")
     private BaseListing listing;
 
+    @Column(length = 20)
+    private String sharedListingType; // VEHICLE, REAL_ESTATE, LAND, WORKPLACE
+
     @Column(nullable = false, length = 2000)
     private String content;
 

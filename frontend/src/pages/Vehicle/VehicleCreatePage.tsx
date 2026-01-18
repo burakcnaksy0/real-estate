@@ -91,6 +91,7 @@ export const VehicleCreatePage: React.FC = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<VehicleCreateRequest>({
     resolver: yupResolver(vehicleSchema) as any,
@@ -435,6 +436,8 @@ export const VehicleCreatePage: React.FC = () => {
                 <p className="mt-1 text-sm text-red-600">{errors.currency.message}</p>
               )}
             </div>
+
+
           </div>
         </div>
 

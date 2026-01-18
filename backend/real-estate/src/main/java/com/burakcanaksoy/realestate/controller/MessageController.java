@@ -57,4 +57,32 @@ public class MessageController {
         Long count = messageService.getUnreadCount(userId);
         return ResponseEntity.ok(Map.of("unreadCount", count));
     }
+
+    @PostMapping("/share-listing")
+    public ResponseEntity<MessageDetailResponse> shareListing(
+            @Valid @RequestBody com.burakcanaksoy.realestate.request.ShareListingRequest request) {
+        Long senderId = authService.getCurrentUser().getId();
+        MessageDetailResponse response = messageService.shareListing(
+                senderId,
+                request.getRecipientId(),
+                request.getListingId(),
+                request.getListingType(),
+                request.getMessage());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/shareable-contacts")
+    public ResponseEntity<List<Map<String, Object>>> getShareableContacts() {
+        Long userId = authService.getCurrentUser().getId();
+        List<com.burakcanaksoy.realestate.model.User> contacts = messageService.getShareableContacts(userId);
+
+        List<Map<String, Object>> contactList = contacts.stream()
+                .map(user -> Map.of(
+                        "id", (Object) user.getId(),
+                        "username", user.getUsername(),
+                        "email", user.getEmail() != null ? user.getEmail() : ""))
+                .toList();
+
+        return ResponseEntity.ok(contactList);
+    }
 }

@@ -15,6 +15,9 @@ public class MessageDetailResponse {
     private String receiverUsername;
     private Long listingId;
     private String listingTitle;
+    private String sharedListingType;
+    private String sharedListingTitle;
+    private String sharedListingImageUrl;
     private String content;
     private Boolean isRead;
 

@@ -12,7 +12,8 @@ import {
   Car,
   Fuel,
   Settings,
-  Gauge
+  Gauge,
+  Share2
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
@@ -20,6 +21,7 @@ import { fetchVehicleByIdAsync, deleteVehicleAsync } from '../../store/slices/ve
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, FuelType, Transmission } from '../../types';
 import { EditVehicleModal } from '../../components/Modals/EditVehicleModal';
+import { ShareListingModal } from '../../components/Modals/ShareListingModal';
 import { ImageResponse, ImageService } from '../../services/imageService';
 import { VehicleService } from '../../services/vehicleService';
 import { Vehicle } from '../../types';
@@ -34,6 +36,7 @@ export const VehicleDetailPage: React.FC = () => {
   const { currentVehicle, isLoading } = useSelector((state: RootState) => state.vehicles);
   const { user, isAuthenticated } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
   const [images, setImages] = React.useState<ImageResponse[]>([]);
   const [similarVehicles, setSimilarVehicles] = React.useState<Vehicle[]>([]);
 
@@ -191,7 +194,21 @@ export const VehicleDetailPage: React.FC = () => {
               </div>
             )}
 
-            {!isOwner && (
+            {!isOwner && isAuthenticated && (
+              <div className="flex space-x-2">
+                <FavoriteButton listingId={currentVehicle.id} listingType="VEHICLE" />
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="btn-secondary flex items-center space-x-2"
+                  title="İlanı Paylaş"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>Paylaş</span>
+                </button>
+              </div>
+            )}
+
+            {!isAuthenticated && (
               <FavoriteButton listingId={currentVehicle.id} listingType="VEHICLE" />
             )}
           </div>
@@ -397,6 +414,17 @@ export const VehicleDetailPage: React.FC = () => {
               dispatch(fetchVehicleByIdAsync(Number(id)));
             }
           }}
+        />
+      )}
+
+      {/* Share Modal */}
+      {currentVehicle && (
+        <ShareListingModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          listingId={currentVehicle.id}
+          listingType="VEHICLE"
+          listingTitle={currentVehicle.title}
         />
       )}
     </div>
