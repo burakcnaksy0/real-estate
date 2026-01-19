@@ -67,6 +67,8 @@ public class LandMapper {
         response.setCreatedAt(land.getCreatedAt());
         response.setUpdatedAt(land.getUpdatedAt());
         response.setOfferType(land.getOfferType());
+        response.setViewCount(land.getViewCount());
+        response.setFavoriteCount(land.getFavoriteCount());
 
         if (land.getCategory() != null) {
             response.setCategorySlug(land.getCategory().getSlug());
@@ -84,6 +86,7 @@ public class LandMapper {
         if (land.getCreatedBy() != null) {
             response.setOwnerId(land.getCreatedBy().getId());
             response.setOwnerUsername(land.getCreatedBy().getUsername());
+            response.setOwnerLastSeen(land.getCreatedBy().getLastSeen());
         }
 
         return response;

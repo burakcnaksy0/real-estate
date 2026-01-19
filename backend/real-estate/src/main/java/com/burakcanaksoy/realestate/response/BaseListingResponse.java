@@ -24,4 +24,7 @@ public class BaseListingResponse {
     private String listingType;
     private String imageUrl;
     private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
+    private Long viewCount;
+    private Long favoriteCount;
+    private LocalDateTime ownerLastSeen;
 }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { VehicleService } from '../../services/vehicleService';
 import { Vehicle, VehicleFilterRequest } from '../../types';
-import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon, Heart } from 'lucide-react';
 
 export const VehicleListPage: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -391,6 +391,10 @@ export const VehicleListPage: React.FC = () => {
                       <span className="text-xl font-bold text-red-600">
                         {formatPrice(vehicle.price, vehicle.currency)}
                       </span>
+                    </div>
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Heart className="w-4 h-4 mr-1" />
+                      <span>{vehicle.favoriteCount || 0}</span>
                     </div>
                   </div>
                 </div>

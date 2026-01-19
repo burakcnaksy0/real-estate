@@ -48,6 +48,7 @@ public class RealEstateController {
 
     @GetMapping("/{realEstateId}")
     public ResponseEntity<RealEstateResponse> getRealEstateById(@PathVariable Long realEstateId) {
+        this.realEstateService.incrementViewCount(realEstateId);
         return new ResponseEntity<>(this.realEstateService.getRealEstateById(realEstateId), HttpStatus.OK);
     }
 

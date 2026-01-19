@@ -13,18 +13,28 @@
 ## ✨ Özellikler
 
 *   **Çoklu Kategori Yapısı:** Konut, Arsa, İşyeri ve Vasıta gibi farklı ihtiyaçlara özel ilan tipleri ve detaylı filtreleme seçenekleri.
-*   **Güvenli Kimlik Doğrulama:** JWT tabanlı güvenli giriş, kayıt ve oturum yönetimi.
+*   **Güvenli Kimlik Doğrulama:** JWT tabanlı güvenli giriş, kayıt ve oturum yönetimi (Google OAuth Entegrasyonu dahil).
+*   **🔔 Gelişmiş Bildirim Sistemi:** İlanlarınız favorilendiğinde veya mesaj aldığınızda anlık (Real-time) bildirimler.
+*   **💬 Gerçek Zamanlı Mesajlaşma:**
+    *   WebSocket altyapısı ile anlık sohbet.
+    *   Okundu bilgisi takibi.
+    *   Yazıyor... göstergeleri ve canlı güncellemeler.
+*   **Favoriler:** Beğenilen ilanları kaydetme ve hızlı erişim.
 *   **Kullanıcı Paneli:** Profil düzenleme, şifre değişikliği ve hesap yönetimi.
 *   **İlan Yönetimi:** Kullanıcıların kolayca ilan oluşturabilmesi, düzenleyebilmesi ve pasife alabilmesi.
-*   **Mesajlaşma Sistemi:** Alıcı ve satıcılar arasında platform içi anlık iletişim.
-*   **Favoriler:** Beğenilen ilanları kaydetme ve hızlı erişim.
 *   **Modern Arayüz:** Mobil uyumlu, hızlı ve estetik tasarım (Tailwind CSS & Lucide Icons).
 
 ---
 
-## 📸 Proje Görselleri
+## 🎥 Proje Görselleri ve Demo
 
-Uygulamamızdan bazı ekran görüntüleri:
+### 💬 Sohbet ve Bildirim Sistemi Demosu
+Uygulamanın gerçek zamanlı mesajlaşma ve bildirim özelliklerini aşağıdaki videoda görebilirsiniz:
+
+<video src="assets/chat_response.mp4" controls="controls" style="max-width: 100%;">
+</video>
+
+*(Tarayıcınız video etiketini desteklemiyorsa videoyu [buradan](assets/chat_response.mp4) indirebilirsiniz.)*
 
 ### 🔐 Giriş ve Kayıt
 Kullanıcıların güvenle sisteme dahil olabileceği modern arayüzler.
@@ -55,7 +65,8 @@ Kişiselleştirilmiş profil yönetimi ve iletişim.
 *   **Core:** Java 17, Spring Boot 3
 *   **Veritabanı:** PostgreSQL
 *   **ORM:** Hibernate / Spring Data JPA
-*   **Güvenlik:** Spring Security, JWT Auth
+*   **Güvenlik:** Spring Security, JWT Auth, OAuth2
+*   **Real-time:** WebSocket (STOMP)
 *   **API Dokümantasyonu:** OpenAPI (Swagger)
 
 ### Frontend (React & TypeScript)
@@ -63,6 +74,7 @@ Kişiselleştirilmiş profil yönetimi ve iletişim.
 *   **State Management:** Redux Toolkit
 *   **Styling:** Tailwind CSS
 *   **Form Yönetimi:** React Hook Form, Yup
+*   **Bildirimler:** React Toastify
 *   **İkon Seti:** Lucide React
 
 ### DevOps & Araçlar
@@ -107,9 +119,3 @@ npm start
 3. Commitileyin (`git commit -m 'Yeni özellik eklendi'`)
 4. Pushlayın (`git push origin feature/yeni-ozellik`)
 5. Pull Request açın
-
----
-
-## 📄 Lisans
-
-Bu proje MIT lisansı ile korunmaktadır.

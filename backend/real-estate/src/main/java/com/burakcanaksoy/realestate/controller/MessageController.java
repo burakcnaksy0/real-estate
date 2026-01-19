@@ -85,4 +85,11 @@ public class MessageController {
 
         return ResponseEntity.ok(contactList);
     }
+
+    @DeleteMapping("/conversation/{otherUserId}")
+    public ResponseEntity<Void> deleteConversation(@PathVariable Long otherUserId) {
+        Long userId = authService.getCurrentUser().getId();
+        messageService.deleteConversation(userId, otherUserId);
+        return ResponseEntity.ok().build();
+    }
 }

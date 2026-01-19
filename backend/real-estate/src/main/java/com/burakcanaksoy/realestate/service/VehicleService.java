@@ -62,6 +62,13 @@ public class VehicleService {
         return VehicleMapper.toResponse(vehicle);
     }
 
+    public void incrementViewCount(Long vehicleId) {
+        Vehicle vehicle = this.vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with this id : " + vehicleId));
+        vehicle.setViewCount(vehicle.getViewCount() + 1);
+        this.vehicleRepository.save(vehicle);
+    }
+
     private void assertOwnerOrAdmin(Vehicle vehicle, User currentUser) {
         boolean isAdmin = currentUser.getRoles().contains(Role.ROLE_ADMIN);
         boolean isOwner = vehicle.getCreatedBy() != null &&

@@ -62,6 +62,8 @@ public class WorkplaceMapper {
         response.setCreatedAt(workplace.getCreatedAt());
         response.setUpdatedAt(workplace.getUpdatedAt());
         response.setOfferType(workplace.getOfferType());
+        response.setViewCount(workplace.getViewCount());
+        response.setFavoriteCount(workplace.getFavoriteCount());
 
         if (workplace.getCategory() != null) {
             response.setCategorySlug(workplace.getCategory().getSlug());
@@ -77,6 +79,7 @@ public class WorkplaceMapper {
         if (workplace.getCreatedBy() != null) {
             response.setOwnerId(workplace.getCreatedBy().getId());
             response.setOwnerUsername(workplace.getCreatedBy().getUsername());
+            response.setOwnerLastSeen(workplace.getCreatedBy().getLastSeen());
         }
         return response;
     }

@@ -2,17 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     MapPin, Calendar, User, Phone, Edit, Trash2, ArrowLeft,
-    Home, Ruler, Map as MapIcon, FileText, Building, Share2
+    Home, Ruler, Map as MapIcon, FileText, Building, Share2, Eye, Heart
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, LandType, Land, OfferType } from '../../types';
 import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
+import { formatLastSeen } from '../../utils/dateUtils';
 import { LandService } from '../../services/landService';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
 import { ShareListingModal } from '../../components/Modals/ShareListingModal';
 import { MapView } from '../../components/MapView/MapView';
 import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
+import { websocketService } from '../../services/websocketService';
 
 export const LandDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -56,6 +58,21 @@ export const LandDetailPage: React.FC = () => {
         };
 
         fetchData();
+
+        // Subscribe to real-time favoriteCount updates
+        const subscription = websocketService.subscribe(
+            `/topic/listing/${id}/favoriteCount`,
+            (event: { listingId: number; listingType: string; favoriteCount: number }) => {
+                console.log('WebSocket event received:', event);
+                fetchData();
+            }
+        );
+
+        return () => {
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+        };
     }, [id]);
 
     const handleDelete = async () => {
@@ -146,6 +163,8 @@ export const LandDetailPage: React.FC = () => {
                             <div className="flex items-center text-gray-600 space-x-4">
                                 <span className="flex items-center"><MapPin className="h-4 w-4 mr-1" />{land.city}, {land.district}</span>
                                 <span className="flex items-center"><Calendar className="h-4 w-4 mr-1" />{new Date(land.createdAt).toLocaleDateString('tr-TR')}</span>
+                                <span className="flex items-center"><Eye className="h-4 w-4 mr-1" />{land.viewCount} görüntülenme</span>
+                                <span className="flex items-center"><Heart className="h-4 w-4 mr-1" />{land.favoriteCount || 0} favori</span>
                             </div>
                         </div>
                         {isOwner && (
@@ -266,6 +285,13 @@ export const LandDetailPage: React.FC = () => {
                                 <span className="text-gray-600">İlan No:</span>
                                 <span className="font-medium">#{land.id}</span>
                             </div>
+
+                            {land.ownerLastSeen && (
+                                <div className="flex justify-between text-green-600">
+                                    <span className="text-gray-600">Son Görülme:</span>
+                                    <span className="font-medium">{formatLastSeen(land.ownerLastSeen)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Durum:</span>
                                 <span className="font-medium capitalize">{land.status}</span>

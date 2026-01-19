@@ -64,6 +64,13 @@ public class RealEstateService {
         return RealEstateMapper.toResponse(realEstate);
     }
 
+    public void incrementViewCount(Long realEstateId) {
+        RealEstate realEstate = this.realEstateRepository.findById(realEstateId)
+                .orElseThrow(() -> new EntityNotFoundException("Real Estate not found with this id : " + realEstateId));
+        realEstate.setViewCount(realEstate.getViewCount() + 1);
+        this.realEstateRepository.save(realEstate);
+    }
+
     private void assertOwnerOrAdmin(RealEstate realEstate, User currentUser) {
         boolean isAdmin = currentUser.getRoles().contains(Role.ROLE_ADMIN);
         boolean isOwner = realEstate.getCreatedBy() != null &&

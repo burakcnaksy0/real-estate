@@ -31,9 +31,12 @@ public class RealEstateResponse {
         private Boolean furnished;
         private String imageUrl;
         private OfferType offerType;
+        private Long viewCount;
+        private Long favoriteCount;
 
         private Long ownerId;
         private String ownerUsername;
+        private LocalDateTime ownerLastSeen;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime createdAt;

@@ -1,33 +1,120 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Menu, X, User, LogOut, Plus, Search, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, Plus, Search, Shield, Bell, Check, Trash2 } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
-import { Role } from '../../types';
+import { Role, Notification } from '../../types';
+import { NotificationService } from '../../services/notificationService';
+import { websocketService } from '../../services/websocketService';
+import { toast } from 'react-toastify';
+import { formatDate } from '../../utils/formatters';
 
 export const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Close user menu when clicking outside
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  // Initial fetch and WebSocket subscription
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      websocketService.connect();
+      fetchNotifications();
+
+      // Subscribe to notifications
+      // Small delay to ensure connection
+      const timer = setTimeout(() => {
+        websocketService.subscribe(`/topic/notifications/${user.id}`, (notification: Notification) => {
+          setNotifications(prev => [notification, ...prev]);
+          if (!notification.isRead) {
+            setUnreadCount(prev => prev + 1);
+            toast.info(
+              <div onClick={() => navigate('/notifications')} className="cursor-pointer">
+                <strong>{notification.title}</strong>
+                <p className="text-sm">{notification.message}</p>
+              </div>
+            );
+          }
+        });
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user?.id]);
+
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await NotificationService.getUserNotifications();
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.isRead).length);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await NotificationService.markAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await NotificationService.markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.isRead) {
+      await handleMarkAsRead(notification.id);
+    }
+
+    // Navigate based on type/relatedId
+    if (notification.relatedListingId) {
+      if (notification.relatedListingType === 'REAL_ESTATE') navigate(`/real-estates/${notification.relatedListingId}`);
+      else if (notification.relatedListingType === 'VEHICLE') navigate(`/vehicles/${notification.relatedListingId}`);
+      else if (notification.relatedListingType === 'LAND') navigate(`/lands/${notification.relatedListingId}`);
+      else if (notification.relatedListingType === 'WORKPLACE') navigate(`/workplaces/${notification.relatedListingId}`);
+      else navigate(`/listings/${notification.relatedListingId}`);
+    }
+
+    setIsNotificationOpen(false);
+  };
+
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
       }
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
+      }
     };
 
-    if (isUserMenuOpen) {
+    if (isUserMenuOpen || isNotificationOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isUserMenuOpen]);
+  }, [isUserMenuOpen, isNotificationOpen]);
 
   const handleLogout = () => {
     logout();
@@ -95,6 +182,79 @@ export const Header: React.FC = () => {
                   <Plus className="h-4 w-4" />
                   <span>Ücretsiz İlan Ver</span>
                 </Link>
+
+                {/* Notification Bell */}
+                <div className="relative" ref={notificationRef}>
+                  <button
+                    onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 relative"
+                  >
+                    <Bell className="h-6 w-6 text-gray-600" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
+                    )}
+                  </button>
+
+                  {/* Notification Dropdown */}
+                  {isNotificationOpen && (
+                    <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                        <h3 className="font-semibold text-gray-900">Bildirimler</h3>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={handleMarkAllAsRead}
+                            className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                          >
+                            <Check className="w-3 h-3" />
+                            Tümünü Okundu İşaretle
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="max-h-[400px] overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="p-8 text-center text-gray-500">
+                            <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                            <p>Henüz bildiriminiz yok</p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-gray-50">
+                            {notifications.map((notification) => (
+                              <div
+                                key={notification.id}
+                                className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.isRead ? 'bg-blue-50/50' : ''}`}
+                                onClick={() => handleNotificationClick(notification)}
+                              >
+                                <div className="flex gap-3">
+                                  <div className={`mt-1 min-w-[32px] w-8 h-8 rounded-full flex items-center justify-center ${notification.type === 'FAVORITE' ? 'bg-red-100 text-red-500' :
+                                      notification.type === 'VIEW' ? 'bg-blue-100 text-blue-500' :
+                                        'bg-gray-100 text-gray-500'
+                                    }`}>
+                                    {notification.type === 'FAVORITE' ? <Check className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className={`text-sm ${!notification.isRead ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                                      {notification.title}
+                                    </p>
+                                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
+                                      {notification.message}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-2">
+                                      {formatDate(notification.createdAt)}
+                                    </p>
+                                  </div>
+                                  {!notification.isRead && (
+                                    <div className="mt-2 w-2 h-2 bg-blue-500 rounded-full"></div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* User Dropdown */}
                 <div className="relative" ref={userMenuRef}>

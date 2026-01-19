@@ -47,6 +47,7 @@ public class VehicleController {
 
     @GetMapping("/{vehicleId}")
     public ResponseEntity<VehicleResponse> getVehicleById(@PathVariable Long vehicleId) {
+        this.vehicleService.incrementViewCount(vehicleId);
         return new ResponseEntity<>(this.vehicleService.getVehicleById(vehicleId), HttpStatus.OK);
     }
 

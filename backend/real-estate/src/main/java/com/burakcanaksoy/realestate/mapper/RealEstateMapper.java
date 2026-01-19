@@ -62,6 +62,8 @@ public class RealEstateMapper {
         response.setCreatedAt(realEstate.getCreatedAt());
         response.setUpdatedAt(realEstate.getUpdatedAt());
         response.setOfferType(realEstate.getOfferType());
+        response.setViewCount(realEstate.getViewCount());
+        response.setFavoriteCount(realEstate.getFavoriteCount());
 
         if (realEstate.getCategory() != null) {
             response.setCategorySlug(realEstate.getCategory().getSlug());
@@ -80,6 +82,7 @@ public class RealEstateMapper {
         if (realEstate.getCreatedBy() != null) {
             response.setOwnerId(realEstate.getCreatedBy().getId());
             response.setOwnerUsername(realEstate.getCreatedBy().getUsername());
+            response.setOwnerLastSeen(realEstate.getCreatedBy().getLastSeen());
         }
 
         return response;

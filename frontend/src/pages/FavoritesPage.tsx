@@ -109,18 +109,19 @@ export const FavoritesPage: React.FC = () => {
                             className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full"
                         >
                             <Link to={getDetailUrl(favorite)} className="flex-1 flex flex-col">
-                                <div className="relative h-56 bg-gray-100">
+                                <div className="relative h-56 bg-gray-100 overflow-hidden">
                                     {favorite.imageUrl ? (
                                         <img
                                             src={`http://localhost:8080${favorite.imageUrl}?t=${Date.now()}`}
                                             alt={favorite.title}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                             onError={(e) => {
+                                                console.error("Image load failed for:", favorite.imageUrl);
                                                 e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Resim+Yok';
                                             }}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
                                             <Heart className="w-16 h-16 opacity-50" />
                                         </div>
                                     )}
@@ -139,19 +140,25 @@ export const FavoritesPage: React.FC = () => {
                                 </div>
 
                                 <div className="p-5 flex-1 flex flex-col">
-                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-200 line-clamp-2 mb-3">
-                                        {favorite.title}
-                                    </h3>
+                                    <div className="flex items-start justify-between mb-3">
+                                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-200 line-clamp-2" title={favorite.title}>
+                                            {favorite.title}
+                                        </h3>
+                                        <span className="ml-2 px-2 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full whitespace-nowrap shrink-0">
+                                            Favori
+                                        </span>
+                                    </div>
 
                                     {favorite.description && (
                                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{favorite.description}</p>
                                     )}
 
-                                    <div className="mt-auto space-y-2">
+                                    <div className="mt-auto space-y-2 mb-4">
                                         <div className="flex items-center text-gray-600 text-sm">
                                             <MapPin className="w-4 h-4 mr-2 shrink-0" />
                                             <span className="truncate">
-                                                {favorite.city}, {favorite.district}
+                                                {favorite.city}
+                                                {favorite.district && `, ${favorite.district}`}
                                             </span>
                                         </div>
                                         <div className="flex items-center text-gray-600 text-sm">
@@ -160,10 +167,10 @@ export const FavoritesPage: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-4">
+                                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-auto">
                                         <div className="flex items-center">
-                                            <Tag className="w-4 h-4 mr-2 text-primary-600" />
-                                            <span className="text-xl font-bold text-primary-600">
+                                            <Tag className="w-4 h-4 mr-2 text-green-600" />
+                                            <span className="text-xl font-bold text-green-600">
                                                 {formatPrice(favorite.price, favorite.currency)}
                                             </span>
                                         </div>

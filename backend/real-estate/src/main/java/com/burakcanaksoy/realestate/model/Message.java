@@ -40,6 +40,12 @@ public class Message {
     private Boolean isRead = false;
 
     @Column(nullable = false)
+    private Boolean deletedBySender = false;
+
+    @Column(nullable = false)
+    private Boolean deletedByReceiver = false;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

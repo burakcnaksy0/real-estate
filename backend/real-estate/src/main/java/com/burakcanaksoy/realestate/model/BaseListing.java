@@ -52,6 +52,12 @@ public abstract class BaseListing {
     @Column
     private Double longitude;
 
+    @Column(nullable = true, columnDefinition = "bigint default 0")
+    private Long viewCount = 0L;
+
+    @Column(nullable = true, columnDefinition = "bigint default 0")
+    private Long favoriteCount = 0L;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;

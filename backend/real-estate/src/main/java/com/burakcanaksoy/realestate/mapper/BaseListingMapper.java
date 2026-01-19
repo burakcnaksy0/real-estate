@@ -26,6 +26,16 @@ public class BaseListingMapper {
         response.setCreatedAt(listing.getCreatedAt());
         response.setUpdatedAt(listing.getUpdatedAt());
         response.setCreatedByUsername(listing.getCreatedBy().getUsername());
+        response.setViewCount(listing.getViewCount());
+        response.setFavoriteCount(listing.getFavoriteCount());
+
+        if (listing.getCreatedBy() != null) {
+            System.out.println("DEBUG: Mapping listing " + listing.getId() + " owner: "
+                    + listing.getCreatedBy().getUsername() + " lastSeen: " + listing.getCreatedBy().getLastSeen());
+            response.setOwnerLastSeen(listing.getCreatedBy().getLastSeen());
+        } else {
+            System.out.println("DEBUG: Listing " + listing.getId() + " has no creator!");
+        }
 
         if (listing instanceof Land) {
             response.setListingType("LAND");

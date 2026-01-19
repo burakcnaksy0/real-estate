@@ -50,4 +50,11 @@ export const MessageService = {
         });
         return response.data.unreadCount;
     },
+
+    // Delete conversation with a specific user
+    deleteConversation: async (otherUserId: number): Promise<void> => {
+        await axios.delete(`${API_URL}/conversation/${otherUserId}`, {
+            headers: getAuthHeader(),
+        });
+    },
 };

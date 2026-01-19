@@ -77,11 +77,14 @@ public class VehicleMapper {
         response.setCreatedAt(vehicle.getCreatedAt());
         response.setUpdatedAt(vehicle.getUpdatedAt());
         response.setOfferType(vehicle.getOfferType());
+        response.setViewCount(vehicle.getViewCount());
+        response.setFavoriteCount(vehicle.getFavoriteCount());
 
         // user relationship
         if (vehicle.getCreatedBy() != null) {
             response.setOwnerId(vehicle.getCreatedBy().getId());
             response.setOwnerUsername(vehicle.getCreatedBy().getUsername());
+            response.setOwnerLastSeen(vehicle.getCreatedBy().getLastSeen());
         }
 
         return response;

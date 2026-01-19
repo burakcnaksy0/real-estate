@@ -387,8 +387,22 @@ export const ProfilePage: React.FC = () => {
                                             className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all p-6"
                                         >
                                             <div className="flex flex-col md:flex-row gap-6">
-                                                <div className="w-full md:w-48 h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center overflow-hidden border-2 border-gray-200 group-hover:border-blue-300 transition-all">
-                                                    <Package className="w-12 h-12 text-gray-400 group-hover:text-blue-500 transition-colors group-hover:scale-110" />
+                                                <div className="w-full md:w-48 h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center overflow-hidden border-2 border-gray-200 group-hover:border-blue-300 transition-all relative">
+                                                    {listing.imageUrl ? (
+                                                        <img
+                                                            src={`http://localhost:8080${listing.imageUrl}?t=${Date.now()}`}
+                                                            alt={listing.title}
+                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none';
+                                                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <div className={`absolute inset-0 flex items-center justify-center ${listing.imageUrl ? 'hidden' : ''}`}>
+                                                        <Package className="w-12 h-12 text-gray-400 group-hover:text-blue-500 transition-colors group-hover:scale-110" />
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex-1">
@@ -479,8 +493,22 @@ export const ProfilePage: React.FC = () => {
                                             className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 hover:border-red-300 hover:shadow-xl transition-all p-6"
                                         >
                                             <div className="flex flex-col md:flex-row gap-6">
-                                                <div className="w-full md:w-48 h-40 bg-gradient-to-br from-red-100 to-pink-100 rounded-xl flex items-center justify-center overflow-hidden border-2 border-red-200 group-hover:border-red-300 transition-all">
-                                                    <Heart className="w-12 h-12 text-red-400 group-hover:text-red-500 transition-colors group-hover:scale-110 fill-current" />
+                                                <div className="w-full md:w-48 h-40 bg-gradient-to-br from-red-100 to-pink-100 rounded-xl flex items-center justify-center overflow-hidden border-2 border-red-200 group-hover:border-red-300 transition-all relative">
+                                                    {favorite.imageUrl ? (
+                                                        <img
+                                                            src={`http://localhost:8080${favorite.imageUrl}?t=${Date.now()}`}
+                                                            alt={favorite.title}
+                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none';
+                                                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <div className={`absolute inset-0 flex items-center justify-center ${favorite.imageUrl ? 'hidden' : ''}`}>
+                                                        <Heart className="w-12 h-12 text-red-400 group-hover:text-red-500 transition-colors group-hover:scale-110 fill-current" />
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex-1">

@@ -2,6 +2,8 @@ package com.burakcanaksoy.realestate.response;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class ConversationResponse {
 
@@ -11,4 +13,5 @@ public class ConversationResponse {
     private Integer unreadCount;
     private Long listingId;
     private String listingTitle;
+    private LocalDateTime otherUserLastSeen;
 }

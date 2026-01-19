@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { formatLastSeen } from '../../utils/dateUtils';
 import {
   MapPin,
   Calendar,
@@ -13,7 +14,9 @@ import {
   Fuel,
   Settings,
   Gauge,
-  Share2
+  Share2,
+  Eye,
+  Heart
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
@@ -28,6 +31,7 @@ import { Vehicle } from '../../types';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
 import { MapView } from '../../components/MapView/MapView';
+import { websocketService } from '../../services/websocketService';
 
 export const VehicleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +54,22 @@ export const VehicleDetailPage: React.FC = () => {
       VehicleService.getSimilar(Number(id))
         .then(setSimilarVehicles)
         .catch(console.error);
+
+      // Subscribe to real-time favoriteCount updates
+      const subscription = websocketService.subscribe(
+        `/topic/listing/${id}/favoriteCount`,
+        (event: { listingId: number; listingType: string; favoriteCount: number }) => {
+          console.log('WebSocket event received:', event);
+          // Refresh the vehicle data to get updated favoriteCount
+          dispatch(fetchVehicleByIdAsync(Number(id)));
+        }
+      );
+
+      return () => {
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+      };
     }
   }, [id, dispatch]);
 
@@ -171,6 +191,14 @@ export const VehicleDetailPage: React.FC = () => {
                 <span className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
                   {new Date(currentVehicle.createdAt).toLocaleDateString('tr-TR')}
+                </span>
+                <span className="flex items-center">
+                  <Eye className="h-4 w-4 mr-1" />
+                  {currentVehicle.viewCount} görüntülenme
+                </span>
+                <span className="flex items-center">
+                  <Heart className="h-4 w-4 mr-1" />
+                  {currentVehicle.favoriteCount || 0} favori
                 </span>
               </div>
             </div>
@@ -355,6 +383,15 @@ export const VehicleDetailPage: React.FC = () => {
                   {new Date(currentVehicle.updatedAt).toLocaleDateString('tr-TR')}
                 </span>
               </div>
+
+              {currentVehicle.ownerLastSeen && (
+                <div className="flex justify-between items-center text-sm pt-2 border-t mt-2">
+                  <span className="text-gray-600">Son Görülme:</span>
+                  <span className="font-medium text-green-600">
+                    {formatLastSeen(currentVehicle.ownerLastSeen)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

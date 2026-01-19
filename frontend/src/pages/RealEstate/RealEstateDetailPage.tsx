@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { formatLastSeen } from '../../utils/dateUtils';
 import {
   MapPin,
   Calendar,
@@ -13,7 +14,9 @@ import {
   Ruler,
   Thermometer,
   Building,
-  Share2
+  Share2,
+  Eye,
+  Heart
 } from 'lucide-react';
 import { useRealEstate } from '../../hooks/useRealEstate';
 import { useAuth } from '../../hooks/useAuth';
@@ -25,6 +28,7 @@ import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
 import { MapView } from '../../components/MapView/MapView';
 import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
+import { websocketService } from '../../services/websocketService';
 
 export const RealEstateDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +53,21 @@ export const RealEstateDetailPage: React.FC = () => {
           .then(setSimilarListings)
           .catch(console.error);
       });
+
+      // Subscribe to real-time favoriteCount updates
+      const subscription = websocketService.subscribe(
+        `/topic/listing/${id}/favoriteCount`,
+        (event: { listingId: number; listingType: string; favoriteCount: number }) => {
+          console.log('WebSocket event received:', event);
+          fetchById(Number(id));
+        }
+      );
+
+      return () => {
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+      };
     }
   }, [id, fetchById]);
 
@@ -171,6 +190,14 @@ export const RealEstateDetailPage: React.FC = () => {
                 <span className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
                   {new Date(currentRealEstate.createdAt).toLocaleDateString('tr-TR')}
+                </span>
+                <span className="flex items-center">
+                  <Eye className="h-4 w-4 mr-1" />
+                  {currentRealEstate.viewCount} görüntülenme
+                </span>
+                <span className="flex items-center">
+                  <Heart className="h-4 w-4 mr-1" />
+                  {currentRealEstate.favoriteCount || 0} favori
                 </span>
               </div>
             </div>
@@ -359,6 +386,15 @@ export const RealEstateDetailPage: React.FC = () => {
                   {new Date(currentRealEstate.updatedAt).toLocaleDateString('tr-TR')}
                 </span>
               </div>
+
+              {currentRealEstate.ownerLastSeen && (
+                <div className="flex justify-between items-center text-sm pt-2 border-t mt-2">
+                  <span className="text-gray-600">Son Görülme:</span>
+                  <span className="font-medium text-green-600">
+                    {formatLastSeen(currentRealEstate.ownerLastSeen)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

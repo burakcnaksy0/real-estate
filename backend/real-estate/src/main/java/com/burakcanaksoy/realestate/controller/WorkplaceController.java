@@ -47,6 +47,7 @@ public class WorkplaceController {
 
     @GetMapping("/{workplaceId}")
     public ResponseEntity<WorkplaceResponse> getWorkplaceById(@PathVariable Long workplaceId) {
+        this.workplaceService.incrementViewCount(workplaceId);
         return new ResponseEntity<>(this.workplaceService.getWorkplaceById(workplaceId), HttpStatus.OK);
     }
 

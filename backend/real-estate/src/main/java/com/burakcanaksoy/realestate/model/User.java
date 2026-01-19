@@ -70,6 +70,9 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "last_seen")
+    private LocalDateTime lastSeen;
+
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();

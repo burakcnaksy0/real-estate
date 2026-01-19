@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { checkAuthStatus } from './store/slices/authSlice';
+import { websocketService } from './services/websocketService';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Layout Components
 import { Layout } from './components/Layout/Layout';
@@ -34,6 +37,7 @@ import { WorkplaceCreatePage } from './pages/Workplace/WorkplaceCreatePage';
 import { FavoritesPage } from './pages/FavoritesPage';
 import { WorkplaceDetailPage } from './pages/Workplace/WorkplaceDetailPage';
 import { MessagesPage } from './pages/Messages/MessagesPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { AdminRoute } from './components/Admin/AdminRoute';
 
@@ -44,6 +48,13 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     // Uygulama başladığında auth durumunu kontrol et
     store.dispatch(checkAuthStatus());
+
+    // WebSocket bağlantısını başlat
+    websocketService.connect();
+
+    return () => {
+      websocketService.disconnect();
+    };
   }, []);
 
   return (
@@ -102,6 +113,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/messages/:userId" element={<MessagesPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
 
           {/* Error Routes */}
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -116,6 +128,7 @@ const App: React.FC = () => {
   return (
     <Provider store={store}>
       <AppContent />
+      <ToastContainer position="top-right" autoClose={3000} />
     </Provider>
   );
 };

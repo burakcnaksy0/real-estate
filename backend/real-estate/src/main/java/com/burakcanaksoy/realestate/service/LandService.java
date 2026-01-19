@@ -80,6 +80,13 @@ public class LandService {
         return LandMapper.toResponse(land);
     }
 
+    public void incrementViewCount(Long landId) {
+        Land land = this.landRepository.findById(landId)
+                .orElseThrow(() -> new EntityNotFoundException("Land not found with this id : " + landId));
+        land.setViewCount(land.getViewCount() + 1);
+        this.landRepository.save(land);
+    }
+
     private void assertOwnerOrAdmin(Land land, User currentUser) {
         boolean isAdmin = currentUser.getRoles().contains(Role.ROLE_ADMIN);
         boolean isOwner = land.getCreatedBy() != null &&

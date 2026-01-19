@@ -105,6 +105,9 @@ export interface BaseListing {
   createdAt: string;
   updatedAt: string;
   listingType: string;
+  viewCount: number;
+  favoriteCount: number;
+  ownerLastSeen?: string;
 
   imageUrl?: string;
   offerType: OfferType;
@@ -404,6 +407,7 @@ export interface ConversationResponse {
   unreadCount: number;
   listingId?: number;
   listingTitle?: string;
+  otherUserLastSeen?: string;
 }
 
 // Admin Analytics types
@@ -440,4 +444,22 @@ export interface GrowthData {
 export interface CityDistribution {
   city: string;
   count: number;
+}
+
+export enum NotificationType {
+  FAVORITE = 'FAVORITE',
+  VIEW = 'VIEW',
+  SYSTEM = 'SYSTEM'
+}
+
+export interface Notification {
+  id: number;
+  userId: number;
+  title: string;
+  message: string;
+  type: NotificationType;
+  relatedListingId?: number;
+  relatedListingType?: string;
+  isRead: boolean;
+  createdAt: string;
 }

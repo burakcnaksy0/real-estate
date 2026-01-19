@@ -33,6 +33,7 @@ public class MessageService {
     private final RealEstateRepository realEstateRepository;
     private final LandRepository landRepository;
     private final WorkplaceRepository workplaceRepository;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public MessageDetailResponse sendMessage(MessageCreateRequest request, Long senderId) {
@@ -52,7 +53,14 @@ public class MessageService {
         // For now, messages are not linked to listings
 
         Message savedMessage = messageRepository.save(message);
-        return toMessageDetailResponse(savedMessage);
+        MessageDetailResponse response = toMessageDetailResponse(savedMessage);
+
+        // Notify receiver
+        messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), response);
+        // Notify sender (for multi-tab sync)
+        messagingTemplate.convertAndSend("/topic/messages/" + senderId, response);
+
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -67,6 +75,7 @@ public class MessageService {
                     ConversationResponse response = new ConversationResponse();
                     response.setOtherUserId(otherUser.getId());
                     response.setOtherUserUsername(otherUser.getUsername());
+                    response.setOtherUserLastSeen(otherUser.getLastSeen());
 
                     if (!conversation.isEmpty()) {
                         Message lastMessage = conversation.get(conversation.size() - 1);
@@ -119,6 +128,31 @@ public class MessageService {
     @Transactional(readOnly = true)
     public Long getUnreadCount(Long userId) {
         return messageRepository.countUnreadMessages(userId);
+    }
+
+    @Transactional
+    public void deleteConversation(Long userId, Long otherUserId) {
+        // Get all messages between the two users (including already soft-deleted ones)
+        List<Message> allMessages = messageRepository.findAll().stream()
+                .filter(m -> (m.getSender().getId().equals(userId) && m.getReceiver().getId().equals(otherUserId)) ||
+                        (m.getSender().getId().equals(otherUserId) && m.getReceiver().getId().equals(userId)))
+                .toList();
+
+        // Mark messages as deleted by the current user
+        for (Message message : allMessages) {
+            if (message.getSender().getId().equals(userId)) {
+                message.setDeletedBySender(true);
+            } else {
+                message.setDeletedByReceiver(true);
+            }
+
+            // If both users have deleted the message, permanently delete it
+            if (message.getDeletedBySender() && message.getDeletedByReceiver()) {
+                messageRepository.delete(message);
+            } else {
+                messageRepository.save(message);
+            }
+        }
     }
 
     @Transactional
@@ -182,6 +216,11 @@ public class MessageService {
         MessageDetailResponse response = toMessageDetailResponse(savedMessage);
         response.setSharedListingTitle(listingTitle);
         response.setSharedListingImageUrl(String.valueOf(listingId)); // Frontend will fetch image using listingId
+
+        // Notify receiver
+        messagingTemplate.convertAndSend("/topic/messages/" + recipientId, response);
+        // Notify sender (for multi-tab sync)
+        messagingTemplate.convertAndSend("/topic/messages/" + senderId, response);
 
         return response;
     }

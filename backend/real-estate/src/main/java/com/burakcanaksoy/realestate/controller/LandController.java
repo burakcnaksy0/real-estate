@@ -45,6 +45,7 @@ public class LandController {
 
     @GetMapping("/{landId}")
     public ResponseEntity<LandResponse> getLandById(@PathVariable Long landId) {
+        this.landService.incrementViewCount(landId);
         return new ResponseEntity<>(this.landService.getLandById(landId), HttpStatus.OK);
     }
 

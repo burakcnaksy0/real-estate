@@ -13,22 +13,25 @@ import java.util.List;
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
         // Get all messages between two users, ordered by creation time
+        // Filters out messages deleted by the viewing user (userId1)
         @Query("SELECT m FROM Message m WHERE " +
-                        "(m.sender.id = :userId1 AND m.receiver.id = :userId2) OR " +
-                        "(m.sender.id = :userId2 AND m.receiver.id = :userId1) " +
+                        "((m.sender.id = :userId1 AND m.receiver.id = :userId2 AND m.deletedBySender = false) OR " +
+                        "(m.sender.id = :userId2 AND m.receiver.id = :userId1 AND m.deletedByReceiver = false)) " +
                         "ORDER BY m.createdAt ASC")
         List<Message> findConversationBetweenUsers(@Param("userId1") Long userId1,
                         @Param("userId2") Long userId2);
 
         // Get all users that have conversations with the given user
+        // Excludes conversations where all messages are deleted by the viewing user
         @Query("SELECT DISTINCT u FROM User u WHERE u.id IN (" +
-                        "SELECT m.sender.id FROM Message m WHERE m.receiver.id = :userId " +
+                        "SELECT m.sender.id FROM Message m WHERE m.receiver.id = :userId AND m.deletedByReceiver = false "
+                        +
                         "UNION " +
-                        "SELECT m.receiver.id FROM Message m WHERE m.sender.id = :userId)")
+                        "SELECT m.receiver.id FROM Message m WHERE m.sender.id = :userId AND m.deletedBySender = false)")
         List<User> findConversationParticipants(@Param("userId") Long userId);
 
-        // Count unread messages for a user
-        @Query("SELECT COUNT(m) FROM Message m WHERE m.receiver.id = :userId AND m.isRead = false")
+        // Count unread messages for a user (excluding deleted messages)
+        @Query("SELECT COUNT(m) FROM Message m WHERE m.receiver.id = :userId AND m.isRead = false AND m.deletedByReceiver = false")
         Long countUnreadMessages(@Param("userId") Long userId);
 
         // Find unread messages for a user

@@ -65,6 +65,13 @@ public class WorkplaceService {
         return WorkplaceMapper.toResponse(workplace);
     }
 
+    public void incrementViewCount(Long workplaceId) {
+        Workplace workplace = this.workplaceRepository.findById(workplaceId)
+                .orElseThrow(() -> new EntityNotFoundException("Workplace not found with this id : " + workplaceId));
+        workplace.setViewCount(workplace.getViewCount() + 1);
+        this.workplaceRepository.save(workplace);
+    }
+
     private void assertOwnerOrAdmin(Workplace workplace, User currentUser) {
         boolean isAdmin = currentUser.getRoles().contains(Role.ROLE_ADMIN);
         boolean isOwner = workplace.getCreatedBy() != null &&
