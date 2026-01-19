@@ -31,10 +31,7 @@
 ### 💬 Sohbet ve Bildirim Sistemi Demosu
 Uygulamanın gerçek zamanlı mesajlaşma ve bildirim özelliklerini aşağıdaki videoda görebilirsiniz:
 
-<video src="assets/chat_response.mp4" controls="controls" style="max-width: 100%;">
-</video>
-
-*(Tarayıcınız video etiketini desteklemiyorsa videoyu [buradan](assets/chat_response.mp4) indirebilirsiniz.)*
+https://private-user-images.githubusercontent.com/147622289/537772670-140dde80-4397-42e2-949b-7183b40aa583.mp4?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Njg4NjQwNTYsIm5iZiI6MTc2ODg2Mzc1NiwicGF0aCI6Ii8xNDc2MjIyODkvNTM3NzcyNjcwLTE0MGRkZTgwLTQzOTctNDJlMi05NDliLTcxODNiNDBhYTU4My5tcDQ_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMTE5JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDExOVQyMzAyMzZaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zMzUxYzJiYjYwZmZkNTlmMTVhZTU4ZTlhYzRkYmJjZDU5ZTA5MzFmYmIzNTZhNTU5ZTVmYjUzZmNiNGFiYTliJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.HDQHrpeDZ_VftXAbujRJYYAlvJKuRQ89BhpH4ep29iA
 
 ### 🔐 Giriş ve Kayıt
 Kullanıcıların güvenle sisteme dahil olabileceği modern arayüzler.
