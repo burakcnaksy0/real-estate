@@ -6,6 +6,7 @@ import vehicleSlice from './slices/vehicleSlice';
 import landSlice from './slices/landSlice';
 import workplaceSlice from './slices/workplaceSlice';
 import uiSlice from './slices/uiSlice';
+import comparisonSlice from './slices/comparisonSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     lands: landSlice,
     workplaces: workplaceSlice,
     ui: uiSlice,
+    comparison: comparisonSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

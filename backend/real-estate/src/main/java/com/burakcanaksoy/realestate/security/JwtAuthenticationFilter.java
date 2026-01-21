@@ -16,9 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import com.burakcanaksoy.realestate.repository.UserRepository;
-import java.time.LocalDateTime;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -26,7 +23,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
-    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -46,11 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 // Update last seen
-                userRepository.findByUsername(username).ifPresent(user -> {
-                    System.out.println("DEBUG: Filter updating lastSeen for " + username);
-                    user.setLastSeen(LocalDateTime.now());
-                    userRepository.save(user);
-                });
+                // userRepository.findByUsername(username).ifPresent(user -> {
+                // System.out.println("DEBUG: Filter updating lastSeen for " + username);
+                // user.setLastSeen(LocalDateTime.now());
+                // userRepository.save(user);
+                // });
             }
         } catch (Exception ex) {
             log.error("User authentication failed.", ex);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -10,6 +11,8 @@ import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
 import { ImageService } from '../../services/imageService';
 import { LandService } from '../../services/landService';
 import { LocationPicker } from '../../components/LocationPicker/LocationPicker';
+import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
+import { VideoService } from '../../services/videoService';
 
 const landSchema = yup.object({
     title: yup.string().required('Başlık gereklidir').max(150),
@@ -38,7 +41,9 @@ export const LandCreatePage: React.FC = () => {
     const { getActiveCategories } = useCategories();
     const [isLoading, setIsLoading] = useState(false);
     const [images, setImages] = useState<ImageFile[]>([]);
+    const [video, setVideo] = useState<VideoFile | null>(null);
     const [uploadingImages, setUploadingImages] = useState(false);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
     const [location, setLocation] = useState<{ latitude?: number; longitude?: number }>({});
 
     const activeCategories = getActiveCategories();
@@ -84,6 +89,23 @@ export const LandCreatePage: React.FC = () => {
                     console.error('Error uploading images:', imageError);
                 } finally {
                     setUploadingImages(false);
+                }
+            }
+
+            // Upload video if any
+            if (video) {
+                setUploadingVideo(true);
+                try {
+                    await VideoService.uploadVideo(
+                        video.file,
+                        listingId,
+                        'LAND'
+                    );
+                } catch (videoError: any) {
+                    console.error('Error uploading video:', videoError);
+                    toast.error(videoError?.response?.data?.message || 'Video yüklenirken bir hata oluştu');
+                } finally {
+                    setUploadingVideo(false);
                 }
             }
 
@@ -303,6 +325,16 @@ export const LandCreatePage: React.FC = () => {
                     />
                 </div>
 
+                {/* Video */}
+                <div className="card p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Video</h2>
+                    <VideoUpload
+                        video={video}
+                        onVideoChange={setVideo}
+                        maxSizeMB={100}
+                    />
+                </div>
+
                 {/* Submit Button */}
                 <div className="flex justify-end space-x-4">
                     <button
@@ -320,7 +352,7 @@ export const LandCreatePage: React.FC = () => {
                         {isLoading || uploadingImages ? (
                             <>
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                <span>{uploadingImages ? 'Görseller yükleniyor...' : 'Kaydediliyor...'}</span>
+                                <span>{uploadingImages ? 'Görseller yükleniyor...' : uploadingVideo ? 'Video yükleniyor...' : 'Kaydediliyor...'}</span>
                             </>
                         ) : (
                             <>

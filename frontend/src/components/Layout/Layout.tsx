@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, User, MessageCircle, Menu, X, Home, Building2, Car, Landmark, Briefcase, Heart, Bell, Check } from 'lucide-react';
+import { LogOut, User, MessageCircle, Menu, X, Home, Building2, Car, Landmark, Briefcase, Heart, Bell, Check, Search } from 'lucide-react';
 import { MessageService } from '../../services/messageService';
 import { Notification, NotificationType } from '../../types';
 import { NotificationService } from '../../services/notificationService';
 import { websocketService } from '../../services/websocketService';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../utils/formatters';
+import CompareBar from '../CompareBar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -157,6 +158,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { to: '/vehicles', label: 'Araçlar', icon: Car },
     { to: '/lands', label: 'Arsalar', icon: Landmark },
     { to: '/workplaces', label: 'İşyerleri', icon: Briefcase },
+    { to: '/search', label: 'Gelişmiş Arama', icon: Search },
   ];
 
   return (
@@ -276,8 +278,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 >
                                   <div className="flex gap-4">
                                     <div className={`mt-1 min-w-[36px] w-9 h-9 rounded-full flex items-center justify-center shadow-sm ${notification.type === 'FAVORITE' ? 'bg-red-100 text-red-500' :
-                                        notification.type === 'VIEW' ? 'bg-blue-100 text-blue-500' :
-                                          'bg-gray-100 text-gray-500'
+                                      notification.type === 'VIEW' ? 'bg-blue-100 text-blue-500' :
+                                        'bg-gray-100 text-gray-500'
                                       }`}>
                                       {notification.type === 'FAVORITE' ? <Heart className="w-5 h-5 fill-current" /> : <Bell className="w-5 h-5" />}
                                     </div>
@@ -422,6 +424,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-1 container mx-auto px-4 lg:px-6 py-8">
         {children}
       </main>
+
+      {/* Compare Bar */}
+      <CompareBar />
 
       {/* Footer */}
       <footer className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white py-12">

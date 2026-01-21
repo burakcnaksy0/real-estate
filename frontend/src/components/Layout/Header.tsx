@@ -128,6 +128,7 @@ export const Header: React.FC = () => {
     { name: 'Araçlar', href: '/vehicles' },
     { name: 'Arsalar', href: '/lands' },
     { name: 'İşyerleri', href: '/workplaces' },
+    { name: 'Gelişmiş Arama', href: '/search' },
     { name: 'Favorilerim', href: '/favorites' },
   ];
 
@@ -160,11 +161,15 @@ export const Header: React.FC = () => {
 
           {/* Search Bar */}
           <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
-            <div className="relative w-full">
+            <div
+              className="relative w-full cursor-pointer"
+              onClick={() => navigate('/search')}
+            >
               <input
                 type="text"
                 placeholder="İlan ara..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer"
+                readOnly
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
@@ -227,8 +232,8 @@ export const Header: React.FC = () => {
                               >
                                 <div className="flex gap-3">
                                   <div className={`mt-1 min-w-[32px] w-8 h-8 rounded-full flex items-center justify-center ${notification.type === 'FAVORITE' ? 'bg-red-100 text-red-500' :
-                                      notification.type === 'VIEW' ? 'bg-blue-100 text-blue-500' :
-                                        'bg-gray-100 text-gray-500'
+                                    notification.type === 'VIEW' ? 'bg-blue-100 text-blue-500' :
+                                      'bg-gray-100 text-gray-500'
                                     }`}>
                                     {notification.type === 'FAVORITE' ? <Check className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
                                   </div>
@@ -416,11 +421,18 @@ export const Header: React.FC = () => {
 
               {/* Mobile Search */}
               <div className="pt-4">
-                <div className="relative">
+                <div
+                  className="relative cursor-pointer"
+                  onClick={() => {
+                    navigate('/search');
+                    setIsMenuOpen(false);
+                  }}
+                >
                   <input
                     type="text"
                     placeholder="İlan ara..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer"
+                    readOnly
                   />
                   <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>

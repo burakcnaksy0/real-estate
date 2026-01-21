@@ -70,6 +70,11 @@ public class SecurityConfig {
                         .requestMatchers("/login/oauth2/**").permitAll()
                         .requestMatchers("/ws/**").permitAll() // WebSocket endpoints
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+
+                        // Video endpoints - MUST come before /api/listings/** to avoid conflicts
+                        .requestMatchers("/api/listings/videos/**").permitAll() // All HTTP methods for videos
 
                         // GET istekleri - herkes ilanları görebilir
                         .requestMatchers("GET", "/api/realestates/**").permitAll()
@@ -79,7 +84,6 @@ public class SecurityConfig {
                         .requestMatchers("GET", "/api/categories/**").permitAll()
                         .requestMatchers("GET", "/api/listings/**").permitAll()
                         .requestMatchers("GET", "/api/images/**").permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
 
                         // POST, PUT, DELETE istekleri - sadece authenticated kullanıcılar
                         .anyRequest().authenticated())
@@ -99,8 +103,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration
-                .setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        configuration.setAllowedHeaders(
+                List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "Range"));
+        configuration.setExposedHeaders(List.of("Content-Range", "Accept-Ranges", "Content-Length"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

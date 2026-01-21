@@ -99,9 +99,10 @@ class RealEstateServiceTest {
         testRealEstate.setCity("Istanbul");
         testRealEstate.setDistrict("Besiktas");
         testRealEstate.setRealEstateType(RealEstateType.APARTMENT);
-        testRealEstate.setRoomCount(4);
-        testRealEstate.setSquareMeter(150);
-        testRealEstate.setBuildingAge(5);
+        testRealEstate.setRoomCount("4");
+        testRealEstate.setGrossSquareMeter(150);
+        testRealEstate.setNetSquareMeter(135);
+        testRealEstate.setBuildingAge("5-10");
         testRealEstate.setFloor(8);
         testRealEstate.setHeatingType(HeatingType.CENTRAL_HEATING);
         testRealEstate.setFurnished(true);
@@ -118,9 +119,10 @@ class RealEstateServiceTest {
         testRealEstateResponse.setCity("Istanbul");
         testRealEstateResponse.setDistrict("Besiktas");
         testRealEstateResponse.setRealEstateType(RealEstateType.APARTMENT);
-        testRealEstateResponse.setRoomCount(4);
-        testRealEstateResponse.setSquareMeter(150);
-        testRealEstateResponse.setBuildingAge(5);
+        testRealEstateResponse.setRoomCount("4");
+        testRealEstateResponse.setGrossSquareMeter(150);
+        testRealEstateResponse.setNetSquareMeter(135);
+        testRealEstateResponse.setBuildingAge("5-10");
         testRealEstateResponse.setFloor(8);
         testRealEstateResponse.setHeatingType(HeatingType.CENTRAL_HEATING);
         testRealEstateResponse.setFurnished(true);
@@ -137,9 +139,10 @@ class RealEstateServiceTest {
         realEstateCreateRequest.setCity("Istanbul");
         realEstateCreateRequest.setDistrict("Besiktas");
         realEstateCreateRequest.setRealEstateType(RealEstateType.APARTMENT);
-        realEstateCreateRequest.setRoomCount(4);
-        realEstateCreateRequest.setSquareMeter(150);
-        realEstateCreateRequest.setBuildingAge(5);
+        realEstateCreateRequest.setRoomCount("4");
+        realEstateCreateRequest.setGrossSquareMeter(150);
+        realEstateCreateRequest.setNetSquareMeter(135);
+        realEstateCreateRequest.setBuildingAge("5-10");
         realEstateCreateRequest.setFloor(8);
         realEstateCreateRequest.setHeatingType(HeatingType.CENTRAL_HEATING);
         realEstateCreateRequest.setFurnished(true);
@@ -152,8 +155,9 @@ class RealEstateServiceTest {
         realEstateUpdateRequest.setCurrency(Currency.TRY);
         realEstateUpdateRequest.setCity("Ankara");
         realEstateUpdateRequest.setDistrict("Cankaya");
-        realEstateUpdateRequest.setRoomCount(5);
-        realEstateUpdateRequest.setSquareMeter(180);
+        realEstateUpdateRequest.setRoomCount("5");
+        realEstateUpdateRequest.setGrossSquareMeter(180);
+        realEstateUpdateRequest.setNetSquareMeter(160);
     }
 
     // ============ getAllRealEstates() Tests ============
@@ -210,9 +214,10 @@ class RealEstateServiceTest {
         secondRealEstate.setCity("Mugla");
         secondRealEstate.setDistrict("Bodrum");
         secondRealEstate.setRealEstateType(RealEstateType.VILLA);
-        secondRealEstate.setRoomCount(7);
-        secondRealEstate.setSquareMeter(350);
-        secondRealEstate.setBuildingAge(2);
+        secondRealEstate.setRoomCount("7");
+        secondRealEstate.setGrossSquareMeter(350);
+        secondRealEstate.setNetSquareMeter(300);
+        secondRealEstate.setBuildingAge("2");
         secondRealEstate.setCreatedBy(testUser);
 
         List<RealEstate> realEstateList = new ArrayList<>();
@@ -549,9 +554,9 @@ class RealEstateServiceTest {
         Long realEstateId = 1L;
         RealEstateUpdateRequest realEstateSpecificRequest = new RealEstateUpdateRequest();
         realEstateSpecificRequest.setRealEstateType(RealEstateType.VILLA);
-        realEstateSpecificRequest.setRoomCount(7);
-        realEstateSpecificRequest.setSquareMeter(250);
-        realEstateSpecificRequest.setBuildingAge(3);
+        realEstateSpecificRequest.setRoomCount("7");
+        realEstateSpecificRequest.setGrossSquareMeter(250);
+        realEstateSpecificRequest.setBuildingAge("3");
         realEstateSpecificRequest.setFloor(2);
         realEstateSpecificRequest.setHeatingType(HeatingType.CENTRAL_HEATING);
         realEstateSpecificRequest.setFurnished(false);
@@ -663,10 +668,9 @@ class RealEstateServiceTest {
         filter.setMinPrice(new BigDecimal("100000"));
         filter.setMaxPrice(new BigDecimal("1000000"));
         filter.setRealEstateType(RealEstateType.APARTMENT);
-        filter.setMinSquareMeter(100);
-        filter.setMaxSquareMeter(200);
-        filter.setMinBuildingAge(0);
-        filter.setMaxBuildingAge(10);
+        filter.setMinGrossSquareMeter(100);
+        filter.setMaxGrossSquareMeter(200);
+        filter.setBuildingAge("5"); // exact match
 
         Pageable pageable = PageRequest.of(0, 10);
         List<RealEstate> realEstateList = new ArrayList<>();
@@ -790,8 +794,8 @@ class RealEstateServiceTest {
     void testSearch_SquareMeterRangeFilter() {
         // Arrange
         RealEstateFilterRequest filter = new RealEstateFilterRequest();
-        filter.setMinSquareMeter(100);
-        filter.setMaxSquareMeter(200);
+        filter.setMinGrossSquareMeter(100);
+        filter.setMaxGrossSquareMeter(200);
 
         Pageable pageable = PageRequest.of(0, 10);
         List<RealEstate> realEstateList = new ArrayList<>();
@@ -812,12 +816,11 @@ class RealEstateServiceTest {
     }
 
     @Test
-    @DisplayName("search - Should search with building age range filter")
-    void testSearch_BuildingAgeRangeFilter() {
+    @DisplayName("search - Should search with building age filter")
+    void testSearch_BuildingAgeFilter() {
         // Arrange
         RealEstateFilterRequest filter = new RealEstateFilterRequest();
-        filter.setMinBuildingAge(0);
-        filter.setMaxBuildingAge(10);
+        filter.setBuildingAge("5");
 
         Pageable pageable = PageRequest.of(0, 10);
         List<RealEstate> realEstateList = new ArrayList<>();
@@ -842,7 +845,7 @@ class RealEstateServiceTest {
     void testSearch_RoomCountFilter() {
         // Arrange
         RealEstateFilterRequest filter = new RealEstateFilterRequest();
-        filter.setMinRoomCount(4);
+        filter.setRoomCount("4");
 
         Pageable pageable = PageRequest.of(0, 10);
         List<RealEstate> realEstateList = new ArrayList<>();

@@ -19,7 +19,7 @@ public class AdminController {
     private final com.burakcanaksoy.realestate.service.UserService userService;
 
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<org.springframework.data.domain.Page<com.burakcanaksoy.realestate.model.User>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -35,7 +35,7 @@ public class AdminController {
     }
 
     @PutMapping("/users/{userId}/status")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> toggleUserStatus(@PathVariable Long userId) {
         try {
             userService.toggleUserStatus(userId);
@@ -46,7 +46,7 @@ public class AdminController {
     }
 
     @PutMapping("/users/{userId}/roles")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> updateUserRoles(
             @PathVariable Long userId,
             @RequestBody java.util.Set<com.burakcanaksoy.realestate.model.enums.Role> roles) {
@@ -59,7 +59,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{userId}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> deleteUser(@PathVariable Long userId) {
         try {
             userService.deleteUser(userId);
@@ -70,21 +70,21 @@ public class AdminController {
     }
 
     @GetMapping("/stats/users")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserStatsDTO> getUserStatistics() {
         UserStatsDTO stats = analyticsService.getUserStatistics();
         return ResponseEntity.ok(stats);
     }
 
     @GetMapping("/stats/listings")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ListingStatsDTO> getListingStatistics() {
         ListingStatsDTO stats = analyticsService.getListingStatistics();
         return ResponseEntity.ok(stats);
     }
 
     @GetMapping("/stats/activities")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ActivityLogDTO>> getRecentActivities(
             @RequestParam(defaultValue = "20") int limit) {
         List<ActivityLogDTO> activities = analyticsService.getRecentActivities(limit);
@@ -92,7 +92,7 @@ public class AdminController {
     }
 
     @GetMapping("/stats/growth/users")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<GrowthDataDTO>> getUserGrowth(
             @RequestParam(defaultValue = "6") int months) {
         List<GrowthDataDTO> growthData = analyticsService.getUserGrowthData(months);
@@ -100,7 +100,7 @@ public class AdminController {
     }
 
     @GetMapping("/stats/growth/listings")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<GrowthDataDTO>> getListingGrowth(
             @RequestParam(defaultValue = "6") int months) {
         List<GrowthDataDTO> growthData = analyticsService.getListingGrowthData(months);
@@ -108,7 +108,7 @@ public class AdminController {
     }
 
     @GetMapping("/stats/distribution/cities")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CityDistributionDTO>> getCityDistribution() {
         List<CityDistributionDTO> distribution = analyticsService.getCityDistribution();
         return ResponseEntity.ok(distribution);

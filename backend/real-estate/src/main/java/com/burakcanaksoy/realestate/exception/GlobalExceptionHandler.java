@@ -22,18 +22,18 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ValidationErrorResponse> handleValidationException(MethodArgumentNotValidException exception){
-        Map<String,String> errors = new HashMap<>();
+    public ResponseEntity<ValidationErrorResponse> handleValidationException(
+            MethodArgumentNotValidException exception) {
+        Map<String, String> errors = new HashMap<>();
 
-        for (FieldError fieldError : exception.getBindingResult().getFieldErrors()){
-            errors.put(fieldError.getField(),fieldError.getDefaultMessage());
+        for (FieldError fieldError : exception.getBindingResult().getFieldErrors()) {
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
         ValidationErrorResponse response = new ValidationErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation failed",
                 errors,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         return ResponseEntity.badRequest().body(response);
     }
 
@@ -57,16 +57,13 @@ public class GlobalExceptionHandler {
                         "Invalid value '%s' for field '%s'. Accepted values: %s",
                         invalidValue,
                         fieldName,
-                        Arrays.toString(ifx.getTargetType().getEnumConstants())
-                );
+                        Arrays.toString(ifx.getTargetType().getEnumConstants()));
 
                 errors.put(fieldName, errorMessage);
                 message = "Validation failed";
             }
-        }
-        else if (cause instanceof com.fasterxml.jackson.databind.exc.MismatchedInputException) {
-            com.fasterxml.jackson.databind.exc.MismatchedInputException mix =
-                    (com.fasterxml.jackson.databind.exc.MismatchedInputException) cause;
+        } else if (cause instanceof com.fasterxml.jackson.databind.exc.MismatchedInputException) {
+            com.fasterxml.jackson.databind.exc.MismatchedInputException mix = (com.fasterxml.jackson.databind.exc.MismatchedInputException) cause;
 
             if (mix.getTargetType() != null && mix.getTargetType().isEnum()) {
                 String fieldName = mix.getPath().get(0).getFieldName();
@@ -74,14 +71,12 @@ public class GlobalExceptionHandler {
                 String errorMessage = String.format(
                         "Field '%s' cannot be empty. Accepted values: %s",
                         fieldName,
-                        Arrays.toString(mix.getTargetType().getEnumConstants())
-                );
+                        Arrays.toString(mix.getTargetType().getEnumConstants()));
 
                 errors.put(fieldName, errorMessage);
                 message = "Validation failed";
             }
-        }
-        else {
+        } else {
             String errorMsg = ex.getMostSpecificCause().getMessage();
 
             if (errorMsg.contains("reference chain:") && errorMsg.contains("[\"")) {
@@ -99,8 +94,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 message,
                 errors.isEmpty() ? null : errors,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -119,8 +113,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 "Constraint violation",
                 errors,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -132,8 +125,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage() != null ? ex.getMessage() : "Entity not found",
                 null,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
@@ -145,10 +137,21 @@ public class GlobalExceptionHandler {
                 HttpStatus.FORBIDDEN.value(),
                 ex.getMessage() != null ? ex.getMessage() : "Access denied",
                 null,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidComparisonException.class)
+    public ResponseEntity<ValidationErrorResponse> handleInvalidComparison(InvalidComparisonException ex) {
+
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage() != null ? ex.getMessage() : "Invalid comparison request",
+                null,
+                LocalDateTime.now());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
 }

@@ -6,6 +6,7 @@ import com.burakcanaksoy.realestate.repository.ImageRepository;
 import com.burakcanaksoy.realestate.repository.LandRepository;
 import com.burakcanaksoy.realestate.repository.RealEstateRepository;
 import com.burakcanaksoy.realestate.repository.VehicleRepository;
+import com.burakcanaksoy.realestate.repository.VideoRepository;
 import com.burakcanaksoy.realestate.repository.WorkplaceRepository;
 import com.burakcanaksoy.realestate.request.GeneralFilterRequest;
 import com.burakcanaksoy.realestate.request.LandFilterRequest;
@@ -33,6 +34,7 @@ public class ListingService {
     private final VehicleRepository vehicleRepository;
     private final WorkplaceRepository workplaceRepository;
     private final ImageRepository imageRepository; // Inject added
+    private final VideoRepository videoRepository;
 
     public List<BaseListingResponse> getAllListings() {
         List<BaseListing> allListings = new ArrayList<>();
@@ -159,6 +161,11 @@ public class ListingService {
         imageRepository
                 .findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(listing.getId(), response.getListingType())
                 .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+
+        // Fetch first video if available
+        videoRepository.findByListingIdAndListingTypeOrderByDisplayOrderAsc(listing.getId(), response.getListingType())
+                .stream().findFirst()
+                .ifPresent(video -> response.setVideoUrl("/api/listings/videos/" + video.getId()));
 
         return response;
     }

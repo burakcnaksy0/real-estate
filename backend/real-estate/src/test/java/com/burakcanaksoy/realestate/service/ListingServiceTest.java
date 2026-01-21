@@ -94,9 +94,10 @@ public class ListingServiceTest {
         testRealEstate.setCity("Istanbul");
         testRealEstate.setDistrict("Kadikoy");
         testRealEstate.setRealEstateType(RealEstateType.APARTMENT);
-        testRealEstate.setRoomCount(3);
-        testRealEstate.setSquareMeter(120);
-        testRealEstate.setBuildingAge(5);
+        testRealEstate.setRoomCount("3");
+        testRealEstate.setGrossSquareMeter(120);
+        testRealEstate.setNetSquareMeter(100);
+        testRealEstate.setBuildingAge("5");
         testRealEstate.setFloor(3);
         testRealEstate.setHeatingType(HeatingType.CENTRAL_HEATING);
         testRealEstate.setFurnished(true);

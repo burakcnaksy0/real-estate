@@ -41,7 +41,20 @@ public class VehicleMapper {
         vehicle.setFuelType(request.getFuelType());
         vehicle.setTransmission(request.getTransmission());
         vehicle.setKilometer(request.getKilometer());
+        vehicle.setKilometer(request.getKilometer());
         vehicle.setEngineVolume(request.getEngineVolume());
+
+        vehicle.setSeries(request.getSeries());
+        vehicle.setVehicleStatus(request.getVehicleStatus());
+        vehicle.setBodyType(request.getBodyType());
+        vehicle.setEnginePower(request.getEnginePower());
+        vehicle.setTractionType(request.getTractionType());
+        vehicle.setColor(request.getColor());
+        vehicle.setWarranty(request.getWarranty());
+        vehicle.setHeavyDamage(request.getHeavyDamage());
+        vehicle.setPlateNationality(request.getPlateNationality());
+        vehicle.setFromWho(request.getFromWho());
+        vehicle.setExchange(request.getExchange());
 
         return vehicle;
     }
@@ -73,6 +86,18 @@ public class VehicleMapper {
         response.setTransmission(vehicle.getTransmission());
         response.setKilometer(vehicle.getKilometer());
         response.setEngineVolume(vehicle.getEngineVolume());
+
+        response.setSeries(vehicle.getSeries());
+        response.setVehicleStatus(vehicle.getVehicleStatus());
+        response.setBodyType(vehicle.getBodyType());
+        response.setEnginePower(vehicle.getEnginePower());
+        response.setTractionType(vehicle.getTractionType());
+        response.setColor(vehicle.getColor());
+        response.setWarranty(vehicle.getWarranty());
+        response.setHeavyDamage(vehicle.getHeavyDamage());
+        response.setPlateNationality(vehicle.getPlateNationality());
+        response.setFromWho(vehicle.getFromWho());
+        response.setExchange(vehicle.getExchange());
         response.setCreatedAt(vehicle.getCreatedAt());
         response.setCreatedAt(vehicle.getCreatedAt());
         response.setUpdatedAt(vehicle.getUpdatedAt());

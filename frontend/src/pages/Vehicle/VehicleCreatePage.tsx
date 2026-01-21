@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -8,10 +9,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
 import { createVehicleAsync } from '../../store/slices/vehicleSlice';
 import { useCategories } from '../../hooks/useCategories';
-import { VehicleCreateRequest, Currency, FuelType, Transmission, OfferType } from '../../types';
+import { VehicleCreateRequest, Currency, FuelType, Transmission, OfferType, VehicleStatus, BodyType, TractionType, ListingFrom } from '../../types';
 import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
 import { ImageService } from '../../services/imageService';
 import { LocationPicker } from '../../components/LocationPicker/LocationPicker';
+import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
+import { VideoService } from '../../services/videoService';
 
 // Validation schema
 const vehicleSchema = yup.object({
@@ -69,6 +72,17 @@ const vehicleSchema = yup.object({
   offerType: yup
     .mixed<OfferType>()
     .required('İşlem tipi gereklidir'),
+  series: yup.string().max(50, 'Seri 50 karakterden uzun olamaz'),
+  vehicleStatus: yup.mixed<VehicleStatus>().required('Araç durumu gereklidir'),
+  bodyType: yup.mixed<BodyType>().required('Kasa tipi gereklidir'),
+  enginePower: yup.string().max(20, 'Motor gücü 20 karakterden uzun olamaz'),
+  tractionType: yup.mixed<TractionType>().required('Çekiş tipi gereklidir'),
+  color: yup.string().max(30, 'Renk 30 karakterden uzun olamaz'),
+  warranty: yup.boolean(),
+  heavyDamage: yup.boolean(),
+  plateNationality: yup.string().max(50, 'Plaka/Uyruk 50 karakterden uzun olamaz'),
+  fromWho: yup.mixed<ListingFrom>().required('Kimden bilgisi gereklidir'),
+  exchange: yup.boolean(),
 });
 
 interface ImageFile {
@@ -83,7 +97,9 @@ export const VehicleCreatePage: React.FC = () => {
   const { isLoading } = useSelector((state: RootState) => state.vehicles);
   const { getActiveCategories } = useCategories();
   const [images, setImages] = useState<ImageFile[]>([]);
+  const [video, setVideo] = useState<VideoFile | null>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [location, setLocation] = useState<{ latitude?: number; longitude?: number }>({});
 
   const activeCategories = getActiveCategories();
@@ -101,6 +117,13 @@ export const VehicleCreatePage: React.FC = () => {
       transmission: Transmission.MANUAL,
       categorySlug: 'arac',
       offerType: OfferType.FOR_SALE,
+      vehicleStatus: VehicleStatus.SECOND_HAND,
+      bodyType: BodyType.SEDAN,
+      tractionType: TractionType.FWD,
+      fromWho: ListingFrom.OWNER,
+      warranty: false,
+      heavyDamage: false,
+      exchange: false,
     },
   });
 
@@ -135,6 +158,23 @@ export const VehicleCreatePage: React.FC = () => {
           }
         }
 
+        // Upload video if any
+        if (video) {
+          setUploadingVideo(true);
+          try {
+            await VideoService.uploadVideo(
+              video.file,
+              listingId,
+              'VEHICLE'
+            );
+          } catch (videoError: any) {
+            console.error('Error uploading video:', videoError);
+            toast.error(videoError?.response?.data?.message || 'Video yüklenirken bir hata oluştu');
+          } finally {
+            setUploadingVideo(false);
+          }
+        }
+
         navigate(`/vehicles/${listingId}`);
       }
     } catch (error) {
@@ -157,6 +197,47 @@ export const VehicleCreatePage: React.FC = () => {
     const labels = {
       [Transmission.MANUAL]: 'Manuel',
       [Transmission.AUTOMATIC]: 'Otomatik'
+    };
+    return labels[type] || type;
+  };
+
+  const getVehicleStatusLabel = (type: VehicleStatus) => {
+    const labels = {
+      [VehicleStatus.ZERO]: 'Sıfır',
+      [VehicleStatus.SECOND_HAND]: 'İkinci El'
+    };
+    return labels[type] || type;
+  };
+
+  const getBodyTypeLabel = (type: BodyType) => {
+    const labels = {
+      [BodyType.SEDAN]: 'Sedan',
+      [BodyType.HATCHBACK]: 'Hatchback',
+      [BodyType.STATION_WAGON]: 'Station Wagon',
+      [BodyType.CABRIO]: 'Cabrio',
+      [BodyType.SUV]: 'SUV',
+      [BodyType.PICKUP]: 'Pickup',
+      [BodyType.MINIVAN]: 'Minivan',
+      [BodyType.PANELVAN]: 'Panelvan',
+      [BodyType.COUPE]: 'Coupe'
+    };
+    return labels[type] || type;
+  };
+
+  const getTractionTypeLabel = (type: TractionType) => {
+    const labels = {
+      [TractionType.FWD]: 'Önden Çekiş',
+      [TractionType.RWD]: 'Arkadan İtiş',
+      [TractionType.AWD]: '4WD (Sürekli)'
+    };
+    return labels[type] || type;
+  };
+
+  const getListingFromLabel = (type: ListingFrom) => {
+    const labels = {
+      [ListingFrom.OWNER]: 'Sahibinden',
+      [ListingFrom.GALLERY]: 'Galeriden',
+      [ListingFrom.AUTHORIZED_DEALER]: 'Yetkili Bayiden'
     };
     return labels[type] || type;
   };
@@ -376,6 +457,191 @@ export const VehicleCreatePage: React.FC = () => {
               {errors.engineVolume && (
                 <p className="mt-1 text-sm text-red-600">{errors.engineVolume.message}</p>
               )}
+              {errors.engineVolume && (
+                <p className="mt-1 text-sm text-red-600">{errors.engineVolume.message}</p>
+              )}
+            </div>
+
+            {/* Series */}
+            <div>
+              <label htmlFor="series" className="block text-sm font-medium text-gray-700 mb-1">
+                Seri
+              </label>
+              <input
+                {...register('series')}
+                type="text"
+                id="series"
+                className={`input-field ${errors.series ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: 3 Serisi"
+              />
+              {errors.series && (
+                <p className="mt-1 text-sm text-red-600">{errors.series.message}</p>
+              )}
+            </div>
+
+            {/* Vehicle Status */}
+            <div>
+              <label htmlFor="vehicleStatus" className="block text-sm font-medium text-gray-700 mb-1">
+                Araç Durumu *
+              </label>
+              <select
+                {...register('vehicleStatus')}
+                id="vehicleStatus"
+                className={`input-field ${errors.vehicleStatus ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                {Object.values(VehicleStatus).map((type) => (
+                  <option key={type} value={type}>
+                    {getVehicleStatusLabel(type)}
+                  </option>
+                ))}
+              </select>
+              {errors.vehicleStatus && (
+                <p className="mt-1 text-sm text-red-600">{errors.vehicleStatus.message}</p>
+              )}
+            </div>
+
+            {/* Body Type */}
+            <div>
+              <label htmlFor="bodyType" className="block text-sm font-medium text-gray-700 mb-1">
+                Kasa Tipi *
+              </label>
+              <select
+                {...register('bodyType')}
+                id="bodyType"
+                className={`input-field ${errors.bodyType ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                {Object.values(BodyType).map((type) => (
+                  <option key={type} value={type}>
+                    {getBodyTypeLabel(type)}
+                  </option>
+                ))}
+              </select>
+              {errors.bodyType && (
+                <p className="mt-1 text-sm text-red-600">{errors.bodyType.message}</p>
+              )}
+            </div>
+
+            {/* Engine Power */}
+            <div>
+              <label htmlFor="enginePower" className="block text-sm font-medium text-gray-700 mb-1">
+                Motor Gücü
+              </label>
+              <input
+                {...register('enginePower')}
+                type="text"
+                id="enginePower"
+                className={`input-field ${errors.enginePower ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: 150 hp"
+              />
+              {errors.enginePower && (
+                <p className="mt-1 text-sm text-red-600">{errors.enginePower.message}</p>
+              )}
+            </div>
+
+            {/* Traction Type */}
+            <div>
+              <label htmlFor="tractionType" className="block text-sm font-medium text-gray-700 mb-1">
+                Çekiş Tipi *
+              </label>
+              <select
+                {...register('tractionType')}
+                id="tractionType"
+                className={`input-field ${errors.tractionType ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                {Object.values(TractionType).map((type) => (
+                  <option key={type} value={type}>
+                    {getTractionTypeLabel(type)}
+                  </option>
+                ))}
+              </select>
+              {errors.tractionType && (
+                <p className="mt-1 text-sm text-red-600">{errors.tractionType.message}</p>
+              )}
+            </div>
+
+            {/* Color */}
+            <div>
+              <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-1">
+                Renk
+              </label>
+              <input
+                {...register('color')}
+                type="text"
+                id="color"
+                className={`input-field ${errors.color ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: Beyaz"
+              />
+              {errors.color && (
+                <p className="mt-1 text-sm text-red-600">{errors.color.message}</p>
+              )}
+            </div>
+
+            {/* Plate Nationality */}
+            <div>
+              <label htmlFor="plateNationality" className="block text-sm font-medium text-gray-700 mb-1">
+                Plaka / Uyruk
+              </label>
+              <input
+                {...register('plateNationality')}
+                type="text"
+                id="plateNationality"
+                className={`input-field ${errors.plateNationality ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: TR"
+              />
+              {errors.plateNationality && (
+                <p className="mt-1 text-sm text-red-600">{errors.plateNationality.message}</p>
+              )}
+            </div>
+
+            {/* Listing From */}
+            <div>
+              <label htmlFor="fromWho" className="block text-sm font-medium text-gray-700 mb-1">
+                Kimden *
+              </label>
+              <select
+                {...register('fromWho')}
+                id="fromWho"
+                className={`input-field ${errors.fromWho ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                {Object.values(ListingFrom).map((type) => (
+                  <option key={type} value={type}>
+                    {getListingFromLabel(type)}
+                  </option>
+                ))}
+              </select>
+              {errors.fromWho && (
+                <p className="mt-1 text-sm text-red-600">{errors.fromWho.message}</p>
+              )}
+            </div>
+
+            {/* Checkboxes */}
+            <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <label className="flex items-center space-x-3">
+                <input
+                  {...register('warranty')}
+                  type="checkbox"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <span className="text-sm font-medium text-gray-700">Garantili</span>
+              </label>
+
+              <label className="flex items-center space-x-3">
+                <input
+                  {...register('heavyDamage')}
+                  type="checkbox"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <span className="text-sm font-medium text-gray-700">Ağır Hasar Kayıtlı</span>
+              </label>
+
+              <label className="flex items-center space-x-3">
+                <input
+                  {...register('exchange')}
+                  type="checkbox"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <span className="text-sm font-medium text-gray-700">Takaslı</span>
+              </label>
             </div>
           </div>
         </div>
@@ -463,6 +729,16 @@ export const VehicleCreatePage: React.FC = () => {
           />
         </div>
 
+        {/* Video */}
+        <div className="card p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Video</h2>
+          <VideoUpload
+            video={video}
+            onVideoChange={setVideo}
+            maxSizeMB={100}
+          />
+        </div>
+
         {/* Submit Button */}
         <div className="flex justify-end space-x-4">
           <button
@@ -480,7 +756,7 @@ export const VehicleCreatePage: React.FC = () => {
             {isLoading || uploadingImages ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>{uploadingImages ? 'Görseller yükleniyor...' : 'Kaydediliyor...'}</span>
+                <span>{uploadingImages ? 'Görseller yükleniyor...' : uploadingVideo ? 'Video yükleniyor...' : 'Kaydediliyor...'}</span>
               </>
             ) : (
               <>

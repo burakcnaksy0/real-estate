@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { VehicleService } from '../../services/vehicleService';
 import { Vehicle, VehicleFilterRequest } from '../../types';
 import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon, Heart } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUtils';
+import CompareCheckbox from '../../components/CompareCheckbox';
+import { toggleListing } from '../../store/slices/comparisonSlice';
 
 export const VehicleListPage: React.FC = () => {
+  const dispatch = useDispatch();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -331,14 +336,27 @@ export const VehicleListPage: React.FC = () => {
                 className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-200 overflow-hidden group flex flex-col h-full"
               >
                 <div className="relative h-56 bg-gray-100 overflow-hidden shrink-0">
+                  {/* Compare Checkbox */}
+                  <div onClick={(e) => e.preventDefault()}>
+                    <CompareCheckbox
+                      listingId={vehicle.id}
+                      category="vehicle"
+                      onToggle={() => dispatch(toggleListing({ id: vehicle.id, category: 'vehicle' }))}
+                    />
+                  </div>
+
                   {vehicle.imageUrl ? (
                     <img
-                      src={`http://localhost:8080${vehicle.imageUrl}?t=${Date.now()}`}
+                      src={getImageUrl(vehicle.imageUrl) || ''}
                       alt={vehicle.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Resim+Yok';
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement?.classList.add('bg-gray-200', 'flex', 'items-center', 'justify-center');
+                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Y2EzYWYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiIvPjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ii8+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUuIDE2IDEwIDUgMjEiLz48L3N2Zz4=';
+                        e.currentTarget.style.display = 'block';
+                        e.currentTarget.style.objectFit = 'contain';
+                        e.currentTarget.style.padding = '20px';
                       }}
                     />
                   ) : (

@@ -8,6 +8,7 @@ import com.burakcanaksoy.realestate.model.enums.Role;
 import com.burakcanaksoy.realestate.repository.CategoryRepository;
 import com.burakcanaksoy.realestate.repository.ImageRepository;
 import com.burakcanaksoy.realestate.repository.RealEstateRepository;
+import com.burakcanaksoy.realestate.repository.VideoRepository;
 import com.burakcanaksoy.realestate.request.RealEstateCreateRequest;
 import com.burakcanaksoy.realestate.request.RealEstateFilterRequest;
 import com.burakcanaksoy.realestate.request.RealEstateUpdateRequest;
@@ -28,13 +29,15 @@ public class RealEstateService {
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
     private final ImageRepository imageRepository;
+    private final VideoRepository videoRepository;
 
     public RealEstateService(RealEstateRepository realEstateRepository, CategoryRepository categoryRepository,
-            AuthService authService, ImageRepository imageRepository) {
+            AuthService authService, ImageRepository imageRepository, VideoRepository videoRepository) {
         this.realEstateRepository = realEstateRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
         this.imageRepository = imageRepository;
+        this.videoRepository = videoRepository;
     }
 
     public List<RealEstateResponse> getAllRealEstates() {
@@ -61,7 +64,7 @@ public class RealEstateService {
     public RealEstateResponse getRealEstateById(Long realEstateId) {
         RealEstate realEstate = this.realEstateRepository.findById(realEstateId)
                 .orElseThrow(() -> new EntityNotFoundException("Real Estate not found with this id : " + realEstateId));
-        return RealEstateMapper.toResponse(realEstate);
+        return convertToResponse(realEstate);
     }
 
     public void incrementViewCount(Long realEstateId) {
@@ -139,8 +142,12 @@ public class RealEstateService {
             realEstate.setRoomCount(request.getRoomCount());
         }
 
-        if (request.getSquareMeter() != null) {
-            realEstate.setSquareMeter(request.getSquareMeter());
+        if (request.getGrossSquareMeter() != null) {
+            realEstate.setGrossSquareMeter(request.getGrossSquareMeter());
+        }
+
+        if (request.getNetSquareMeter() != null) {
+            realEstate.setNetSquareMeter(request.getNetSquareMeter());
         }
 
         if (request.getBuildingAge() != null) {
@@ -151,12 +158,64 @@ public class RealEstateService {
             realEstate.setFloor(request.getFloor());
         }
 
+        if (request.getTotalFloors() != null) {
+            realEstate.setTotalFloors(request.getTotalFloors());
+        }
+
+        if (request.getBathroomCount() != null) {
+            realEstate.setBathroomCount(request.getBathroomCount());
+        }
+
         if (request.getHeatingType() != null) {
             realEstate.setHeatingType(request.getHeatingType());
         }
 
+        if (request.getBalcony() != null) {
+            realEstate.setBalcony(request.getBalcony());
+        }
+
         if (request.getFurnished() != null) {
             realEstate.setFurnished(request.getFurnished());
+        }
+
+        if (request.getUsingStatus() != null) {
+            realEstate.setUsingStatus(request.getUsingStatus());
+        }
+
+        if (request.getKitchen() != null) {
+            realEstate.setKitchen(request.getKitchen());
+        }
+
+        if (request.getElevator() != null) {
+            realEstate.setElevator(request.getElevator());
+        }
+
+        if (request.getParking() != null) {
+            realEstate.setParking(request.getParking());
+        }
+
+        if (request.getInComplex() != null) {
+            realEstate.setInComplex(request.getInComplex());
+        }
+
+        if (request.getComplexName() != null) {
+            realEstate.setComplexName(request.getComplexName());
+        }
+
+        if (request.getDues() != null) {
+            realEstate.setDues(request.getDues());
+        }
+
+        if (request.getDeposit() != null) {
+            realEstate.setDeposit(request.getDeposit());
+        }
+
+        if (request.getTittleStatus() != null) {
+            realEstate.setTittleStatus(request.getTittleStatus());
+        }
+
+        if (request.getFromWho() != null) {
+            realEstate.setFromWho(request.getFromWho());
         }
 
         RealEstate updated = realEstateRepository.save(realEstate);
@@ -179,6 +238,11 @@ public class RealEstateService {
         RealEstateResponse response = RealEstateMapper.toResponse(realEstate);
         imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(realEstate.getId(), "REAL_ESTATE")
                 .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+
+        videoRepository.findByListingIdAndListingTypeOrderByDisplayOrderAsc(realEstate.getId(), "REAL_ESTATE")
+                .stream().findFirst()
+                .ifPresent(video -> response.setVideoUrl("/api/listings/videos/" + video.getId()));
+
         return response;
     }
 

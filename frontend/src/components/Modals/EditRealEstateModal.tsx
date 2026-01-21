@@ -5,7 +5,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useRealEstate } from '../../hooks/useRealEstate';
 import { useCategories } from '../../hooks/useCategories';
-import { RealEstate, RealEstateCreateRequest, Currency, RealEstateType, HeatingType } from '../../types';
+import { RealEstate, RealEstateCreateRequest, Currency, RealEstateType, HeatingType, KitchenType, TittleStatus, UsingStatus, ListingFrom, OfferType } from '../../types';
+import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
+import { VideoService } from '../../services/videoService';
 
 interface EditRealEstateModalProps {
     realEstate: RealEstate;
@@ -23,10 +25,11 @@ const realEstateSchema = yup.object({
     city: yup.string().required('Şehir gereklidir').max(50),
     district: yup.string().required('İlçe gereklidir').max(50),
     realEstateType: yup.mixed<RealEstateType>().required('Emlak tipi gereklidir'),
-    roomCount: yup.number().required('Oda sayısı gereklidir').min(0),
-    squareMeter: yup.number().required('Metrekare gereklidir').min(1),
-    buildingAge: yup.number().required('Bina yaşı gereklidir').min(0),
-    floor: yup.number().required('Kat gereklidir').min(0),
+    roomCount: yup.string().required('Oda sayısı gereklidir'),
+    grossSquareMeter: yup.number().required('Brüt metrekare gereklidir').min(1),
+    netSquareMeter: yup.number().required('Net metrekare gereklidir').min(1),
+    buildingAge: yup.string().required('Bina yaşı gereklidir'),
+    floor: yup.number().required('Kat gereklidir').min(-5),
     heatingType: yup.mixed<HeatingType>().required('Isıtma tipi gereklidir'),
     furnished: yup.boolean().required('Eşyalı bilgisi gereklidir'),
 });
@@ -40,6 +43,8 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
     const { update, isLoading } = useRealEstate();
     const { getActiveCategories } = useCategories();
     const activeCategories = getActiveCategories();
+    const [video, setVideo] = useState<VideoFile | null>(null);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
 
     const {
         register,
@@ -62,11 +67,26 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                 district: realEstate.district,
                 realEstateType: realEstate.realEstateType,
                 roomCount: realEstate.roomCount,
-                squareMeter: realEstate.squareMeter,
+                grossSquareMeter: realEstate.grossSquareMeter,
+                netSquareMeter: realEstate.netSquareMeter,
                 buildingAge: realEstate.buildingAge,
                 floor: realEstate.floor,
                 heatingType: realEstate.heatingType,
                 furnished: realEstate.furnished,
+                totalFloors: realEstate.totalFloors,
+                bathroomCount: realEstate.bathroomCount,
+                balcony: realEstate.balcony,
+                elevator: realEstate.elevator,
+                parking: realEstate.parking,
+                inComplex: realEstate.inComplex,
+                complexName: realEstate.complexName,
+                dues: realEstate.dues,
+                deposit: realEstate.deposit,
+                usingStatus: realEstate.usingStatus,
+                kitchen: realEstate.kitchen,
+                tittleStatus: realEstate.tittleStatus,
+                fromWho: realEstate.fromWho,
+                offerType: realEstate.offerType,
             });
         }
     }, [isOpen, realEstate, reset]);
@@ -74,6 +94,19 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
     const onSubmit = async (data: RealEstateCreateRequest) => {
         try {
             await update(realEstate.id, data);
+
+            // Upload video if selected
+            if (video) {
+                setUploadingVideo(true);
+                try {
+                    await VideoService.uploadVideo(video.file, realEstate.id, 'REAL_ESTATE');
+                } catch (error) {
+                    console.error('Error uploading video:', error);
+                } finally {
+                    setUploadingVideo(false);
+                }
+            }
+
             onSuccess();
             onClose();
         } catch (error) {
@@ -205,6 +238,32 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                         )}
                                     </div>
 
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">İşlem Tipi</label>
+                                        <select
+                                            {...register('offerType')}
+                                            className={`input-field ${errors.offerType ? 'border-red-500' : ''}`}
+                                        >
+                                            <option value={OfferType.FOR_SALE}>Satılık</option>
+                                            <option value={OfferType.FOR_RENT}>Kiralık</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kimden</label>
+                                        <select
+                                            {...register('fromWho')}
+                                            className={`input-field ${errors.fromWho ? 'border-red-500' : ''}`}
+                                        >
+                                            <option value="">Seçiniz</option>
+                                            {Object.values(ListingFrom).map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type === ListingFrom.OWNER ? 'Sahibinden' : type === ListingFrom.GALLERY ? 'Emlakçıdan' : 'Bankadan'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
                                         <textarea
@@ -225,22 +284,33 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                             Oda Sayısı *
                                         </label>
                                         <input
-                                            {...register('roomCount', { valueAsNumber: true })}
-                                            type="number"
-                                            min="0"
+                                            {...register('roomCount')}
+                                            type="text"
                                             className={`input-field ${errors.roomCount ? 'border-red-500' : ''}`}
                                         />
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Metrekare *
+                                            m² (Brüt) *
                                         </label>
                                         <input
-                                            {...register('squareMeter', { valueAsNumber: true })}
+                                            {...register('grossSquareMeter', { valueAsNumber: true })}
                                             type="number"
                                             min="1"
-                                            className={`input-field ${errors.squareMeter ? 'border-red-500' : ''}`}
+                                            className={`input-field ${errors.grossSquareMeter ? 'border-red-500' : ''}`}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            m² (Net) *
+                                        </label>
+                                        <input
+                                            {...register('netSquareMeter', { valueAsNumber: true })}
+                                            type="number"
+                                            min="1"
+                                            className={`input-field ${errors.netSquareMeter ? 'border-red-500' : ''}`}
                                         />
                                     </div>
 
@@ -249,9 +319,8 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                             Bina Yaşı *
                                         </label>
                                         <input
-                                            {...register('buildingAge', { valueAsNumber: true })}
-                                            type="number"
-                                            min="0"
+                                            {...register('buildingAge')}
+                                            type="text"
                                             className={`input-field ${errors.buildingAge ? 'border-red-500' : ''}`}
                                         />
                                     </div>
@@ -292,6 +361,94 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                             <option value="false">Hayır</option>
                                         </select>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Mutfak</label>
+                                        <select
+                                            {...register('kitchen')}
+                                            className={`input-field ${errors.kitchen ? 'border-red-500' : ''}`}
+                                        >
+                                            <option value="">Seçiniz</option>
+                                            {Object.values(KitchenType).map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type === KitchenType.OPEN_AMERICAN ? 'Amerikan (Açık)' : 'Kapalı'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Banyo Sayısı</label>
+                                        <input
+                                            {...register('bathroomCount', { valueAsNumber: true })}
+                                            type="number"
+                                            min="0"
+                                            className={`input-field ${errors.bathroomCount ? 'border-red-500' : ''}`}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kat Sayısı</label>
+                                        <input
+                                            {...register('totalFloors', { valueAsNumber: true })}
+                                            type="number"
+                                            min="0"
+                                            className={`input-field ${errors.totalFloors ? 'border-red-500' : ''}`}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Tapu Durumu</label>
+                                        <select
+                                            {...register('tittleStatus')}
+                                            className={`input-field ${errors.tittleStatus ? 'border-red-500' : ''}`}
+                                        >
+                                            <option value="">Seçiniz</option>
+                                            {Object.values(TittleStatus).map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type === TittleStatus.SHARE_DEED ? 'Hisseli Tapu' :
+                                                        type === TittleStatus.CONDOMINIUM ? 'Kat Mülkiyeti' :
+                                                            type === TittleStatus.NO_DEED ? 'Tapusuz' :
+                                                                type === TittleStatus.CONSTRUCTION_SERVITUDE ? 'Kat İrtifakı' :
+                                                                    'Tam Tapu'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kullanım Durumu</label>
+                                        <select
+                                            {...register('usingStatus')}
+                                            className={`input-field ${errors.usingStatus ? 'border-red-500' : ''}`}
+                                        >
+                                            <option value="">Seçiniz</option>
+                                            {Object.values(UsingStatus).map((type) => (
+                                                <option key={type} value={type}>
+                                                    {type === UsingStatus.EMPTY ? 'Boş' : type === UsingStatus.TENANT ? 'Kiracılı' : 'Mülk Sahibi'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="col-span-2 md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                                        <label className="flex items-center space-x-2">
+                                            <input {...register('balcony')} type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5" />
+                                            <span className="text-gray-700">Balkon</span>
+                                        </label>
+                                        <label className="flex items-center space-x-2">
+                                            <input {...register('elevator')} type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5" />
+                                            <span className="text-gray-700">Asansör</span>
+                                        </label>
+                                        <label className="flex items-center space-x-2">
+                                            <input {...register('parking')} type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5" />
+                                            <span className="text-gray-700">Otopark</span>
+                                        </label>
+                                        <label className="flex items-center space-x-2">
+                                            <input {...register('inComplex')} type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5" />
+                                            <span className="text-gray-700">Site İçerisinde</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -327,7 +484,41 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                             ))}
                                         </select>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Depozito</label>
+                                        <input
+                                            {...register('deposit', { valueAsNumber: true })}
+                                            type="number"
+                                            className={`input-field ${errors.deposit ? 'border-red-500' : ''}`}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Aidat</label>
+                                        <input
+                                            {...register('dues', { valueAsNumber: true })}
+                                            type="number"
+                                            className={`input-field ${errors.dues ? 'border-red-500' : ''}`}
+                                        />
+                                    </div>
                                 </div>
+                            </div>
+
+                            {/* Video */}
+                            <div>
+                                <h4 className="text-md font-semibold text-gray-900 mb-4">Video</h4>
+                                {realEstate.videoUrl && (
+                                    <div className="mb-4 p-4 bg-blue-50 text-blue-700 rounded-lg">
+                                        <p className="text-sm">
+                                            Bu ilanda zaten bir video mevcut. Yeni bir video yüklerseniz, eski video silinecektir.
+                                        </p>
+                                    </div>
+                                )}
+                                <VideoUpload
+                                    video={video}
+                                    onVideoChange={setVideo}
+                                />
                             </div>
                         </div>
                     </form>
@@ -338,19 +529,19 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                             type="button"
                             onClick={onClose}
                             className="btn-secondary"
-                            disabled={isLoading}
+                            disabled={isLoading || uploadingVideo}
                         >
                             İptal
                         </button>
                         <button
                             onClick={handleSubmit(onSubmit)}
-                            disabled={isLoading}
+                            disabled={isLoading || uploadingVideo}
                             className="btn-primary flex items-center space-x-2 disabled:opacity-50"
                         >
                             {isLoading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    <span>Kaydediliyor...</span>
+                                    <span>{uploadingVideo ? 'Video Yükleniyor...' : 'Kaydediliyor...'}</span>
                                 </>
                             ) : (
                                 <>
@@ -361,7 +552,7 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };

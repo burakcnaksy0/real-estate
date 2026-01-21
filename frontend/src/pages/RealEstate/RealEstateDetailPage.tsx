@@ -16,11 +16,12 @@ import {
   Building,
   Share2,
   Eye,
-  Heart
+  Heart,
+  Video
 } from 'lucide-react';
 import { useRealEstate } from '../../hooks/useRealEstate';
 import { useAuth } from '../../hooks/useAuth';
-import { Currency, RealEstateType, HeatingType } from '../../types';
+import { Currency, RealEstateType, HeatingType, KitchenType, TittleStatus, UsingStatus, ListingFrom } from '../../types';
 import { EditRealEstateModal } from '../../components/Modals/EditRealEstateModal';
 import { ShareListingModal } from '../../components/Modals/ShareListingModal';
 import { ImageResponse, ImageService } from '../../services/imageService';
@@ -39,6 +40,7 @@ export const RealEstateDetailPage: React.FC = () => {
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
   const [images, setImages] = React.useState<ImageResponse[]>([]);
   const [similarListings, setSimilarListings] = React.useState<import('../../types').RealEstate[]>([]);
+  const [activeTab, setActiveTab] = React.useState<'photos' | 'video'>('photos');
 
   useEffect(() => {
     if (id) {
@@ -106,6 +108,17 @@ export const RealEstateDetailPage: React.FC = () => {
     return labels[type] || type;
   };
 
+  const getTittleStatusLabel = (status: TittleStatus) => {
+    const labels = {
+      [TittleStatus.SHARE_DEED]: 'Hisseli Tapu',
+      [TittleStatus.CONDOMINIUM]: 'Kat Mülkiyeti',
+      [TittleStatus.NO_DEED]: 'Tapusuz',
+      [TittleStatus.CONSTRUCTION_SERVITUDE]: 'Kat İrtifakı',
+      [TittleStatus.FULL_DEED]: 'Müstakil Tapu'
+    };
+    return labels[status] || status;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -167,11 +180,61 @@ export const RealEstateDetailPage: React.FC = () => {
         <span>Geri Dön</span>
       </button>
 
-      {/* Image Gallery */}
-      <ImageGallery
-        images={images}
-        fallbackIcon={<Home className="w-24 h-24 text-gray-300" />}
-      />
+      {/* Media Tabs */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveTab('photos')}
+            className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'photos'
+              ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+          >
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4" />
+              <span>Fotoğraflar</span>
+            </div>
+          </button>
+
+          {currentRealEstate.videoUrl && (
+            <button
+              onClick={() => setActiveTab('video')}
+              className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'video'
+                ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+            >
+              <div className="flex items-center gap-2">
+                <Video className="w-4 h-4" />
+                <span>Video Turu</span>
+              </div>
+            </button>
+          )}
+        </div>
+
+        <div className="p-4 bg-gray-50">
+          <div className={activeTab === 'photos' ? 'block' : 'hidden'}>
+            <ImageGallery
+              images={images}
+              fallbackIcon={<Home className="w-24 h-24 text-gray-300" />}
+            />
+          </div>
+
+          {activeTab === 'video' && currentRealEstate.videoUrl && (
+            <div className="rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
+              <video
+                src={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}${currentRealEstate.videoUrl}`}
+                controls
+                className="w-full h-full"
+                crossOrigin="anonymous"
+                autoPlay
+              >
+                Tarayıcınız video oynatmayı desteklemiyor.
+              </video>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
@@ -253,47 +316,95 @@ export const RealEstateDetailPage: React.FC = () => {
           {/* Property Details */}
           <div className="card p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Emlak Detayları</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <Home className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                <div className="text-lg font-semibold">{currentRealEstate.roomCount}</div>
-                <div className="text-sm text-gray-600">Oda Sayısı</div>
-              </div>
 
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <Ruler className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                <div className="text-lg font-semibold">{currentRealEstate.squareMeter}</div>
-                <div className="text-sm text-gray-600">m² (Brüt)</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">İlan No</span>
+                <span className="font-semibold text-red-500">{currentRealEstate.id}</span>
               </div>
-
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <Building className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                <div className="text-lg font-semibold">{currentRealEstate.buildingAge}</div>
-                <div className="text-sm text-gray-600">Bina Yaşı</div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Emlak Tipi</span>
+                <span className="font-medium">{getRealEstateTypeLabel(currentRealEstate.realEstateType)}</span>
               </div>
-
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <Thermometer className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                <div className="text-lg font-semibold">{currentRealEstate.floor}</div>
-                <div className="text-sm text-gray-600">Kat</div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">m² (Brüt)</span>
+                <span className="font-medium">{currentRealEstate.grossSquareMeter}</span>
               </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <span className="text-sm font-medium text-gray-700">Isıtma Tipi:</span>
-                <span className="ml-2 text-gray-900">
-                  {getHeatingTypeLabel(currentRealEstate.heatingType)}
-                </span>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">m² (Net)</span>
+                <span className="font-medium">{currentRealEstate.netSquareMeter}</span>
               </div>
-              <div>
-                <span className="text-sm font-medium text-gray-700">Eşyalı:</span>
-                <span className="ml-2 text-gray-900">
-                  {currentRealEstate.furnished ? 'Evet' : 'Hayır'}
-                </span>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Oda Sayısı</span>
+                <span className="font-medium">{currentRealEstate.roomCount}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Bina Yaşı</span>
+                <span className="font-medium">{currentRealEstate.buildingAge}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Bulunduğu Kat</span>
+                <span className="font-medium">{currentRealEstate.floor}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Kat Sayısı</span>
+                <span className="font-medium">{currentRealEstate.totalFloors}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Isıtma</span>
+                <span className="font-medium">{currentRealEstate.heatingType ? getHeatingTypeLabel(currentRealEstate.heatingType) : '-'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Banyo Sayısı</span>
+                <span className="font-medium">{currentRealEstate.bathroomCount}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Mutfak</span>
+                <span className="font-medium">{currentRealEstate.kitchen === KitchenType.OPEN_AMERICAN ? 'Amerikan (Açık)' : 'Kapalı'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Balkon</span>
+                <span className="font-medium">{currentRealEstate.balcony ? 'Var' : 'Yok'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Asansör</span>
+                <span className="font-medium">{currentRealEstate.elevator ? 'Var' : 'Yok'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Otopark</span>
+                <span className="font-medium">{currentRealEstate.parking ? 'Var' : 'Yok'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Eşyalı</span>
+                <span className="font-medium">{currentRealEstate.furnished ? 'Evet' : 'Hayır'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Kullanım Durumu</span>
+                <span className="font-medium">{currentRealEstate.usingStatus === 'EMPTY' ? 'Boş' : currentRealEstate.usingStatus === 'TENANT' ? 'Kiracılı' : 'Mülk Sahibi'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Site İçerisinde</span>
+                <span className="font-medium">{currentRealEstate.inComplex ? 'Evet' : 'Hayır'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Site Adı</span>
+                <span className="font-medium">{currentRealEstate.complexName || '-'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Aidat (TL)</span>
+                <span className="font-medium">{currentRealEstate.dues || '-'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Depozito (TL)</span>
+                <span className="font-medium">{currentRealEstate.deposit || '-'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-600">Tapu Durumu</span>
+                <span className="font-medium">{currentRealEstate.tittleStatus ? getTittleStatusLabel(currentRealEstate.tittleStatus) : '-'}</span>
               </div>
             </div>
           </div>
+
 
           {/* Description */}
           {currentRealEstate.description && (
@@ -377,16 +488,19 @@ export const RealEstateDetailPage: React.FC = () => {
                 <span className="font-medium">#{currentRealEstate.id}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-600">İlan Tarihi:</span>
+                <span className="font-medium">
+                  {new Date(currentRealEstate.createdAt).toLocaleDateString('tr-TR')}
+                </span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-600">Durum:</span>
                 <span className="font-medium capitalize">{currentRealEstate.status}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Güncellenme:</span>
-                <span className="font-medium">
-                  {new Date(currentRealEstate.updatedAt).toLocaleDateString('tr-TR')}
-                </span>
+                <span className="text-gray-600">Kimden:</span>
+                <span className="font-medium">{currentRealEstate.fromWho === 'OWNER' ? 'Sahibinden' : currentRealEstate.fromWho === 'GALLERY' ? 'Emlakçıdan' : currentRealEstate.fromWho === 'AUTHORIZED_DEALER' ? 'Bankadan' : '-'}</span>
               </div>
-
               {currentRealEstate.ownerLastSeen && (
                 <div className="flex justify-between items-center text-sm pt-2 border-t mt-2">
                   <span className="text-gray-600">Son Görülme:</span>
@@ -424,7 +538,7 @@ export const RealEstateDetailPage: React.FC = () => {
                         {listing.title}
                       </p>
                       <p className="text-xs text-gray-600">
-                        {getRealEstateTypeLabel(listing.realEstateType)} • {listing.roomCount} Oda • {listing.squareMeter} m²
+                        {getRealEstateTypeLabel(listing.realEstateType)} • {listing.roomCount} Oda • {listing.grossSquareMeter} m²
                       </p>
                       <p className="text-sm font-semibold text-primary-600">
                         {formatPrice(listing.price, listing.currency)}
@@ -439,29 +553,33 @@ export const RealEstateDetailPage: React.FC = () => {
       </div>
 
       {/* Edit Modal */}
-      {currentRealEstate && (
-        <EditRealEstateModal
-          realEstate={currentRealEstate}
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSuccess={() => {
-            if (id) {
-              fetchById(Number(id));
-            }
-          }}
-        />
-      )}
+      {
+        currentRealEstate && (
+          <EditRealEstateModal
+            realEstate={currentRealEstate}
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSuccess={() => {
+              if (id) {
+                fetchById(Number(id));
+              }
+            }}
+          />
+        )
+      }
 
       {/* Share Modal */}
-      {currentRealEstate && (
-        <ShareListingModal
-          isOpen={isShareModalOpen}
-          onClose={() => setIsShareModalOpen(false)}
-          listingId={currentRealEstate.id}
-          listingType="REAL_ESTATE"
-          listingTitle={currentRealEstate.title}
-        />
-      )}
-    </div>
+      {
+        currentRealEstate && (
+          <ShareListingModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            listingId={currentRealEstate.id}
+            listingType="REAL_ESTATE"
+            listingTitle={currentRealEstate.title}
+          />
+        )
+      }
+    </div >
   );
 };

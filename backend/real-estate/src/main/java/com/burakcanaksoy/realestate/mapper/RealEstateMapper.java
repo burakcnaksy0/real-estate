@@ -34,11 +34,25 @@ public class RealEstateMapper {
 
         realEstate.setRealEstateType(request.getRealEstateType());
         realEstate.setRoomCount(request.getRoomCount());
-        realEstate.setSquareMeter(request.getSquareMeter());
+        realEstate.setGrossSquareMeter(request.getGrossSquareMeter());
+        realEstate.setNetSquareMeter(request.getNetSquareMeter());
         realEstate.setBuildingAge(request.getBuildingAge());
         realEstate.setFloor(request.getFloor());
+        realEstate.setTotalFloors(request.getTotalFloors());
+        realEstate.setBathroomCount(request.getBathroomCount());
         realEstate.setHeatingType(request.getHeatingType());
+        realEstate.setBalcony(request.getBalcony());
         realEstate.setFurnished(request.getFurnished());
+        realEstate.setUsingStatus(request.getUsingStatus());
+        realEstate.setKitchen(request.getKitchen());
+        realEstate.setElevator(request.getElevator());
+        realEstate.setParking(request.getParking());
+        realEstate.setInComplex(request.getInComplex());
+        realEstate.setComplexName(request.getComplexName());
+        realEstate.setDues(request.getDues());
+        realEstate.setDeposit(request.getDeposit());
+        realEstate.setTittleStatus(request.getTittleStatus());
+        realEstate.setFromWho(request.getFromWho());
 
         return realEstate;
     }
@@ -72,11 +86,25 @@ public class RealEstateMapper {
 
         response.setRealEstateType(realEstate.getRealEstateType());
         response.setRoomCount(realEstate.getRoomCount());
-        response.setSquareMeter(realEstate.getSquareMeter());
+        response.setGrossSquareMeter(realEstate.getGrossSquareMeter());
+        response.setNetSquareMeter(realEstate.getNetSquareMeter());
         response.setBuildingAge(realEstate.getBuildingAge());
         response.setFloor(realEstate.getFloor());
+        response.setTotalFloors(realEstate.getTotalFloors());
+        response.setBathroomCount(realEstate.getBathroomCount());
         response.setHeatingType(realEstate.getHeatingType());
+        response.setBalcony(realEstate.getBalcony());
         response.setFurnished(realEstate.getFurnished());
+        response.setUsingStatus(realEstate.getUsingStatus());
+        response.setKitchen(realEstate.getKitchen());
+        response.setElevator(realEstate.getElevator());
+        response.setParking(realEstate.getParking());
+        response.setInComplex(realEstate.getInComplex());
+        response.setComplexName(realEstate.getComplexName());
+        response.setDues(realEstate.getDues());
+        response.setDeposit(realEstate.getDeposit());
+        response.setTittleStatus(realEstate.getTittleStatus());
+        response.setFromWho(realEstate.getFromWho());
 
         // user relationship
         if (realEstate.getCreatedBy() != null) {

@@ -2,6 +2,9 @@ package com.burakcanaksoy.realestate.model;
 
 import com.burakcanaksoy.realestate.model.enums.HeatingType;
 import com.burakcanaksoy.realestate.model.enums.RealEstateType;
+import com.burakcanaksoy.realestate.model.enums.UsingStatus;
+import com.burakcanaksoy.realestate.model.enums.KitchenType;
+import com.burakcanaksoy.realestate.model.enums.TittleStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,21 +19,58 @@ public class RealEstate extends BaseListing {
     @Column(nullable = false, length = 30)
     private RealEstateType realEstateType;
 
-    @Column(nullable = false)
-    private Integer roomCount;
+    @Column(length = 20)
+    private String roomCount;
 
-    @Column(nullable = false)
-    private Integer squareMeter;
+    @Column
+    private Integer grossSquareMeter;
 
-    @Column(nullable = false)
-    private Integer buildingAge;
+    @Column
+    private Integer netSquareMeter;
+
+    @Column(length = 20)
+    private String buildingAge;
 
     private Integer floor;
+
+    private Integer totalFloors;
+
+    private Integer bathroomCount;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private HeatingType heatingType;
 
+    private Boolean balcony;
+
     @Column(nullable = false)
     private Boolean furnished;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private UsingStatus usingStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private KitchenType kitchen;
+
+    private Boolean elevator;
+
+    private Boolean parking;
+
+    private Boolean inComplex;
+
+    private String complexName;
+
+    private java.math.BigDecimal dues;
+
+    private java.math.BigDecimal deposit;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private TittleStatus tittleStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private com.burakcanaksoy.realestate.model.enums.ListingFrom fromWho;
 }

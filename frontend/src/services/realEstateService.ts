@@ -89,7 +89,7 @@ export class RealEstateService {
     roomCount: number,
     pageRequest: PageRequest
   ): Promise<PageResponse<RealEstate>> {
-    return await this.search({ minRoomCount: roomCount, maxRoomCount: roomCount }, pageRequest);
+    return await this.search({ roomCount: roomCount.toString() }, pageRequest);
   }
 
   // Emlak tipine göre ilanları getir

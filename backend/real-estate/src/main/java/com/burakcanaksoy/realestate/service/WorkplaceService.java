@@ -7,6 +7,8 @@ import com.burakcanaksoy.realestate.model.Workplace;
 import com.burakcanaksoy.realestate.model.enums.Role;
 import com.burakcanaksoy.realestate.repository.CategoryRepository;
 import com.burakcanaksoy.realestate.repository.ImageRepository;
+import com.burakcanaksoy.realestate.repository.ImageRepository;
+import com.burakcanaksoy.realestate.repository.VideoRepository;
 import com.burakcanaksoy.realestate.repository.WorkplaceRepository;
 import com.burakcanaksoy.realestate.request.WorkplaceCreateRequest;
 import com.burakcanaksoy.realestate.request.WorkplaceFilterRequest;
@@ -27,14 +29,16 @@ public class WorkplaceService {
     private final WorkplaceRepository workplaceRepository;
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
-    private final ImageRepository imageRepository; // Inject
+    private final ImageRepository imageRepository;
+    private final VideoRepository videoRepository;
 
     public WorkplaceService(WorkplaceRepository workplaceRepository, CategoryRepository categoryRepository,
-            AuthService authService, ImageRepository imageRepository) {
+            AuthService authService, ImageRepository imageRepository, VideoRepository videoRepository) {
         this.workplaceRepository = workplaceRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
         this.imageRepository = imageRepository;
+        this.videoRepository = videoRepository;
     }
 
     public List<WorkplaceResponse> getAllWorkplaces() {
@@ -62,7 +66,7 @@ public class WorkplaceService {
     public WorkplaceResponse getWorkplaceById(Long workplaceId) {
         Workplace workplace = this.workplaceRepository.findById(workplaceId)
                 .orElseThrow(() -> new EntityNotFoundException("Workplace not found with this id : " + workplaceId));
-        return WorkplaceMapper.toResponse(workplace);
+        return convertToResponse(workplace);
     }
 
     public void incrementViewCount(Long workplaceId) {
@@ -167,6 +171,11 @@ public class WorkplaceService {
         WorkplaceResponse response = WorkplaceMapper.toResponse(workplace);
         imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(workplace.getId(), "WORKPLACE")
                 .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+
+        videoRepository.findByListingIdAndListingTypeOrderByDisplayOrderAsc(workplace.getId(), "WORKPLACE")
+                .stream().findFirst()
+                .ifPresent(video -> response.setVideoUrl("/api/listings/videos/" + video.getId()));
+
         return response;
     }
 

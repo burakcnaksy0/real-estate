@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -6,6 +6,8 @@ import * as yup from 'yup';
 import { useVehicles } from '../../hooks/useVehicles';
 import { useCategories } from '../../hooks/useCategories';
 import { Vehicle, VehicleCreateRequest, Currency, FuelType, Transmission } from '../../types';
+import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
+import { VideoService } from '../../services/videoService';
 
 interface EditVehicleModalProps {
     vehicle: Vehicle;
@@ -39,6 +41,8 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
     const { update, isLoading } = useVehicles();
     const { getActiveCategories } = useCategories();
     const activeCategories = getActiveCategories();
+    const [video, setVideo] = useState<VideoFile | null>(null);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
 
     const {
         register,
@@ -72,6 +76,19 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
     const onSubmit = async (data: VehicleCreateRequest) => {
         try {
             await update(vehicle.id, data);
+
+            // Upload video if selected
+            if (video) {
+                setUploadingVideo(true);
+                try {
+                    await VideoService.uploadVideo(video.file, vehicle.id, 'VEHICLE');
+                } catch (error) {
+                    console.error('Error uploading video:', error);
+                } finally {
+                    setUploadingVideo(false);
+                }
+            }
+
             onSuccess();
             onClose();
         } catch (error) {
@@ -285,6 +302,22 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Video */}
+                            <div>
+                                <h4 className="text-md font-semibold text-gray-900 mb-4">Video</h4>
+                                {vehicle.videoUrl && (
+                                    <div className="mb-4 p-4 bg-blue-50 text-blue-700 rounded-lg">
+                                        <p className="text-sm">
+                                            Bu ilanda zaten bir video mevcut. Yeni bir video yüklerseniz, eski video silinecektir.
+                                        </p>
+                                    </div>
+                                )}
+                                <VideoUpload
+                                    video={video}
+                                    onVideoChange={setVideo}
+                                />
+                            </div>
                         </div>
                     </form>
 
@@ -293,19 +326,19 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
                             type="button"
                             onClick={onClose}
                             className="btn-secondary"
-                            disabled={isLoading}
+                            disabled={isLoading || uploadingVideo}
                         >
                             İptal
                         </button>
                         <button
                             onClick={handleSubmit(onSubmit)}
-                            disabled={isLoading}
+                            disabled={isLoading || uploadingVideo}
                             className="btn-primary flex items-center space-x-2 disabled:opacity-50"
                         >
                             {isLoading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    <span>Kaydediliyor...</span>
+                                    <span>{uploadingVideo ? 'Video Yükleniyor...' : 'Kaydediliyor...'}</span>
                                 </>
                             ) : (
                                 <>

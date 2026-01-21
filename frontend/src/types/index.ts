@@ -64,6 +64,35 @@ export enum OfferType {
   FOR_RENT = 'FOR_RENT'
 }
 
+export enum VehicleStatus {
+  ZERO = 'ZERO',
+  SECOND_HAND = 'SECOND_HAND'
+}
+
+export enum BodyType {
+  SEDAN = 'SEDAN',
+  HATCHBACK = 'HATCHBACK',
+  STATION_WAGON = 'STATION_WAGON',
+  CABRIO = 'CABRIO',
+  SUV = 'SUV',
+  PICKUP = 'PICKUP',
+  MINIVAN = 'MINIVAN',
+  PANELVAN = 'PANELVAN',
+  COUPE = 'COUPE'
+}
+
+export enum TractionType {
+  FWD = 'FWD',
+  RWD = 'RWD',
+  AWD = 'AWD'
+}
+
+export enum ListingFrom {
+  OWNER = 'OWNER',
+  GALLERY = 'GALLERY',
+  AUTHORIZED_DEALER = 'AUTHORIZED_DEALER'
+}
+
 // Backend entity'lerine karşılık gelen interface'ler
 
 export interface User {
@@ -86,6 +115,27 @@ export interface Category {
   slug: string;
   active: boolean;
 }
+
+export enum UsingStatus {
+  EMPTY = 'EMPTY',
+  TENANT = 'TENANT',
+  PROPERTY_OWNER = 'PROPERTY_OWNER'
+}
+
+export enum KitchenType {
+  OPEN_AMERICAN = 'OPEN_AMERICAN',
+  CLOSED = 'CLOSED'
+}
+
+export enum TittleStatus {
+  SHARE_DEED = 'SHARE_DEED',
+  CONDOMINIUM = 'CONDOMINIUM',
+  NO_DEED = 'NO_DEED',
+  CONSTRUCTION_SERVITUDE = 'CONSTRUCTION_SERVITUDE',
+  FULL_DEED = 'FULL_DEED'
+}
+
+// Backend entity'lerine karşılık gelen interface'ler
 
 export interface BaseListing {
   id: number;
@@ -110,17 +160,32 @@ export interface BaseListing {
   ownerLastSeen?: string;
 
   imageUrl?: string;
+  videoUrl?: string;
   offerType: OfferType;
 }
 
 export interface RealEstate extends BaseListing {
   realEstateType: RealEstateType;
-  roomCount: number;
-  squareMeter: number;
-  buildingAge: number;
-  floor: number;
-  heatingType: HeatingType;
+  roomCount?: string;
+  grossSquareMeter?: number;
+  netSquareMeter?: number;
+  buildingAge?: string;
+  floor?: number;
+  totalFloors?: number;
+  bathroomCount?: number;
+  heatingType?: HeatingType;
+  balcony?: boolean;
   furnished: boolean;
+  usingStatus?: UsingStatus;
+  kitchen?: KitchenType;
+  elevator?: boolean;
+  parking?: boolean;
+  inComplex?: boolean;
+  complexName?: string;
+  dues?: number;
+  deposit?: number;
+  tittleStatus?: TittleStatus;
+  fromWho?: ListingFrom;
 }
 
 export interface Vehicle extends BaseListing {
@@ -131,6 +196,17 @@ export interface Vehicle extends BaseListing {
   transmission: Transmission;
   kilometer: number;
   engineVolume?: string;
+  series?: string;
+  vehicleStatus: VehicleStatus;
+  bodyType: BodyType;
+  enginePower?: string;
+  tractionType: TractionType;
+  color?: string;
+  warranty?: boolean;
+  heavyDamage?: boolean;
+  plateNationality?: string;
+  fromWho: ListingFrom;
+  exchange?: boolean;
 }
 
 export interface Land extends BaseListing {
@@ -213,12 +289,26 @@ export interface RealEstateCreateRequest {
   latitude?: number;
   longitude?: number;
   realEstateType: RealEstateType;
-  roomCount: number;
-  squareMeter: number;
-  buildingAge: number;
-  floor: number;
-  heatingType: HeatingType;
+  roomCount?: string;
+  grossSquareMeter?: number;
+  netSquareMeter?: number;
+  buildingAge?: string;
+  floor?: number;
+  totalFloors?: number;
+  bathroomCount?: number;
+  heatingType?: HeatingType;
+  balcony?: boolean;
   furnished: boolean;
+  usingStatus?: UsingStatus;
+  kitchen?: KitchenType;
+  elevator?: boolean;
+  parking?: boolean;
+  inComplex?: boolean;
+  complexName?: string;
+  dues?: number;
+  deposit?: number;
+  tittleStatus?: TittleStatus;
+  fromWho?: ListingFrom;
   offerType: OfferType;
 }
 
@@ -239,6 +329,17 @@ export interface VehicleCreateRequest {
   transmission: Transmission;
   kilometer: number;
   engineVolume?: string;
+  series?: string;
+  vehicleStatus: VehicleStatus;
+  bodyType: BodyType;
+  enginePower?: string;
+  tractionType: TractionType;
+  color?: string;
+  warranty?: boolean;
+  heavyDamage?: boolean;
+  plateNationality?: string;
+  fromWho: ListingFrom;
+  exchange?: boolean;
   offerType: OfferType;
 }
 
@@ -278,6 +379,7 @@ export interface WorkplaceCreateRequest {
 }
 
 // Filter Request tipleri
+// Filter Request tipleri
 export interface RealEstateFilterRequest {
   city?: string;
   district?: string;
@@ -286,12 +388,10 @@ export interface RealEstateFilterRequest {
   minPrice?: number;
   maxPrice?: number;
   realEstateType?: RealEstateType;
-  minRoomCount?: number;
-  maxRoomCount?: number;
-  minSquareMeter?: number;
-  maxSquareMeter?: number;
-  minBuildingAge?: number;
-  maxBuildingAge?: number;
+  roomCount?: string;
+  minGrossSquareMeter?: number;
+  maxGrossSquareMeter?: number;
+  buildingAge?: string;
   minFloor?: number;
   maxFloor?: number;
   heatingType?: HeatingType;
@@ -462,4 +562,20 @@ export interface Notification {
   relatedListingType?: string;
   isRead: boolean;
   createdAt: string;
+}
+
+// Comparison types
+export interface CompareRequest {
+  listingIds: number[];
+}
+
+export interface ComparisonField {
+  fieldName: string;
+  values: Record<string, string>;
+}
+
+export interface ComparisonResponse {
+  category: string;
+  fields: ComparisonField[];
+  listings: Record<string, any>;
 }

@@ -19,12 +19,10 @@ export const RealEstateListPage: React.FC = () => {
     minPrice: undefined,
     maxPrice: undefined,
     realEstateType: undefined,
-    minRoomCount: undefined,
-    maxRoomCount: undefined,
-    minSquareMeter: undefined,
-    maxSquareMeter: undefined,
-    minBuildingAge: undefined,
-    maxBuildingAge: undefined,
+    roomCount: '',
+    minGrossSquareMeter: undefined,
+    maxGrossSquareMeter: undefined,
+    buildingAge: '',
     minFloor: undefined,
     maxFloor: undefined,
     heatingType: undefined,
@@ -45,12 +43,10 @@ export const RealEstateListPage: React.FC = () => {
       if (filters.minPrice !== undefined && filters.minPrice > 0) cleanFilters.minPrice = filters.minPrice;
       if (filters.maxPrice !== undefined && filters.maxPrice > 0) cleanFilters.maxPrice = filters.maxPrice;
       if (filters.realEstateType) cleanFilters.realEstateType = filters.realEstateType;
-      if (filters.minRoomCount !== undefined && filters.minRoomCount > 0) cleanFilters.minRoomCount = filters.minRoomCount;
-      if (filters.maxRoomCount !== undefined && filters.maxRoomCount > 0) cleanFilters.maxRoomCount = filters.maxRoomCount;
-      if (filters.minSquareMeter !== undefined && filters.minSquareMeter > 0) cleanFilters.minSquareMeter = filters.minSquareMeter;
-      if (filters.maxSquareMeter !== undefined && filters.maxSquareMeter > 0) cleanFilters.maxSquareMeter = filters.maxSquareMeter;
-      if (filters.minBuildingAge !== undefined && filters.minBuildingAge >= 0) cleanFilters.minBuildingAge = filters.minBuildingAge;
-      if (filters.maxBuildingAge !== undefined && filters.maxBuildingAge >= 0) cleanFilters.maxBuildingAge = filters.maxBuildingAge;
+      if (filters.roomCount?.trim()) cleanFilters.roomCount = filters.roomCount;
+      if (filters.minGrossSquareMeter !== undefined && filters.minGrossSquareMeter > 0) cleanFilters.minGrossSquareMeter = filters.minGrossSquareMeter;
+      if (filters.maxGrossSquareMeter !== undefined && filters.maxGrossSquareMeter > 0) cleanFilters.maxGrossSquareMeter = filters.maxGrossSquareMeter;
+      if (filters.buildingAge?.trim()) cleanFilters.buildingAge = filters.buildingAge;
       if (filters.minFloor !== undefined) cleanFilters.minFloor = filters.minFloor;
       if (filters.maxFloor !== undefined) cleanFilters.maxFloor = filters.maxFloor;
       if (filters.heatingType) cleanFilters.heatingType = filters.heatingType;
@@ -94,12 +90,10 @@ export const RealEstateListPage: React.FC = () => {
       minPrice: undefined,
       maxPrice: undefined,
       realEstateType: undefined,
-      minRoomCount: undefined,
-      maxRoomCount: undefined,
-      minSquareMeter: undefined,
-      maxSquareMeter: undefined,
-      minBuildingAge: undefined,
-      maxBuildingAge: undefined,
+      roomCount: '',
+      minGrossSquareMeter: undefined,
+      maxGrossSquareMeter: undefined,
+      buildingAge: '',
       minFloor: undefined,
       maxFloor: undefined,
       heatingType: undefined,
@@ -218,44 +212,44 @@ export const RealEstateListPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min Oda Sayısı</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Oda Sayısı</label>
             <input
-              type="number"
-              value={filters.minRoomCount || ''}
-              onChange={(e) => handleFilterChange('minRoomCount', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="Örn: 2"
+              type="text"
+              value={filters.roomCount || ''}
+              onChange={(e) => handleFilterChange('roomCount', e.target.value)}
+              placeholder="Örn: 3+1"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Oda Sayısı</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Bina Yaşı</label>
             <input
-              type="number"
-              value={filters.maxRoomCount || ''}
-              onChange={(e) => handleFilterChange('maxRoomCount', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="Örn: 5"
+              type="text"
+              value={filters.buildingAge || ''}
+              onChange={(e) => handleFilterChange('buildingAge', e.target.value)}
+              placeholder="Örn: 5-10"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min M²</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Min m² (Brüt)</label>
             <input
               type="number"
-              value={filters.minSquareMeter || ''}
-              onChange={(e) => handleFilterChange('minSquareMeter', e.target.value ? Number(e.target.value) : undefined)}
+              value={filters.minGrossSquareMeter || ''}
+              onChange={(e) => handleFilterChange('minGrossSquareMeter', e.target.value ? Number(e.target.value) : undefined)}
               placeholder="0"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max M²</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Max m² (Brüt)</label>
             <input
               type="number"
-              value={filters.maxSquareMeter || ''}
-              onChange={(e) => handleFilterChange('maxSquareMeter', e.target.value ? Number(e.target.value) : undefined)}
+              value={filters.maxGrossSquareMeter || ''}
+              onChange={(e) => handleFilterChange('maxGrossSquareMeter', e.target.value ? Number(e.target.value) : undefined)}
               placeholder="999999"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -362,7 +356,7 @@ export const RealEstateListPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-4 text-gray-600 text-sm">
                       {realEstate.roomCount && <span>{realEstate.roomCount} oda</span>}
-                      {realEstate.squareMeter && <span>{realEstate.squareMeter} m²</span>}
+                      {realEstate.grossSquareMeter && <span>{realEstate.grossSquareMeter} m²</span>}
                       {realEstate.buildingAge !== undefined && <span>{realEstate.buildingAge} yaş</span>}
                     </div>
                   </div>

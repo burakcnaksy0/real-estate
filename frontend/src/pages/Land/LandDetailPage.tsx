@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     MapPin, Calendar, User, Phone, Edit, Trash2, ArrowLeft,
-    Home, Ruler, Map as MapIcon, FileText, Building, Share2, Eye, Heart
+    Home, Ruler, Map as MapIcon, FileText, Building, Share2, Eye, Heart,
+    Video as VideoIcon, Image as ImageIcon
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, LandType, Land, OfferType } from '../../types';
@@ -25,6 +26,7 @@ export const LandDetailPage: React.FC = () => {
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [images, setImages] = useState<ImageResponse[]>([]);
     const [similarLands, setSimilarLands] = useState<Land[]>([]);
+    const [activeTab, setActiveTab] = useState<'photos' | 'video'>('photos');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -150,8 +152,57 @@ export const LandDetailPage: React.FC = () => {
                 <span>Geri Dön</span>
             </button>
 
-            {/* Image Gallery */}
-            <ImageGallery images={images} fallbackIcon={<MapIcon className="w-24 h-24 text-gray-300" />} />
+            {/* Media Tabs */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+                <div className="flex border-b">
+                    <button
+                        onClick={() => setActiveTab('photos')}
+                        className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'photos'
+                            ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4" />
+                            <span>Fotoğraflar</span>
+                        </div>
+                    </button>
+
+                    {land.videoUrl && (
+                        <button
+                            onClick={() => setActiveTab('video')}
+                            className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'video'
+                                ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <VideoIcon className="w-4 h-4" />
+                                <span>Video Turu</span>
+                            </div>
+                        </button>
+                    )}
+                </div>
+
+                <div className="p-4 bg-gray-50">
+                    <div className={activeTab === 'photos' ? 'block' : 'hidden'}>
+                        <ImageGallery images={images} fallbackIcon={<MapIcon className="w-24 h-24 text-gray-300" />} />
+                    </div>
+
+                    {activeTab === 'video' && land.videoUrl && (
+                        <div className="rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
+                            <video
+                                src={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}${land.videoUrl}`}
+                                controls
+                                className="w-full h-full"
+                                autoPlay
+                            >
+                                Tarayıcınız video oynatmayı desteklemiyor.
+                            </video>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content */}

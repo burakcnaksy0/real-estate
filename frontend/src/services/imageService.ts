@@ -27,9 +27,6 @@ export const ImageService = {
         formData.append('isPrimary', isPrimary.toString());
 
         return await api.post<ImageResponse>('/images/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
         });
     },
 

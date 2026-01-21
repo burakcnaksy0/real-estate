@@ -7,7 +7,9 @@ import com.burakcanaksoy.realestate.model.Vehicle;
 import com.burakcanaksoy.realestate.model.enums.Role;
 import com.burakcanaksoy.realestate.repository.CategoryRepository;
 import com.burakcanaksoy.realestate.repository.ImageRepository;
+import com.burakcanaksoy.realestate.repository.ImageRepository;
 import com.burakcanaksoy.realestate.repository.VehicleRepository;
+import com.burakcanaksoy.realestate.repository.VideoRepository;
 import com.burakcanaksoy.realestate.request.VehicleCreateRequest;
 import com.burakcanaksoy.realestate.request.VehicleFilterRequest;
 import com.burakcanaksoy.realestate.request.VehicleUpdateRequest;
@@ -28,14 +30,16 @@ public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
-    private final ImageRepository imageRepository; // Inject ImageRepository
+    private final ImageRepository imageRepository;
+    private final VideoRepository videoRepository;
 
     public VehicleService(VehicleRepository vehicleRepository, CategoryRepository categoryRepository,
-            AuthService authService, ImageRepository imageRepository) {
+            AuthService authService, ImageRepository imageRepository, VideoRepository videoRepository) {
         this.vehicleRepository = vehicleRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
         this.imageRepository = imageRepository;
+        this.videoRepository = videoRepository;
     }
 
     public List<VehicleResponse> getAllVehicles() {
@@ -59,7 +63,7 @@ public class VehicleService {
     public VehicleResponse getVehicleById(Long vehicleId) {
         Vehicle vehicle = this.vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with this id : " + vehicleId));
-        return VehicleMapper.toResponse(vehicle);
+        return convertToResponse(vehicle);
     }
 
     public void incrementViewCount(Long vehicleId) {
@@ -171,6 +175,11 @@ public class VehicleService {
         VehicleResponse response = VehicleMapper.toResponse(vehicle);
         imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(vehicle.getId(), "VEHICLE")
                 .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+
+        videoRepository.findByListingIdAndListingTypeOrderByDisplayOrderAsc(vehicle.getId(), "VEHICLE")
+                .stream().findFirst()
+                .ifPresent(video -> response.setVideoUrl("/api/listings/videos/" + video.getId()));
+
         return response;
     }
 

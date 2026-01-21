@@ -16,7 +16,9 @@ import {
   Gauge,
   Share2,
   Eye,
-  Heart
+  Heart,
+  Video as VideoIcon,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
@@ -43,6 +45,7 @@ export const VehicleDetailPage: React.FC = () => {
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
   const [images, setImages] = React.useState<ImageResponse[]>([]);
   const [similarVehicles, setSimilarVehicles] = React.useState<Vehicle[]>([]);
+  const [activeTab, setActiveTab] = React.useState<'photos' | 'video'>('photos');
 
   useEffect(() => {
     if (id) {
@@ -168,11 +171,62 @@ export const VehicleDetailPage: React.FC = () => {
         <span>Geri Dön</span>
       </button>
 
-      {/* Image Gallery */}
-      <ImageGallery
-        images={images}
-        fallbackIcon={<Car className="w-24 h-24 text-gray-300" />}
-      />
+      {/* Media Tabs */}
+      {/* Media Tabs */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveTab('photos')}
+            className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'photos'
+              ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+          >
+            <div className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4" />
+              <span>Fotoğraflar</span>
+            </div>
+          </button>
+
+          {currentVehicle.videoUrl && (
+            <button
+              onClick={() => setActiveTab('video')}
+              className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'video'
+                ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+            >
+              <div className="flex items-center gap-2">
+                <VideoIcon className="w-4 h-4" />
+                <span>Video Turu</span>
+              </div>
+            </button>
+          )}
+        </div>
+
+        <div className="p-4 bg-gray-50">
+          <div className={activeTab === 'photos' ? 'block' : 'hidden'}>
+            <ImageGallery
+              images={images}
+              fallbackIcon={<Car className="w-24 h-24 text-gray-300" />}
+            />
+          </div>
+
+          {activeTab === 'video' && currentVehicle.videoUrl && (
+            <div className="rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
+              <video
+                src={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}${currentVehicle.videoUrl}`}
+                controls
+                className="w-full h-full"
+                crossOrigin="anonymous"
+                autoPlay
+              >
+                Tarayıcınız video oynatmayı desteklemiyor.
+              </video>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
@@ -299,6 +353,66 @@ export const VehicleDetailPage: React.FC = () => {
                   <span className="ml-2 text-gray-900">{currentVehicle.engineVolume}</span>
                 </div>
               )}
+              {currentVehicle.series && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Seri:</span>
+                  <span className="ml-2 text-gray-900">{currentVehicle.series}</span>
+                </div>
+              )}
+              {currentVehicle.vehicleStatus && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Durum:</span>
+                  <span className="ml-2 text-gray-900">{currentVehicle.vehicleStatus === 'ZERO' ? 'Sıfır' : 'İkinci El'}</span>
+                </div>
+              )}
+              {currentVehicle.bodyType && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Kasa Tipi:</span>
+                  <span className="ml-2 text-gray-900">{currentVehicle.bodyType}</span>
+                </div>
+              )}
+              {currentVehicle.enginePower && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Motor Gücü:</span>
+                  <span className="ml-2 text-gray-900">{currentVehicle.enginePower}</span>
+                </div>
+              )}
+              {currentVehicle.tractionType && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Çekiş:</span>
+                  <span className="ml-2 text-gray-900">{currentVehicle.tractionType}</span>
+                </div>
+              )}
+              {currentVehicle.color && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Renk:</span>
+                  <span className="ml-2 text-gray-900">{currentVehicle.color}</span>
+                </div>
+              )}
+              {currentVehicle.plateNationality && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Plaka / Uyruk:</span>
+                  <span className="ml-2 text-gray-900">{currentVehicle.plateNationality}</span>
+                </div>
+              )}
+              {currentVehicle.fromWho && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Kimden:</span>
+                  <span className="ml-2 text-gray-900">{currentVehicle.fromWho}</span>
+                </div>
+              )}
+              <div>
+                <span className="text-sm font-medium text-gray-700">Garanti:</span>
+                <span className="ml-2 text-gray-900">{currentVehicle.warranty ? 'Evet' : 'Hayır'}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-700">Ağır Hasar Kayıtlı:</span>
+                <span className="ml-2 text-gray-900">{currentVehicle.heavyDamage ? 'Evet' : 'Hayır'}</span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-700">Takas:</span>
+                <span className="ml-2 text-gray-900">{currentVehicle.exchange ? 'Evet' : 'Hayır'}</span>
+              </div>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -6,6 +6,8 @@ import * as yup from 'yup';
 import { useWorkplaces } from '../../hooks/useWorkplaces';
 import { useCategories } from '../../hooks/useCategories';
 import { Workplace, WorkplaceCreateRequest, Currency, WorkplaceType } from '../../types';
+import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
+import { VideoService } from '../../services/videoService';
 
 interface EditWorkplaceModalProps {
     workplace: Workplace;
@@ -37,6 +39,8 @@ export const EditWorkplaceModal: React.FC<EditWorkplaceModalProps> = ({
     const { update, isLoading } = useWorkplaces();
     const { getActiveCategories } = useCategories();
     const activeCategories = getActiveCategories();
+    const [video, setVideo] = useState<VideoFile | null>(null);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
 
     const {
         register,
@@ -68,6 +72,19 @@ export const EditWorkplaceModal: React.FC<EditWorkplaceModalProps> = ({
     const onSubmit = async (data: WorkplaceCreateRequest) => {
         try {
             await update(workplace.id, data);
+
+            // Upload video if selected
+            if (video) {
+                setUploadingVideo(true);
+                try {
+                    await VideoService.uploadVideo(video.file, workplace.id, 'WORKPLACE');
+                } catch (error) {
+                    console.error('Error uploading video:', error);
+                } finally {
+                    setUploadingVideo(false);
+                }
+            }
+
             onSuccess();
             onClose();
         } catch (error) {
@@ -249,6 +266,22 @@ export const EditWorkplaceModal: React.FC<EditWorkplaceModalProps> = ({
                                 </div>
                             </div>
                         </div>
+
+                        {/* Video */}
+                        <div>
+                            <h4 className="text-md font-semibold text-gray-900 mb-4">Video</h4>
+                            {workplace.videoUrl && (
+                                <div className="mb-4 p-4 bg-blue-50 text-blue-700 rounded-lg">
+                                    <p className="text-sm">
+                                        Bu ilanda zaten bir video mevcut. Yeni bir video yüklerseniz, eski video silinecektir.
+                                    </p>
+                                </div>
+                            )}
+                            <VideoUpload
+                                video={video}
+                                onVideoChange={setVideo}
+                            />
+                        </div>
                     </form>
 
                     <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
@@ -256,19 +289,19 @@ export const EditWorkplaceModal: React.FC<EditWorkplaceModalProps> = ({
                             type="button"
                             onClick={onClose}
                             className="btn-secondary"
-                            disabled={isLoading}
+                            disabled={isLoading || uploadingVideo}
                         >
                             İptal
                         </button>
                         <button
                             onClick={handleSubmit(onSubmit)}
-                            disabled={isLoading}
+                            disabled={isLoading || uploadingVideo}
                             className="btn-primary flex items-center space-x-2 disabled:opacity-50"
                         >
                             {isLoading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    <span>Kaydediliyor...</span>
+                                    <span>{uploadingVideo ? 'Video Yükleniyor...' : 'Kaydediliyor...'}</span>
                                 </>
                             ) : (
                                 <>
@@ -279,7 +312,7 @@ export const EditWorkplaceModal: React.FC<EditWorkplaceModalProps> = ({
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };

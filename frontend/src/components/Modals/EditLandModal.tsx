@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -6,6 +6,8 @@ import * as yup from 'yup';
 import { useLands } from '../../hooks/useLands';
 import { useCategories } from '../../hooks/useCategories';
 import { Land, LandCreateRequest, Currency, LandType } from '../../types';
+import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
+import { VideoService } from '../../services/videoService';
 
 interface EditLandModalProps {
     land: Land;
@@ -35,6 +37,8 @@ export const EditLandModal: React.FC<EditLandModalProps> = ({
     const { update, isLoading } = useLands();
     const { getActiveCategories } = useCategories();
     const activeCategories = getActiveCategories();
+    const [video, setVideo] = useState<VideoFile | null>(null);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
 
     const {
         register,
@@ -64,6 +68,19 @@ export const EditLandModal: React.FC<EditLandModalProps> = ({
     const onSubmit = async (data: LandCreateRequest) => {
         try {
             await update(land.id, data);
+
+            // Upload video if selected
+            if (video) {
+                setUploadingVideo(true);
+                try {
+                    await VideoService.uploadVideo(video.file, land.id, 'LAND');
+                } catch (error) {
+                    console.error('Error uploading video:', error);
+                } finally {
+                    setUploadingVideo(false);
+                }
+            }
+
             onSuccess();
             onClose();
         } catch (error) {
@@ -224,6 +241,22 @@ export const EditLandModal: React.FC<EditLandModalProps> = ({
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Video */}
+                            <div>
+                                <h4 className="text-md font-semibold text-gray-900 mb-4">Video</h4>
+                                {land.videoUrl && (
+                                    <div className="mb-4 p-4 bg-blue-50 text-blue-700 rounded-lg">
+                                        <p className="text-sm">
+                                            Bu ilanda zaten bir video mevcut. Yeni bir video yüklerseniz, eski video silinecektir.
+                                        </p>
+                                    </div>
+                                )}
+                                <VideoUpload
+                                    video={video}
+                                    onVideoChange={setVideo}
+                                />
+                            </div>
                         </div>
                     </form>
 
@@ -232,19 +265,19 @@ export const EditLandModal: React.FC<EditLandModalProps> = ({
                             type="button"
                             onClick={onClose}
                             className="btn-secondary"
-                            disabled={isLoading}
+                            disabled={isLoading || uploadingVideo}
                         >
                             İptal
                         </button>
                         <button
                             onClick={handleSubmit(onSubmit)}
-                            disabled={isLoading}
+                            disabled={isLoading || uploadingVideo}
                             className="btn-primary flex items-center space-x-2 disabled:opacity-50"
                         >
                             {isLoading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    <span>Kaydediliyor...</span>
+                                    <span>{uploadingVideo ? 'Video Yükleniyor...' : 'Kaydediliyor...'}</span>
                                 </>
                             ) : (
                                 <>

@@ -21,14 +21,12 @@ public class RealEstateFilterRequest {
 
     private RealEstateType realEstateType;
 
-    private Integer minRoomCount;
-    private Integer maxRoomCount;
+    private String roomCount;
 
-    private Integer minSquareMeter;
-    private Integer maxSquareMeter;
+    private Integer minGrossSquareMeter;
+    private Integer maxGrossSquareMeter;
 
-    private Integer minBuildingAge;
-    private Integer maxBuildingAge;
+    private String buildingAge;
 
     private Integer minFloor;
     private Integer maxFloor;

@@ -87,9 +87,10 @@ class RealEstateControllerTest {
         request.setCity("Istanbul");
         request.setDistrict("Kadikoy");
         request.setRealEstateType(RealEstateType.APARTMENT);
-        request.setRoomCount(3);
-        request.setSquareMeter(120);
-        request.setBuildingAge(5);
+        request.setRoomCount("3");
+        request.setGrossSquareMeter(120);
+        request.setNetSquareMeter(110);
+        request.setBuildingAge("5");
         request.setFloor(2);
         request.setHeatingType(HeatingType.NATURAL_GAS);
         request.setFurnished(true);

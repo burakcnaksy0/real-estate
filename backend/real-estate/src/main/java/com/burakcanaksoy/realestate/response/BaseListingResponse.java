@@ -23,6 +23,7 @@ public class BaseListingResponse {
     private String createdByUsername;
     private String listingType;
     private String imageUrl;
+    private String videoUrl;
     private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
     private Long viewCount;
     private Long favoriteCount;

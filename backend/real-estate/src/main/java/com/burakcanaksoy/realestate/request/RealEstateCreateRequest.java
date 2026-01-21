@@ -3,6 +3,9 @@ package com.burakcanaksoy.realestate.request;
 import com.burakcanaksoy.realestate.model.enums.Currency;
 import com.burakcanaksoy.realestate.model.enums.HeatingType;
 import com.burakcanaksoy.realestate.model.enums.RealEstateType;
+import com.burakcanaksoy.realestate.model.enums.UsingStatus;
+import com.burakcanaksoy.realestate.model.enums.KitchenType;
+import com.burakcanaksoy.realestate.model.enums.TittleStatus;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -54,24 +57,55 @@ public class RealEstateCreateRequest {
     private RealEstateType realEstateType;
 
     @NotNull(message = "Room count must be specified")
-    @Min(value = 0, message = "Room count cannot be negative")
-    private Integer roomCount;
+    @Size(max = 20, message = "Room count must not exceed 20 characters")
+    private String roomCount;
 
-    @NotNull(message = "Square meter must be specified")
-    @Min(value = 1, message = "Square meter must be greater than zero")
-    private Integer squareMeter;
+    @NotNull(message = "Gross square meter must be specified")
+    @Min(value = 1, message = "Gross square meter must be greater than zero")
+    private Integer grossSquareMeter;
+
+    @NotNull(message = "Net square meter must be specified")
+    @Min(value = 1, message = "Net square meter must be greater than zero")
+    private Integer netSquareMeter;
 
     @NotNull(message = "Building age must be specified")
-    @Min(value = 0, message = "Building age cannot be negative")
-    private Integer buildingAge;
+    @Size(max = 20, message = "Building age must not exceed 20 characters")
+    private String buildingAge;
 
     @NotNull(message = "Floor must be specified")
     @Min(value = 0, message = "Floor cannot be negative")
     private Integer floor;
 
+    private Integer totalFloors;
+
+    private Integer bathroomCount;
+
     @NotNull(message = "Heating type must be specified")
     private HeatingType heatingType;
 
+    private Boolean balcony;
+
     @NotNull(message = "Furnished information must be specified")
     private Boolean furnished;
+
+    private UsingStatus usingStatus;
+
+    private KitchenType kitchen;
+
+    private Boolean elevator;
+
+    private Boolean parking;
+
+    private Boolean inComplex;
+
+    private String complexName;
+
+    private java.math.BigDecimal dues;
+
+    private java.math.BigDecimal deposit;
+
+    private TittleStatus tittleStatus;
+
+    @NotNull(message = "From Who cannot be null")
+    private com.burakcanaksoy.realestate.model.enums.ListingFrom fromWho;
 }

@@ -32,9 +32,22 @@ public class VehicleResponse {
         private Integer kilometer;
         private String engineVolume;
         private String imageUrl;
+        private String videoUrl;
         private OfferType offerType;
         private Long viewCount;
         private Long favoriteCount;
+
+        private String series;
+        private VehicleStatus vehicleStatus;
+        private BodyType bodyType;
+        private String enginePower;
+        private TractionType tractionType;
+        private String color;
+        private Boolean warranty;
+        private Boolean heavyDamage;
+        private String plateNationality;
+        private ListingFrom fromWho;
+        private Boolean exchange;
 
         private Long ownerId;
         private String ownerUsername;

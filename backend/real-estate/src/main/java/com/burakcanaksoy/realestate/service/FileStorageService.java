@@ -1,10 +1,15 @@
 package com.burakcanaksoy.realestate.service;
 
 import com.burakcanaksoy.realestate.mapper.ImageMapper;
+import com.burakcanaksoy.realestate.mapper.VideoMapper;
 import com.burakcanaksoy.realestate.model.Image;
+import com.burakcanaksoy.realestate.model.Video;
 import com.burakcanaksoy.realestate.repository.ImageRepository;
+import com.burakcanaksoy.realestate.repository.VideoRepository;
 import com.burakcanaksoy.realestate.response.ImageResponse;
+import com.burakcanaksoy.realestate.response.VideoResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,9 +25,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FileStorageService {
 
     private final ImageRepository imageRepository;
+    private final VideoRepository videoRepository;
 
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
@@ -116,6 +123,84 @@ public class FileStorageService {
         imageRepository.deleteByListingIdAndListingType(listingId, listingType);
     }
 
+    public VideoResponse uploadVideo(MultipartFile file, Long listingId, String listingType) {
+        try {
+            // Create upload directory if it doesn't exist
+            Path uploadPath = Paths.get(uploadDir, listingType.toLowerCase(), listingId.toString(), "videos");
+            Files.createDirectories(uploadPath);
+
+            // Generate unique filename
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : "";
+            String filename = UUID.randomUUID().toString() + extension;
+
+            // Save file
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Create video entity
+            Video video = new Video();
+            video.setFileName(filename);
+            video.setFilePath(filePath.toString());
+            video.setFileType(file.getContentType());
+            video.setFileSize(file.getSize());
+            video.setListingId(listingId);
+            video.setListingType(listingType);
+
+            // Set display order
+            long videoCount = videoRepository.countByListingIdAndListingType(listingId, listingType);
+            video.setDisplayOrder((int) videoCount);
+
+            Video savedVideo = videoRepository.save(video);
+            return VideoMapper.toResponse(savedVideo);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store video: " + e.getMessage(), e);
+        }
+    }
+
+    public List<VideoResponse> getListingVideos(Long listingId, String listingType) {
+        return videoRepository.findByListingIdAndListingTypeOrderByDisplayOrderAsc(listingId, listingType)
+                .stream()
+                .map(VideoMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteVideo(Long videoId) {
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new RuntimeException("Video not found"));
+
+        try {
+            // Delete file from filesystem
+            Path filePath = Paths.get(video.getFilePath());
+            Files.deleteIfExists(filePath);
+
+            // Delete from database
+            videoRepository.delete(video);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete video file: " + e.getMessage(), e);
+        }
+    }
+
+    public void deleteListingVideos(Long listingId, String listingType) {
+        List<Video> videos = videoRepository.findByListingIdAndListingTypeOrderByDisplayOrderAsc(listingId,
+                listingType);
+
+        for (Video video : videos) {
+            try {
+                Path filePath = Paths.get(video.getFilePath());
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                System.err.println("Failed to delete video file: " + video.getFilePath());
+            }
+        }
+
+        videoRepository.deleteByListingIdAndListingType(listingId, listingType);
+    }
+
     public org.springframework.core.io.Resource loadFileAsResource(Long imageId) {
         try {
             Image image = imageRepository.findById(imageId)
@@ -158,6 +243,43 @@ public class FileStorageService {
             ex.printStackTrace();
             throw new RuntimeException("File not found " + imageId, ex);
         }
+    }
+
+    public org.springframework.core.io.Resource loadVideoAsResource(Long videoId) {
+        try {
+            Video video = videoRepository.findById(videoId)
+                    .orElseThrow(() -> new RuntimeException("Video not found " + videoId));
+
+            Path filePath = Paths.get(video.getFilePath());
+            log.info("Loading video ID: {}, DB Path: {}", videoId, filePath);
+
+            if (!filePath.isAbsolute()) {
+                String cwd = System.getProperty("user.dir");
+                filePath = Paths.get(cwd).resolve(filePath);
+            }
+
+            filePath = filePath.normalize();
+            log.info("Resolved video path: {}", filePath.toAbsolutePath());
+
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(
+                    filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                log.error("Video file NOT FOUND or NOT READABLE at: {}", filePath.toAbsolutePath());
+                throw new RuntimeException("Video not found or not readable: " + filePath.toAbsolutePath());
+            }
+        } catch (Exception ex) {
+            log.error("Failed to load video resource {}: {}", videoId, ex.getMessage(), ex);
+            throw new RuntimeException("Video not found " + videoId, ex);
+        }
+    }
+
+    public String getVideoContentType(Long videoId) {
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new RuntimeException("Video not found " + videoId));
+        return video.getFileType();
     }
 
     public String getImageContentType(Long imageId) {

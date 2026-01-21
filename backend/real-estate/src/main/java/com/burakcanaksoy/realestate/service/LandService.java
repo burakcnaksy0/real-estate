@@ -7,7 +7,9 @@ import com.burakcanaksoy.realestate.model.User;
 import com.burakcanaksoy.realestate.model.enums.Role;
 import com.burakcanaksoy.realestate.repository.CategoryRepository;
 import com.burakcanaksoy.realestate.repository.ImageRepository;
+import com.burakcanaksoy.realestate.repository.ImageRepository;
 import com.burakcanaksoy.realestate.repository.LandRepository;
+import com.burakcanaksoy.realestate.repository.VideoRepository;
 import com.burakcanaksoy.realestate.request.LandCreateRequest;
 import com.burakcanaksoy.realestate.request.LandFilterRequest;
 import com.burakcanaksoy.realestate.request.LandUpdateRequest;
@@ -28,13 +30,15 @@ public class LandService {
     private final CategoryRepository categoryRepository;
     private final AuthService authService;
     private final ImageRepository imageRepository;
+    private final VideoRepository videoRepository;
 
     public LandService(LandRepository landRepository, CategoryRepository categoryRepository, AuthService authService,
-            ImageRepository imageRepository) {
+            ImageRepository imageRepository, VideoRepository videoRepository) {
         this.landRepository = landRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
         this.imageRepository = imageRepository;
+        this.videoRepository = videoRepository;
     }
 
     public List<LandResponse> getAllLands() {
@@ -58,6 +62,11 @@ public class LandService {
         LandResponse response = LandMapper.toResponse(land);
         imageRepository.findFirstByListingIdAndListingTypeOrderByDisplayOrderAsc(land.getId(), "LAND")
                 .ifPresent(image -> response.setImageUrl("/api/images/view/" + image.getId()));
+
+        videoRepository.findByListingIdAndListingTypeOrderByDisplayOrderAsc(land.getId(), "LAND")
+                .stream().findFirst()
+                .ifPresent(video -> response.setVideoUrl("/api/listings/videos/" + video.getId()));
+
         return response;
     }
 
@@ -77,7 +86,7 @@ public class LandService {
     public LandResponse getLandById(Long landId) {
         Land land = this.landRepository.findById(landId)
                 .orElseThrow(() -> new EntityNotFoundException("Land not found with this id : " + landId));
-        return LandMapper.toResponse(land);
+        return convertToResponse(land);
     }
 
     public void incrementViewCount(Long landId) {

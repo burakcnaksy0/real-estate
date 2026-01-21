@@ -30,6 +30,7 @@ public class WorkplaceResponse {
         private Integer floorCount;
         private Boolean furnished;
         private String imageUrl;
+        private String videoUrl;
         private OfferType offerType;
         private Long viewCount;
         private Long favoriteCount;

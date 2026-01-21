@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { ArrowLeft, Home, Save } from 'lucide-react';
 import { useRealEstate } from '../../hooks/useRealEstate';
 import { useCategories } from '../../hooks/useCategories';
-import { RealEstateCreateRequest, Currency, RealEstateType, HeatingType, OfferType } from '../../types';
+import { RealEstateCreateRequest, Currency, RealEstateType, HeatingType, OfferType, UsingStatus, KitchenType, TittleStatus, ListingFrom } from '../../types';
 import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
+import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
 import { ImageService } from '../../services/imageService';
+import { VideoService } from '../../services/videoService';
 import { LocationPicker } from '../../components/LocationPicker/LocationPicker';
 
 // Validation schema
@@ -42,21 +45,24 @@ const realEstateSchema = yup.object({
     .mixed<RealEstateType>()
     .required('Emlak tipi gereklidir'),
   roomCount: yup
+    .string()
+    .required('Oda sayısı gereklidir'),
+  grossSquareMeter: yup
     .number()
-    .required('Oda sayısı gereklidir')
-    .min(0, 'Oda sayısı negatif olamaz'),
-  squareMeter: yup
-    .number()
-    .required('Metrekare gereklidir')
+    .required('Brüt metrekare gereklidir')
     .min(1, 'Metrekare 0\'dan büyük olmalıdır'),
-  buildingAge: yup
+  netSquareMeter: yup
     .number()
-    .required('Bina yaşı gereklidir')
-    .min(0, 'Bina yaşı negatif olamaz'),
+    .required('Net metrekare gereklidir')
+    .min(1, 'Metrekare 0\'dan büyük olmalıdır')
+    .max(yup.ref('grossSquareMeter'), 'Net metrekare brüt metrekareden büyük olamaz'),
+  buildingAge: yup
+    .string()
+    .required('Bina yaşı gereklidir'),
   floor: yup
     .number()
     .required('Kat gereklidir')
-    .min(0, 'Kat negatif olamaz'),
+    .min(-5, 'Kat -5\'ten küçük olamaz'),
   heatingType: yup
     .mixed<HeatingType>()
     .required('Isıtma tipi gereklidir'),
@@ -66,6 +72,19 @@ const realEstateSchema = yup.object({
   offerType: yup
     .mixed<OfferType>()
     .required('İşlem tipi gereklidir'),
+  totalFloors: yup.number().nullable(),
+  bathroomCount: yup.number().nullable(),
+  balcony: yup.boolean().nullable(),
+  usingStatus: yup.mixed<UsingStatus>().nullable(),
+  kitchen: yup.mixed<KitchenType>().nullable(),
+  elevator: yup.boolean().nullable(),
+  parking: yup.boolean().nullable(),
+  inComplex: yup.boolean().nullable(),
+  complexName: yup.string().nullable(),
+  dues: yup.number().nullable(),
+  deposit: yup.number().nullable(),
+  tittleStatus: yup.mixed<TittleStatus>().nullable(),
+  fromWho: yup.mixed<ListingFrom>().nullable(),
 });
 
 interface ImageFile {
@@ -83,7 +102,9 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
   const { create, isLoading } = useRealEstate();
   const { getActiveCategories } = useCategories();
   const [images, setImages] = useState<ImageFile[]>([]);
+  const [video, setVideo] = useState<VideoFile | null>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [location, setLocation] = useState<{ latitude?: number; longitude?: number }>({});
 
   const activeCategories = getActiveCategories();
@@ -102,6 +123,10 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
       furnished: false,
       offerType: OfferType.FOR_SALE,
       categorySlug: defaultCategorySlug,
+      balcony: false,
+      elevator: false,
+      parking: false,
+      inComplex: false,
     },
   });
 
@@ -133,6 +158,23 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
             // Continue to navigate even if image upload fails
           } finally {
             setUploadingImages(false);
+          }
+        }
+
+        // Upload video if any
+        if (video) {
+          setUploadingVideo(true);
+          try {
+            await VideoService.uploadVideo(
+              video.file,
+              listingId,
+              'REAL_ESTATE'
+            );
+          } catch (videoError: any) {
+            console.error('Error uploading video:', videoError);
+            toast.error(videoError?.response?.data?.message || 'Video yüklenirken bir hata oluştu');
+          } finally {
+            setUploadingVideo(false);
           }
         }
 
@@ -276,34 +318,64 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
               <label htmlFor="roomCount" className="block text-sm font-medium text-gray-700 mb-1">
                 Oda Sayısı *
               </label>
-              <input
-                {...register('roomCount', { valueAsNumber: true })}
-                type="number"
+              <select
+                {...register('roomCount')}
                 id="roomCount"
-                min="0"
                 className={`input-field ${errors.roomCount ? 'border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Örn: 3"
-              />
+              >
+                <option value="">Seçiniz</option>
+                <option value="1+0">1+0 (Stüdyo)</option>
+                <option value="1+1">1+1</option>
+                <option value="2+1">2+1</option>
+                <option value="3+1">3+1</option>
+                <option value="3+2">3+2</option>
+                <option value="4+1">4+1</option>
+                <option value="4+2">4+2</option>
+                <option value="5+1">5+1</option>
+                <option value="5+2">5+2</option>
+                <option value="6+1">6+1</option>
+                <option value="6+2">6+2</option>
+                <option value="7+1">7+1</option>
+                <option value="7+2">7+2</option>
+              </select>
               {errors.roomCount && (
                 <p className="mt-1 text-sm text-red-600">{errors.roomCount.message}</p>
               )}
             </div>
 
-            {/* Square Meter */}
+            {/* Gross Square Meter */}
             <div>
-              <label htmlFor="squareMeter" className="block text-sm font-medium text-gray-700 mb-1">
-                Metrekare (m²) *
+              <label htmlFor="grossSquareMeter" className="block text-sm font-medium text-gray-700 mb-1">
+                m² (Brüt) *
               </label>
               <input
-                {...register('squareMeter', { valueAsNumber: true })}
+                {...register('grossSquareMeter', { valueAsNumber: true })}
                 type="number"
-                id="squareMeter"
+                id="grossSquareMeter"
                 min="1"
-                className={`input-field ${errors.squareMeter ? 'border-red-500 focus:ring-red-500' : ''}`}
+                className={`input-field ${errors.grossSquareMeter ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="Örn: 120"
               />
-              {errors.squareMeter && (
-                <p className="mt-1 text-sm text-red-600">{errors.squareMeter.message}</p>
+              {errors.grossSquareMeter && (
+                <p className="mt-1 text-sm text-red-600">{errors.grossSquareMeter.message}</p>
+              )}
+            </div>
+
+            {/* Net Square Meter */}
+            <div>
+              <label htmlFor="netSquareMeter" className="block text-sm font-medium text-gray-700 mb-1">
+                m² (Net) *
+              </label>
+              <input
+                {...register('netSquareMeter', { valueAsNumber: true })}
+                type="number"
+                id="netSquareMeter"
+                min="1"
+                className={`input-field ${errors.netSquareMeter ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: 100"
+              />
+              {errors.netSquareMeter && (
+                <p className="mt-1 text-sm text-red-600">{errors.netSquareMeter.message}</p>
               )}
             </div>
 
@@ -312,14 +384,24 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
               <label htmlFor="buildingAge" className="block text-sm font-medium text-gray-700 mb-1">
                 Bina Yaşı *
               </label>
-              <input
-                {...register('buildingAge', { valueAsNumber: true })}
-                type="number"
+              <select
+                {...register('buildingAge')}
                 id="buildingAge"
-                min="0"
                 className={`input-field ${errors.buildingAge ? 'border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Örn: 5"
-              />
+              >
+                <option value="">Seçiniz</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5-10">5-10 arası</option>
+                <option value="11-15">11-15 arası</option>
+                <option value="16-20">16-20 arası</option>
+                <option value="21-25">21-25 arası</option>
+                <option value="26-30">26-30 arası</option>
+                <option value="31+">31 ve üzeri</option>
+              </select>
               {errors.buildingAge && (
                 <p className="mt-1 text-sm text-red-600">{errors.buildingAge.message}</p>
               )}
@@ -328,18 +410,35 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
             {/* Floor */}
             <div>
               <label htmlFor="floor" className="block text-sm font-medium text-gray-700 mb-1">
-                Kat *
+                Bulunduğu Kat *
               </label>
               <input
                 {...register('floor', { valueAsNumber: true })}
                 type="number"
                 id="floor"
-                min="0"
                 className={`input-field ${errors.floor ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="Örn: 3"
               />
               {errors.floor && (
                 <p className="mt-1 text-sm text-red-600">{errors.floor.message}</p>
+              )}
+            </div>
+
+            {/* Total Floors */}
+            <div>
+              <label htmlFor="totalFloors" className="block text-sm font-medium text-gray-700 mb-1">
+                Kat Sayısı
+              </label>
+              <input
+                {...register('totalFloors', { valueAsNumber: true })}
+                type="number"
+                id="totalFloors"
+                min="1"
+                className={`input-field ${errors.totalFloors ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: 10"
+              />
+              {errors.totalFloors && (
+                <p className="mt-1 text-sm text-red-600">{errors.totalFloors.message}</p>
               )}
             </div>
 
@@ -364,34 +463,171 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
               )}
             </div>
 
-            {/* Furnished */}
+            {/* Bathroom Count */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Eşyalı *
+              <label htmlFor="bathroomCount" className="block text-sm font-medium text-gray-700 mb-1">
+                Banyo Sayısı
               </label>
-              <div className="flex items-center space-x-4 mt-2">
-                <label className="flex items-center">
-                  <input
-                    {...register('furnished')}
-                    type="radio"
-                    value="true"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Evet</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    {...register('furnished')}
-                    type="radio"
-                    value="false"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Hayır</span>
-                </label>
-              </div>
-              {errors.furnished && (
-                <p className="mt-1 text-sm text-red-600">{errors.furnished.message}</p>
+              <input
+                {...register('bathroomCount', { valueAsNumber: true })}
+                type="number"
+                id="bathroomCount"
+                min="0"
+                className={`input-field ${errors.bathroomCount ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: 1"
+              />
+              {errors.bathroomCount && (
+                <p className="mt-1 text-sm text-red-600">{errors.bathroomCount.message}</p>
               )}
+            </div>
+
+            {/* Kitchen Type */}
+            <div>
+              <label htmlFor="kitchen" className="block text-sm font-medium text-gray-700 mb-1">
+                Mutfak
+              </label>
+              <select
+                {...register('kitchen')}
+                id="kitchen"
+                className={`input-field ${errors.kitchen ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                <option value="">Seçiniz</option>
+                {Object.values(KitchenType).map((type) => (
+                  <option key={type} value={type}>
+                    {type === KitchenType.OPEN_AMERICAN ? 'Amerikan (Açık)' : 'Kapalı'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tittle Status */}
+            <div>
+              <label htmlFor="tittleStatus" className="block text-sm font-medium text-gray-700 mb-1">
+                Tapu Durumu
+              </label>
+              <select
+                {...register('tittleStatus')}
+                id="tittleStatus"
+                className={`input-field ${errors.tittleStatus ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                <option value="">Seçiniz</option>
+                {Object.values(TittleStatus).map((type) => (
+                  <option key={type} value={type}>
+                    {type === TittleStatus.SHARE_DEED ? 'Hisseli Tapu' :
+                      type === TittleStatus.CONDOMINIUM ? 'Kat Mülkiyeti' :
+                        type === TittleStatus.NO_DEED ? 'Tapusuz' :
+                          type === TittleStatus.CONSTRUCTION_SERVITUDE ? 'Kat İrtifakı' :
+                            'Tam Tapu'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Using Status */}
+            <div>
+              <label htmlFor="usingStatus" className="block text-sm font-medium text-gray-700 mb-1">
+                Kullanım Durumu
+              </label>
+              <select
+                {...register('usingStatus')}
+                id="usingStatus"
+                className={`input-field ${errors.usingStatus ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                <option value="">Seçiniz</option>
+                {Object.values(UsingStatus).map((type) => (
+                  <option key={type} value={type}>
+                    {type === UsingStatus.EMPTY ? 'Boş' : type === UsingStatus.TENANT ? 'Kiracılı' : 'Mülk Sahibi'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* From Who */}
+            <div>
+              <label htmlFor="fromWho" className="block text-sm font-medium text-gray-700 mb-1">
+                Kimden
+              </label>
+              <select
+                {...register('fromWho')}
+                id="fromWho"
+                className={`input-field ${errors.fromWho ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                <option value="">Seçiniz</option>
+                {Object.values(ListingFrom).map((type) => (
+                  <option key={type} value={type}>
+                    {type === ListingFrom.OWNER ? 'Sahibinden' : type === ListingFrom.GALLERY ? 'Emlakçıdan' : 'Bankadan'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Complex Name (Conditional) */}
+            {watch('inComplex') && (
+              <div className="md:col-span-2">
+                <label htmlFor="complexName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Site Adı
+                </label>
+                <input
+                  {...register('complexName')}
+                  type="text"
+                  id="complexName"
+                  className={`input-field ${errors.complexName ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  placeholder="Site adı"
+                />
+              </div>
+            )}
+
+            {/* Booleans as Checkboxes */}
+            <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+              {/* Furnished */}
+              <label className="flex items-center space-x-2">
+                <input
+                  {...register('furnished')}
+                  type="checkbox"
+                  className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5"
+                />
+                <span className="text-gray-700">Eşyalı</span>
+              </label>
+
+              {/* Balcony */}
+              <label className="flex items-center space-x-2">
+                <input
+                  {...register('balcony')}
+                  type="checkbox"
+                  className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5"
+                />
+                <span className="text-gray-700">Balkon</span>
+              </label>
+
+              {/* Elevator */}
+              <label className="flex items-center space-x-2">
+                <input
+                  {...register('elevator')}
+                  type="checkbox"
+                  className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5"
+                />
+                <span className="text-gray-700">Asansör</span>
+              </label>
+
+              {/* Parking */}
+              <label className="flex items-center space-x-2">
+                <input
+                  {...register('parking')}
+                  type="checkbox"
+                  className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5"
+                />
+                <span className="text-gray-700">Otopark</span>
+              </label>
+
+              {/* In Complex */}
+              <label className="flex items-center space-x-2">
+                <input
+                  {...register('inComplex')}
+                  type="checkbox"
+                  className="rounded text-primary-600 focus:ring-primary-500 h-5 w-5"
+                />
+                <span className="text-gray-700">Site İçerisinde</span>
+              </label>
             </div>
           </div>
         </div>
@@ -452,6 +688,40 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
                 <p className="mt-1 text-sm text-red-600">{errors.currency.message}</p>
               )}
             </div>
+
+            {/* Deposit */}
+            <div>
+              <label htmlFor="deposit" className="block text-sm font-medium text-gray-700 mb-1">
+                Depozito
+              </label>
+              <input
+                {...register('deposit', { valueAsNumber: true })}
+                type="number"
+                id="deposit"
+                className={`input-field ${errors.deposit ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: 10000"
+              />
+              {errors.deposit && (
+                <p className="mt-1 text-sm text-red-600">{errors.deposit.message}</p>
+              )}
+            </div>
+
+            {/* Dues */}
+            <div>
+              <label htmlFor="dues" className="block text-sm font-medium text-gray-700 mb-1">
+                Aidat
+              </label>
+              <input
+                {...register('dues', { valueAsNumber: true })}
+                type="number"
+                id="dues"
+                className={`input-field ${errors.dues ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Örn: 500"
+              />
+              {errors.dues && (
+                <p className="mt-1 text-sm text-red-600">{errors.dues.message}</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -477,6 +747,19 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
           />
         </div>
 
+        {/* Video */}
+        <div className="card p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Video</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            İlanınız için bir tanıtım videosu yükleyebilirsiniz. (Opsiyonel)
+          </p>
+          <VideoUpload
+            video={video}
+            onVideoChange={setVideo}
+            maxSizeMB={50}
+          />
+        </div>
+
         {/* Submit Button */}
         <div className="flex justify-end space-x-4">
           <button
@@ -488,13 +771,17 @@ export const RealEstateCreatePage: React.FC<RealEstateCreatePageProps> = ({ defa
           </button>
           <button
             type="submit"
-            disabled={isLoading || uploadingImages}
+            disabled={isLoading || uploadingImages || uploadingVideo}
             className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading || uploadingImages ? (
+            {isLoading || uploadingImages || uploadingVideo ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>{uploadingImages ? 'Görseller yükleniyor...' : 'Kaydediliyor...'}</span>
+                <span>
+                  {uploadingImages ? 'Görseller yükleniyor...' :
+                    uploadingVideo ? 'Video yükleniyor...' :
+                      'Kaydediliyor...'}
+                </span>
               </>
             ) : (
               <>

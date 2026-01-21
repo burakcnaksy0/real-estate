@@ -1,8 +1,6 @@
 package com.burakcanaksoy.realestate.request;
 
-import com.burakcanaksoy.realestate.model.enums.Currency;
-import com.burakcanaksoy.realestate.model.enums.FuelType;
-import com.burakcanaksoy.realestate.model.enums.Transmission;
+import com.burakcanaksoy.realestate.model.enums.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -46,7 +44,7 @@ public class VehicleCreateRequest {
     private Double longitude;
 
     @NotNull(message = "Offer type must be specified")
-    private com.burakcanaksoy.realestate.model.enums.OfferType offerType;
+    private OfferType offerType;
 
     @NotBlank(message = "Brand cannot be blank")
     @Size(max = 50)
@@ -73,4 +71,34 @@ public class VehicleCreateRequest {
     @Size(max = 20)
     @NotBlank(message = "Engine volume cannot be blank")
     private String engineVolume;
+
+    @Size(max = 50)
+    private String series;
+
+    @NotNull(message = "Vehicle Status cannot be null")
+    private VehicleStatus vehicleStatus;
+
+    @NotNull(message = "Body Type cannot be null")
+    private BodyType bodyType;
+
+    @Size(max = 20)
+    private String enginePower;
+
+    @NotNull(message = "Traction Type cannot be null")
+    private TractionType tractionType;
+
+    @Size(max = 30)
+    private String color;
+
+    private Boolean warranty;
+
+    private Boolean heavyDamage;
+
+    @Size(max = 50)
+    private String plateNationality;
+
+    @NotNull(message = "From Who cannot be null")
+    private ListingFrom fromWho;
+
+    private Boolean exchange;
 }

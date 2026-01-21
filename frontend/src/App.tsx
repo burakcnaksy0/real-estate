@@ -40,6 +40,8 @@ import { MessagesPage } from './pages/Messages/MessagesPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { AdminRoute } from './components/Admin/AdminRoute';
+import SearchPage from './pages/SearchPage';
+import ComparePage from './pages/ComparePage';
 
 // Styles
 import './index.css';
@@ -64,6 +66,7 @@ const AppContent: React.FC = () => {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/listings" element={<AllListingsPage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/test" element={<TestPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -114,6 +117,7 @@ const AppContent: React.FC = () => {
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/messages/:userId" element={<MessagesPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/compare" element={<ComparePage />} />
 
           {/* Error Routes */}
           <Route path="/unauthorized" element={<UnauthorizedPage />} />

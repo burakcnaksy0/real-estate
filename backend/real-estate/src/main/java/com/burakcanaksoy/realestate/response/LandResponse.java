@@ -32,6 +32,7 @@ public class LandResponse {
         private Integer parcelNumber;
         private Integer islandNumber;
         private String imageUrl;
+        private String videoUrl;
         private OfferType offerType;
         private Long viewCount;
         private Long favoriteCount;
