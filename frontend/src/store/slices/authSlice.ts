@@ -49,7 +49,7 @@ export const registerAsync = createAsyncThunk(
       return response;
     } catch (error: any) {
       console.error('Auth slice - register error:', error);
-      const message = error.message || error.response?.data?.message || 'Kayıt olurken hata oluştu';
+      const message = error.response?.data?.message || error.message || 'Kayıt olurken hata oluştu';
       console.error('Auth slice - register error message:', message);
       toast.error(message);
       return rejectWithValue(message);

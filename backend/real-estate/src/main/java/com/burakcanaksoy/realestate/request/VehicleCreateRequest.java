@@ -75,17 +75,17 @@ public class VehicleCreateRequest {
     @Size(max = 50)
     private String series;
 
-    @NotNull(message = "Vehicle Status cannot be null")
-    private VehicleStatus vehicleStatus;
+    @Size(max = 20)
+    private String vehicleStatus;
 
-    @NotNull(message = "Body Type cannot be null")
-    private BodyType bodyType;
+    @Size(max = 50)
+    private String bodyType;
 
     @Size(max = 20)
     private String enginePower;
 
-    @NotNull(message = "Traction Type cannot be null")
-    private TractionType tractionType;
+    @Size(max = 50)
+    private String tractionType;
 
     @Size(max = 30)
     private String color;
@@ -97,8 +97,8 @@ public class VehicleCreateRequest {
     @Size(max = 50)
     private String plateNationality;
 
-    @NotNull(message = "From Who cannot be null")
-    private ListingFrom fromWho;
+    @Size(max = 30)
+    private String fromWho;
 
     private Boolean exchange;
 }

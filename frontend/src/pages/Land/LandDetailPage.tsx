@@ -13,6 +13,7 @@ import { formatLastSeen } from '../../utils/dateUtils';
 import { LandService } from '../../services/landService';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
 import { ShareListingModal } from '../../components/Modals/ShareListingModal';
+import { EditLandModal } from '../../components/Modals/EditLandModal';
 import { MapView } from '../../components/MapView/MapView';
 import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
 import { websocketService } from '../../services/websocketService';
@@ -24,6 +25,7 @@ export const LandDetailPage: React.FC = () => {
     const [land, setLand] = useState<Land | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [images, setImages] = useState<ImageResponse[]>([]);
     const [similarLands, setSimilarLands] = useState<Land[]>([]);
     const [activeTab, setActiveTab] = useState<'photos' | 'video'>('photos');
@@ -247,6 +249,12 @@ export const LandDetailPage: React.FC = () => {
                         </div>
                         {isOwner && (
                             <div className="flex space-x-2">
+                                <button
+                                    onClick={() => setIsEditModalOpen(true)}
+                                    className="btn-secondary flex items-center space-x-2"
+                                >
+                                    <Edit className="h-4 w-4" /> <span>Düzenle</span>
+                                </button>
                                 <button onClick={handleDelete} className="btn-secondary text-red-600 hover:bg-red-50 flex items-center space-x-2">
                                     <Trash2 className="h-4 w-4" /> <span>Sil</span>
                                 </button>
@@ -500,6 +508,17 @@ export const LandDetailPage: React.FC = () => {
                     listingId={land.id}
                     listingType="LAND"
                     listingTitle={land.title}
+                />
+            )}
+
+            {land && (
+                <EditLandModal
+                    land={land}
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSuccess={() => {
+                        window.location.reload();
+                    }}
                 />
             )}
         </div>

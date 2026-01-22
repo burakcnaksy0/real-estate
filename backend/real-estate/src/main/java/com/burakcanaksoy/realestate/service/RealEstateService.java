@@ -30,14 +30,17 @@ public class RealEstateService {
     private final AuthService authService;
     private final ImageRepository imageRepository;
     private final VideoRepository videoRepository;
+    private final ActivityLogService activityLogService;
 
     public RealEstateService(RealEstateRepository realEstateRepository, CategoryRepository categoryRepository,
-            AuthService authService, ImageRepository imageRepository, VideoRepository videoRepository) {
+            AuthService authService, ImageRepository imageRepository, VideoRepository videoRepository,
+            ActivityLogService activityLogService) {
         this.realEstateRepository = realEstateRepository;
         this.categoryRepository = categoryRepository;
         this.authService = authService;
         this.imageRepository = imageRepository;
         this.videoRepository = videoRepository;
+        this.activityLogService = activityLogService;
     }
 
     public List<RealEstateResponse> getAllRealEstates() {
@@ -57,6 +60,11 @@ public class RealEstateService {
         realEstate.setCreatedBy(currentUser);
 
         RealEstate savedRealEstate = this.realEstateRepository.save(realEstate);
+
+        // Log activity
+        String description = String.format("User created real estate listing: %s", savedRealEstate.getTitle());
+        activityLogService.logActivity(currentUser.getUsername(), "LISTING_CREATED", description, "N/A");
+
         return RealEstateMapper.toResponse(savedRealEstate);
 
     }
@@ -88,7 +96,13 @@ public class RealEstateService {
         RealEstate realEstate = this.realEstateRepository.findById(realEstateId)
                 .orElseThrow(() -> new EntityNotFoundException("Real Estate not found with this id : " + realEstateId));
         assertOwnerOrAdmin(realEstate, currentUser);
+
+        String listingTitle = realEstate.getTitle();
         this.realEstateRepository.delete(realEstate);
+
+        // Log activity
+        String description = String.format("User deleted real estate listing: %s (ID: %d)", listingTitle, realEstateId);
+        activityLogService.logActivity(currentUser.getUsername(), "LISTING_DELETED", description, "N/A");
     }
 
     public RealEstateResponse updateRealEstate(Long realEstateId, @Valid RealEstateUpdateRequest request) {

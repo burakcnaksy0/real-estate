@@ -1,5 +1,6 @@
 package com.burakcanaksoy.realestate.model;
 
+import com.burakcanaksoy.realestate.model.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

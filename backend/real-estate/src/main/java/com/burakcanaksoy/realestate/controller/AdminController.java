@@ -17,6 +17,7 @@ public class AdminController {
 
     private final AdminAnalyticsService analyticsService;
     private final com.burakcanaksoy.realestate.service.UserService userService;
+    private final com.burakcanaksoy.realestate.service.ActivityLogService activityLogService;
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
@@ -105,6 +106,15 @@ public class AdminController {
             @RequestParam(defaultValue = "6") int months) {
         List<GrowthDataDTO> growthData = analyticsService.getListingGrowthData(months);
         return ResponseEntity.ok(growthData);
+    }
+
+    @GetMapping("/logs")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<org.springframework.data.domain.Page<com.burakcanaksoy.realestate.model.ActivityLog>> getSystemLogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return ResponseEntity.ok(activityLogService.getLogs(pageable));
     }
 
     @GetMapping("/stats/distribution/cities")

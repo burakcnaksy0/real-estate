@@ -41,4 +41,15 @@ export const ImageService = {
     getImageUrl: (imageId: number): string => {
         return `${API_BASE_URL}/images/view/${imageId}`;
     },
+
+    uploadImages: async (
+        files: File[],
+        listingId: number,
+        listingType: string
+    ): Promise<ImageResponse[]> => {
+        const uploadPromises = files.map((file, index) =>
+            ImageService.uploadImage(file, listingId, listingType, index === 0)
+        );
+        return await Promise.all(uploadPromises);
+    },
 };

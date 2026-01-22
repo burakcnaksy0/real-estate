@@ -2,7 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RealEstateService } from '../../services/realEstateService';
 import { RealEstate, RealEstateFilterRequest } from '../../types';
-import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon } from 'lucide-react';
+import {
+  MapPin,
+  Calendar,
+  Tag,
+  Image as ImageIcon,
+  Filter,
+  Search,
+  SlidersHorizontal,
+  Bed,
+  Maximize,
+  Home,
+  ChevronDown,
+  X,
+  ArrowRight
+} from 'lucide-react';
 
 export const RealEstateListPage: React.FC = () => {
   const [realEstates, setRealEstates] = useState<RealEstate[]>([]);
@@ -11,6 +25,7 @@ export const RealEstateListPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const [filters, setFilters] = useState<RealEstateFilterRequest>({
     city: '',
@@ -37,20 +52,13 @@ export const RealEstateListPage: React.FC = () => {
       setError(null);
 
       const cleanFilters: RealEstateFilterRequest = {};
-      if (filters.city?.trim()) cleanFilters.city = filters.city.trim();
-      if (filters.district?.trim()) cleanFilters.district = filters.district.trim();
-      if (filters.categorySlug?.trim()) cleanFilters.categorySlug = filters.categorySlug.trim();
-      if (filters.minPrice !== undefined && filters.minPrice > 0) cleanFilters.minPrice = filters.minPrice;
-      if (filters.maxPrice !== undefined && filters.maxPrice > 0) cleanFilters.maxPrice = filters.maxPrice;
-      if (filters.realEstateType) cleanFilters.realEstateType = filters.realEstateType;
-      if (filters.roomCount?.trim()) cleanFilters.roomCount = filters.roomCount;
-      if (filters.minGrossSquareMeter !== undefined && filters.minGrossSquareMeter > 0) cleanFilters.minGrossSquareMeter = filters.minGrossSquareMeter;
-      if (filters.maxGrossSquareMeter !== undefined && filters.maxGrossSquareMeter > 0) cleanFilters.maxGrossSquareMeter = filters.maxGrossSquareMeter;
-      if (filters.buildingAge?.trim()) cleanFilters.buildingAge = filters.buildingAge;
-      if (filters.minFloor !== undefined) cleanFilters.minFloor = filters.minFloor;
-      if (filters.maxFloor !== undefined) cleanFilters.maxFloor = filters.maxFloor;
-      if (filters.heatingType) cleanFilters.heatingType = filters.heatingType;
-      if (filters.furnished !== undefined) cleanFilters.furnished = filters.furnished;
+      Object.keys(filters).forEach(key => {
+        const value = filters[key as keyof RealEstateFilterRequest];
+        if (value !== undefined && value !== '' && value !== null) {
+          // @ts-ignore
+          cleanFilters[key] = typeof value === 'string' ? value.trim() : value;
+        }
+      });
 
       const response = await RealEstateService.search(cleanFilters, {
         page,
@@ -80,6 +88,7 @@ export const RealEstateListPage: React.FC = () => {
 
   const handleSearch = () => {
     fetchRealEstates(0);
+    setShowMobileFilters(false);
   };
 
   const handleClearFilters = () => {
@@ -113,324 +122,335 @@ export const RealEstateListPage: React.FC = () => {
     return new Intl.NumberFormat('tr-TR', {
       style: 'currency',
       currency: currency || 'TRY',
+      maximumFractionDigits: 0
     }).format(price);
   };
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(date);
+  const getRealEstateTypeLabel = (type: string) => {
+    switch (type) {
+      case 'APARTMENT': return 'Daire';
+      case 'HOUSE': return 'Müstakil Ev';
+      case 'VILLA': return 'Villa';
+      case 'RESIDENCE': return 'Rezidans';
+      default: return type;
+    }
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl p-8">
-        <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-gray-50/50 py-8 font-sans">
+      <div className="container mx-auto px-4">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Emlak İlanları</h1>
-            <p className="text-blue-100">
-              {totalElements > 0 ? `${totalElements} emlak ilanı bulundu` : 'Emlak ilanlarını keşfedin'}
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Satılık Emlak İlanları</h1>
+            <p className="text-gray-500 mt-1 flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              {totalElements} ilan bulundu
             </p>
           </div>
-          <Link
-            to="/real-estates/create"
-            className="bg-white text-blue-600 hover:bg-blue-50 font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            İlan Ver
-          </Link>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5" />
-          Filtrele
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Şehir</label>
-            <input
-              type="text"
-              value={filters.city || ''}
-              onChange={(e) => handleFilterChange('city', e.target.value)}
-              placeholder="Örn: İstanbul"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">İlçe</label>
-            <input
-              type="text"
-              value={filters.district || ''}
-              onChange={(e) => handleFilterChange('district', e.target.value)}
-              placeholder="Örn: Kadıköy"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Emlak Tipi</label>
-            <select
-              value={filters.realEstateType || ''}
-              onChange={(e) => handleFilterChange('realEstateType', e.target.value || undefined)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <div className="flex gap-3 w-full md:w-auto">
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="md:hidden flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl font-medium text-gray-700 shadow-sm"
             >
-              <option value="">Tümü</option>
-              <option value="APARTMENT">Daire</option>
-              <option value="HOUSE">Ev</option>
-              <option value="VILLA">Villa</option>
-              <option value="RESIDENCE">Rezidans</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min Fiyat</label>
-            <input
-              type="number"
-              value={filters.minPrice || ''}
-              onChange={(e) => handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Fiyat</label>
-            <input
-              type="number"
-              value={filters.maxPrice || ''}
-              onChange={(e) => handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="999999999"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Oda Sayısı</label>
-            <input
-              type="text"
-              value={filters.roomCount || ''}
-              onChange={(e) => handleFilterChange('roomCount', e.target.value)}
-              placeholder="Örn: 3+1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bina Yaşı</label>
-            <input
-              type="text"
-              value={filters.buildingAge || ''}
-              onChange={(e) => handleFilterChange('buildingAge', e.target.value)}
-              placeholder="Örn: 5-10"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min m² (Brüt)</label>
-            <input
-              type="number"
-              value={filters.minGrossSquareMeter || ''}
-              onChange={(e) => handleFilterChange('minGrossSquareMeter', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max m² (Brüt)</label>
-            <input
-              type="number"
-              value={filters.maxGrossSquareMeter || ''}
-              onChange={(e) => handleFilterChange('maxGrossSquareMeter', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="999999"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Eşyalı</label>
-            <select
-              value={filters.furnished === undefined ? '' : filters.furnished.toString()}
-              onChange={(e) => handleFilterChange('furnished', e.target.value === '' ? undefined : e.target.value === 'true')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <Filter className="w-4 h-4" /> Filtrele
+            </button>
+            <Link
+              to="/real-estates/create"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
             >
-              <option value="">Tümü</option>
-              <option value="true">Evet</option>
-              <option value="false">Hayır</option>
-            </select>
+              + İlan Ver
+            </Link>
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={handleSearch}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            Ara
-          </button>
-          <button
-            onClick={handleClearFilters}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            Temizle
-          </button>
-        </div>
-      </div>
-
-      {/* Loading */}
-      {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
-        </div>
-      )}
-
-      {/* Error */}
-      {error && !loading && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600">{error}</p>
-        </div>
-      )}
-
-      {/* Listings Grid */}
-      {!loading && !error && realEstates.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {realEstates.map((realEstate) => (
-              <Link
-                key={realEstate.id}
-                to={`/real-estates/${realEstate.id}`}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-200 overflow-hidden group flex flex-col h-full"
-              >
-                <div className="relative h-56 bg-gray-100 overflow-hidden shrink-0">
-                  {realEstate.imageUrl ? (
-                    <img
-                      src={`http://localhost:8080${realEstate.imageUrl}?t=${Date.now()}`}
-                      alt={realEstate.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Resim+Yok';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <ImageIcon className="w-16 h-16 opacity-50" />
-                    </div>
-                  )}
-                  {realEstate.status && (
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm text-white ${realEstate.status === 'ACTIVE' ? 'bg-green-500' :
-                        realEstate.status === 'SOLD' ? 'bg-red-500' : 'bg-gray-500'
-                        }`}>
-                        {realEstate.status === 'ACTIVE' ? 'Aktif' : realEstate.status === 'SOLD' ? 'Satıldı' : 'Pasif'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 mb-3 line-clamp-2">
-                    {realEstate.title}
-                  </h3>
-
-                  {realEstate.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{realEstate.description}</p>
-                  )}
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      <span>{realEstate.city}{realEstate.district && `, ${realEstate.district}`}</span>
-                    </div>
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      <span>{formatDate(realEstate.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-gray-600 text-sm">
-                      {realEstate.roomCount && <span>{realEstate.roomCount} oda</span>}
-                      {realEstate.grossSquareMeter && <span>{realEstate.grossSquareMeter} m²</span>}
-                      {realEstate.buildingAge !== undefined && <span>{realEstate.buildingAge} yaş</span>}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    <div className="flex items-center">
-                      <Tag className="w-4 h-4 mr-2 text-blue-600" />
-                      <span className="text-xl font-bold text-blue-600">
-                        {formatPrice(realEstate.price, realEstate.currency)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 0}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Önceki
-              </button>
-              <div className="flex gap-2">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum = i;
-                  if (totalPages > 5) {
-                    if (currentPage < 3) pageNum = i;
-                    else if (currentPage > totalPages - 3) pageNum = totalPages - 5 + i;
-                    else pageNum = currentPage - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`px-4 py-2 rounded-lg ${currentPage === pageNum
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white border border-gray-300 hover:bg-gray-50'
-                        }`}
-                    >
-                      {pageNum + 1}
-                    </button>
-                  );
-                })}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left Sidebar - Filters */}
+          <div className={`lg:col-span-1 ${showMobileFilters ? 'fixed inset-0 z-50 bg-white p-6 overflow-y-auto' : 'hidden lg:block'}`}>
+            <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-gray-100 lg:p-6 sticky top-24">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <SlidersHorizontal className="w-5 h-5 text-blue-600" />
+                  Filtreler
+                </h3>
+                {showMobileFilters && (
+                  <button onClick={() => setShowMobileFilters(false)} className="p-2 bg-gray-100 rounded-full">
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages - 1}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Sonraki
-              </button>
-            </div>
-          )}
-        </>
-      )}
 
-      {/* Empty State */}
-      {!loading && !error && realEstates.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 text-lg">Henüz emlak ilanı bulunmuyor.</p>
-          <p className="text-gray-500 mt-2">Filtreleri değiştirerek tekrar deneyin.</p>
-          <Link
-            to="/real-estates/create"
-            className="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            İlk İlanı Siz Verin
-          </Link>
+              <div className="space-y-6">
+                {/* Location */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Konum</label>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Şehir (Örn: İstanbul)"
+                      value={filters.city || ''}
+                      onChange={(e) => handleFilterChange('city', e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm"
+                    />
+                    <input
+                      type="text"
+                      placeholder="İlçe (Örn: Kadıköy)"
+                      value={filters.district || ''}
+                      onChange={(e) => handleFilterChange('district', e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Price Range */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Fiyat Aralığı</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min TL"
+                      value={filters.minPrice || ''}
+                      onChange={(e) => handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max TL"
+                      value={filters.maxPrice || ''}
+                      onChange={(e) => handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Property Details */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Özellikler</label>
+                  <select
+                    value={filters.realEstateType || ''}
+                    onChange={(e) => handleFilterChange('realEstateType', e.target.value || undefined)}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm appearance-none cursor-pointer"
+                  >
+                    <option value="">Emlak Tipi (Tümü)</option>
+                    <option value="APARTMENT">Daire</option>
+                    <option value="HOUSE">Müstakil Ev</option>
+                    <option value="VILLA">Villa</option>
+                    <option value="RESIDENCE">Rezidans</option>
+                  </select>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Oda (3+1)"
+                      value={filters.roomCount || ''}
+                      onChange={(e) => handleFilterChange('roomCount', e.target.value)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm"
+                    />
+                    <select
+                      value={filters.furnished === undefined ? '' : filters.furnished.toString()}
+                      onChange={(e) => handleFilterChange('furnished', e.target.value === '' ? undefined : e.target.value === 'true')}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none text-sm appearance-none"
+                    >
+                      <option value="">Eşya?</option>
+                      <option value="true">Evet</option>
+                      <option value="false">Hayır</option>
+                    </select>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min m²"
+                      value={filters.minGrossSquareMeter || ''}
+                      onChange={(e) => handleFilterChange('minGrossSquareMeter', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max m²"
+                      value={filters.maxGrossSquareMeter || ''}
+                      onChange={(e) => handleFilterChange('maxGrossSquareMeter', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 flex flex-col gap-3">
+                  <button
+                    onClick={handleSearch}
+                    className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-gray-900/10"
+                  >
+                    Uygula
+                  </button>
+                  <button
+                    onClick={handleClearFilters}
+                    className="w-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold py-3 rounded-xl transition-all"
+                  >
+                    Temizle
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content - Listing Grid */}
+          <div className="lg:col-span-3">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-pulse h-[400px]">
+                    <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center text-red-600">
+                <p className="font-medium mb-2">Bir hata oluştu</p>
+                <p className="text-sm opacity-80">{error}</p>
+                <button onClick={handleSearch} className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 rounded-lg text-sm font-semibold transition-colors">
+                  Tekrar Dene
+                </button>
+              </div>
+            ) : realEstates.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-gray-100 dashed-border shadow-sm text-center">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                  <Search className="w-10 h-10 text-gray-300" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Sonuç Bulunamadı</h3>
+                <p className="text-gray-500 max-w-md mx-auto mb-8">
+                  Aradığınız kriterlere uygun ilan bulunamadı. Filtreleri temizleyerek veya farklı kriterler deneyerek tekrar arama yapabilirsiniz.
+                </p>
+                <button
+                  onClick={handleClearFilters}
+                  className="px-6 py-3 bg-blue-50 text-blue-600 font-semibold rounded-xl hover:bg-blue-100 transition-colors"
+                >
+                  Filtreleri Temizle
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {realEstates.map((estate) => (
+                    <Link
+                      key={estate.id}
+                      to={`/real-estates/${estate.id}`}
+                      className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full"
+                    >
+                      <div className="relative h-64 overflow-hidden">
+                        {estate.imageUrl ? (
+                          <img
+                            src={`http://localhost:8080${estate.imageUrl}`}
+                            alt={estate.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'; // Fallback
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                            <ImageIcon className="w-12 h-12 text-gray-300" />
+                          </div>
+                        )}
+                        <div className="absolute top-4 right-4">
+                          <span className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm border border-white/50">
+                            {getRealEstateTypeLabel(estate.realEstateType || '')}
+                          </span>
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
+
+                      <div className="p-5 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                            {estate.title}
+                          </h3>
+                        </div>
+
+                        <div className="flex items-center text-gray-500 text-sm mb-4">
+                          <MapPin className="w-3.5 h-3.5 mr-1" />
+                          {estate.city}, {estate.district}
+                        </div>
+
+                        <div className="flex items-center gap-4 mb-5 text-sm text-gray-700">
+                          <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-lg">
+                            <Bed className="w-4 h-4 text-blue-500" />
+                            <span className="font-medium">{estate.roomCount}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-lg">
+                            <Maximize className="w-4 h-4 text-blue-500" />
+                            <span className="font-medium">{estate.grossSquareMeter} m²</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-0.5">Satış Fiyatı</p>
+                            <p className="text-xl font-bold text-blue-600">
+                              {formatPrice(estate.price, estate.currency)}
+                            </p>
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-12">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 0}
+                      className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-600"
+                    >
+                      Önceki
+                    </button>
+                    <div className="flex gap-2">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum = i;
+                        if (totalPages > 5) {
+                          if (currentPage < 3) pageNum = i;
+                          else if (currentPage > totalPages - 3) pageNum = totalPages - 5 + i;
+                          else pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold transition-all ${currentPage === pageNum
+                                ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-110'
+                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
+                              }`}
+                          >
+                            {pageNum + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages - 1}
+                      className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-600"
+                    >
+                      Sonraki
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

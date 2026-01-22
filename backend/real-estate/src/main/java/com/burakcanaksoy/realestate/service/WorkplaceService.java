@@ -151,6 +151,34 @@ public class WorkplaceService {
             workplace.setFurnished(request.getFurnished());
         }
 
+        if (request.getHeatingType() != null) {
+            workplace.setHeatingType(request.getHeatingType());
+        }
+
+        if (request.getBuildingAge() != null) {
+            workplace.setBuildingAge(request.getBuildingAge());
+        }
+
+        if (request.getDues() != null) {
+            workplace.setDues(request.getDues());
+        }
+
+        if (request.getCreditEligibility() != null) {
+            workplace.setCreditEligibility(request.getCreditEligibility());
+        }
+
+        if (request.getDeedStatus() != null) {
+            workplace.setDeedStatus(request.getDeedStatus());
+        }
+
+        if (request.getListingFrom() != null) {
+            workplace.setListingFrom(request.getListingFrom());
+        }
+
+        if (request.getExchange() != null) {
+            workplace.setExchange(request.getExchange());
+        }
+
         Workplace updatedWorkplace = workplaceRepository.save(workplace);
 
         return WorkplaceMapper.toResponse(updatedWorkplace);

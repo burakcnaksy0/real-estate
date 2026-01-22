@@ -206,6 +206,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Auth Section */}
             <div className="flex items-center space-x-3">
+
               {isAuthenticated ? (
                 <>
                   {/* İlan Ver Button */}

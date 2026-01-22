@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -8,6 +8,7 @@ import { useCategories } from '../../hooks/useCategories';
 import { Vehicle, VehicleCreateRequest, Currency, FuelType, Transmission } from '../../types';
 import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
 import { VideoService } from '../../services/videoService';
+import { ImageService, ImageResponse } from '../../services/imageService';
 
 interface EditVehicleModalProps {
     vehicle: Vehicle;
@@ -43,6 +44,10 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
     const activeCategories = getActiveCategories();
     const [video, setVideo] = useState<VideoFile | null>(null);
     const [uploadingVideo, setUploadingVideo] = useState(false);
+    const [uploadingImages, setUploadingImages] = useState(false);
+    const [selectedImages, setSelectedImages] = useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [existingImages, setExistingImages] = useState<ImageResponse[]>([]);
 
     const {
         register,
@@ -65,17 +70,71 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
                 district: vehicle.district,
                 brand: vehicle.brand,
                 model: vehicle.model,
+                series: vehicle.series || '',
                 year: vehicle.year,
                 fuelType: vehicle.fuelType,
                 transmission: vehicle.transmission,
                 kilometer: vehicle.kilometer,
+                engineVolume: vehicle.engineVolume || '',
+                vehicleStatus: vehicle.vehicleStatus || '',
+                bodyType: vehicle.bodyType || '',
+                enginePower: vehicle.enginePower || '',
+                tractionType: vehicle.tractionType || '',
+                color: vehicle.color || '',
+                plateNationality: vehicle.plateNationality || '',
+                fromWho: vehicle.fromWho || '',
+                warranty: vehicle.warranty || false,
+                heavyDamage: vehicle.heavyDamage || false,
+                exchange: vehicle.exchange || false,
             });
+            fetchImages();
         }
     }, [isOpen, vehicle, reset]);
+
+    const fetchImages = async () => {
+        try {
+            const imgs = await ImageService.getListingImages(vehicle.id, 'VEHICLE');
+            setExistingImages(imgs);
+        } catch (error) {
+            console.error('Error fetching images:', error);
+        }
+    };
+
+    const handleRemoveExistingImage = async (imageId: number) => {
+        if (window.confirm('Bu fotoğrafı silmek istediğinizden emin misiniz?')) {
+            try {
+                await ImageService.deleteImage(imageId);
+                setExistingImages(prev => prev.filter(img => img.id !== imageId));
+            } catch (error) {
+                console.error('Error deleting image:', error);
+            }
+        }
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        setSelectedImages(files);
+
+        // Create previews
+        const previews = files.map(file => URL.createObjectURL(file));
+        setImagePreviews(previews);
+    };
 
     const onSubmit = async (data: VehicleCreateRequest) => {
         try {
             await update(vehicle.id, data);
+
+            // Upload images if selected
+            if (selectedImages.length > 0) {
+                setUploadingImages(true);
+                try {
+                    await ImageService.uploadImages(selectedImages, vehicle.id, 'VEHICLE');
+                } catch (error) {
+                    console.error('Error uploading images:', error);
+                } finally {
+                    setUploadingImages(false);
+                }
+            }
 
             // Upload video if selected
             if (video) {
@@ -187,6 +246,15 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
                                     </div>
 
                                     <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Seri</label>
+                                        <input
+                                            {...register('series')}
+                                            type="text"
+                                            className="input-field"
+                                        />
+                                    </div>
+
+                                    <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Şehir *</label>
                                         <input
                                             {...register('city')}
@@ -269,6 +337,112 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
                                             ))}
                                         </select>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Motor Hacmi</label>
+                                        <input
+                                            {...register('engineVolume')}
+                                            type="text"
+                                            placeholder="1.6 16V"
+                                            className="input-field"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Motor Gücü</label>
+                                        <input
+                                            {...register('enginePower')}
+                                            type="text"
+                                            placeholder="110 HP"
+                                            className="input-field"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Araç Durumu</label>
+                                        <select {...register('vehicleStatus')} className="input-field">
+                                            <option value="">Seçiniz</option>
+                                            <option value="ZERO">Sıfır</option>
+                                            <option value="SECOND_HAND">İkinci El</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kasa Tipi</label>
+                                        <input
+                                            {...register('bodyType')}
+                                            type="text"
+                                            placeholder="Sedan, Hatchback..."
+                                            className="input-field"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Çekiş</label>
+                                        <input
+                                            {...register('tractionType')}
+                                            type="text"
+                                            placeholder="Önden, 4x4..."
+                                            className="input-field"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Renk</label>
+                                        <input
+                                            {...register('color')}
+                                            type="text"
+                                            className="input-field"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Plaka/Uyruk</label>
+                                        <input
+                                            {...register('plateNationality')}
+                                            type="text"
+                                            className="input-field"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kimden</label>
+                                        <select {...register('fromWho')} className="input-field">
+                                            <option value="">Seçiniz</option>
+                                            <option value="OWNER">Sahibinden</option>
+                                            <option value="DEALER">Galeriden</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Checkboxes */}
+                                <div className="grid grid-cols-3 gap-4 mt-4">
+                                    <label className="flex items-center space-x-2">
+                                        <input
+                                            {...register('warranty')}
+                                            type="checkbox"
+                                            className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">Garanti</span>
+                                    </label>
+
+                                    <label className="flex items-center space-x-2">
+                                        <input
+                                            {...register('heavyDamage')}
+                                            type="checkbox"
+                                            className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">Ağır Hasar Kayıtlı</span>
+                                    </label>
+
+                                    <label className="flex items-center space-x-2">
+                                        <input
+                                            {...register('exchange')}
+                                            type="checkbox"
+                                            className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">Takas</span>
+                                    </label>
                                 </div>
                             </div>
 
@@ -303,6 +477,70 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
                                 </div>
                             </div>
 
+                            {/* Images */}
+                            <div>
+                                <h4 className="text-md font-semibold text-gray-900 mb-4">Fotoğraflar</h4>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                                    <label className="cursor-pointer flex flex-col items-center">
+                                        <Upload className="h-12 w-12 text-gray-400 mb-2" />
+                                        <span className="text-sm text-gray-600">Fotoğraf eklemek için tıklayın</span>
+                                        <span className="text-xs text-gray-500 mt-1">Birden fazla fotoğraf seçebilirsiniz</span>
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            onChange={handleImageSelect}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                    <div className="mt-4 space-y-4">
+                                        {/* Existing Images */}
+                                        {existingImages.length > 0 && (
+                                            <div>
+                                                <h5 className="text-sm font-medium text-gray-700 mb-2">Mevcut Fotoğraflar</h5>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                    {existingImages.map((img) => (
+                                                        <div key={img.id} className="relative group">
+                                                            <img
+                                                                src={ImageService.getImageUrl(img.id)}
+                                                                alt="Vehicle"
+                                                                className="w-full h-24 object-cover rounded-lg"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveExistingImage(img.id)}
+                                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                title="Fotoğrafı Sil"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* New Image Previews */}
+                                        {imagePreviews.length > 0 && (
+                                            <div>
+                                                <h5 className="text-sm font-medium text-gray-700 mb-2">Yeni Eklenecek Fotoğraflar</h5>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                    {imagePreviews.map((preview, index) => (
+                                                        <div key={index} className="relative">
+                                                            <img
+                                                                src={preview}
+                                                                alt={`New Preview ${index + 1}`}
+                                                                className="w-full h-24 object-cover rounded-lg"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Video */}
                             <div>
                                 <h4 className="text-md font-semibold text-gray-900 mb-4">Video</h4>
@@ -326,19 +564,21 @@ export const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
                             type="button"
                             onClick={onClose}
                             className="btn-secondary"
-                            disabled={isLoading || uploadingVideo}
+                            disabled={isLoading || uploadingVideo || uploadingImages}
                         >
                             İptal
                         </button>
                         <button
                             onClick={handleSubmit(onSubmit)}
-                            disabled={isLoading || uploadingVideo}
+                            disabled={isLoading || uploadingVideo || uploadingImages}
                             className="btn-primary flex items-center space-x-2 disabled:opacity-50"
                         >
-                            {isLoading ? (
+                            {isLoading || uploadingVideo || uploadingImages ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    <span>{uploadingVideo ? 'Video Yükleniyor...' : 'Kaydediliyor...'}</span>
+                                    <span>
+                                        {uploadingImages ? 'Fotoğraflar Yükleniyor...' : uploadingVideo ? 'Video Yükleniyor...' : 'Kaydediliyor...'}
+                                    </span>
                                 </>
                             ) : (
                                 <>

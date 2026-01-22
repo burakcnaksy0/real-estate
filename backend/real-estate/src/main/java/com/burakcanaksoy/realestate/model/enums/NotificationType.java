@@ -1,4 +1,4 @@
-package com.burakcanaksoy.realestate.model;
+package com.burakcanaksoy.realestate.model.enums;
 
 public enum NotificationType {
     FAVORITE,

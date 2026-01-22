@@ -51,6 +51,8 @@ public class GlobalExceptionHandler {
 
             if (ifx.getTargetType() != null && ifx.getTargetType().isEnum()) {
                 String fieldName = ifx.getPath().get(0).getFieldName();
+                if (fieldName == null)
+                    fieldName = "unknown";
                 Object invalidValue = ifx.getValue();
 
                 String errorMessage = String.format(
@@ -67,6 +69,8 @@ public class GlobalExceptionHandler {
 
             if (mix.getTargetType() != null && mix.getTargetType().isEnum()) {
                 String fieldName = mix.getPath().get(0).getFieldName();
+                if (fieldName == null)
+                    fieldName = "unknown";
 
                 String errorMessage = String.format(
                         "Field '%s' cannot be empty. Accepted values: %s",
@@ -84,7 +88,7 @@ public class GlobalExceptionHandler {
                 int end = errorMsg.lastIndexOf("\"]");
                 if (start > 1 && end > start) {
                     String fieldName = errorMsg.substring(start, end);
-                    errors.put(fieldName, "Invalid value or format");
+                    errors.put(fieldName != null ? fieldName : "unknown", "Invalid value or format");
                     message = "Validation failed";
                 }
             }
@@ -152,6 +156,18 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ValidationErrorResponse> handleDuplicateResource(DuplicateResourceException ex) {
+
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                null,
+                LocalDateTime.now());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
 }

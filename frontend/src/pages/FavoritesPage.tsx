@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MapPin, Calendar, Tag, Trash2 } from 'lucide-react';
+import { Heart, MapPin, Calendar, Tag, Trash2, ArrowRight, Home, Car, Trees, Briefcase, Search } from 'lucide-react';
 import { FavoriteService } from '../services/favoriteService';
 import { Favorite } from '../types';
+import { getImageUrl } from '../utils/imageUtils';
 
 export const FavoritesPage: React.FC = () => {
     const [favorites, setFavorites] = useState<Favorite[]>([]);
@@ -56,143 +57,168 @@ export const FavoritesPage: React.FC = () => {
         return new Intl.NumberFormat('tr-TR', {
             style: 'currency',
             currency: currency || 'TRY',
+            maximumFractionDigits: 0
         }).format(price);
     };
 
-    const formatDate = (dateString: string): string => {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('tr-TR', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        }).format(date);
-    };
+    const getCategoryIcon = (type: string) => {
+        switch (type) {
+            case 'REAL_ESTATE': return <Home className="w-4 h-4" />;
+            case 'VEHICLE': return <Car className="w-4 h-4" />;
+            case 'LAND': return <Trees className="w-4 h-4" />;
+            case 'WORKPLACE': return <Briefcase className="w-4 h-4" />;
+            default: return <Tag className="w-4 h-4" />;
+        }
+    }
+
+    const getCategoryLabel = (type: string) => {
+        switch (type) {
+            case 'REAL_ESTATE': return 'Emlak';
+            case 'VEHICLE': return 'Vasıta';
+            case 'LAND': return 'Arsa';
+            case 'WORKPLACE': return 'İşyeri';
+            default: return 'Genel';
+        }
+    }
 
     if (loading) {
         return (
-            <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-                <p className="mt-4 text-gray-600">Favoriler yükleniyor...</p>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                    <div className="w-16 h-16 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-500 font-medium">Favoriler yükleniyor...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-2xl p-8">
-                <div className="flex items-center gap-3">
-                    <Heart className="h-8 w-8" />
+        <div className="min-h-screen bg-gray-50/50 py-8 font-sans">
+            <div className="container mx-auto px-4 max-w-7xl">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-bold mb-2">Favorilerim</h1>
-                        <p className="text-red-100">
+                        <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+                            <div className="p-2 bg-red-100 rounded-xl text-red-600">
+                                <Heart className="w-8 h-8 fill-current" />
+                            </div>
+                            Favorilerim
+                        </h1>
+                        <p className="text-gray-500 mt-2 ml-14">
                             {favorites.length > 0
-                                ? `${favorites.length} favori ilanınız var`
-                                : 'Henüz favori ilanınız yok'}
+                                ? `${favorites.length} favori ilanınız listeleniyor`
+                                : 'Henüz favori ilanınız bulunmuyor'
+                            }
                         </p>
                     </div>
                 </div>
-            </div>
 
-            {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                    <p className="text-red-600">{error}</p>
-                </div>
-            )}
+                {error && (
+                    <div className="bg-red-50 border border-red-100 rounded-2xl p-6 text-center mb-8">
+                        <p className="text-red-600 font-medium">{error}</p>
+                    </div>
+                )}
 
-            {/* Favorites Grid */}
-            {favorites.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {favorites.map((favorite) => (
-                        <div
-                            key={favorite.id}
-                            className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full"
-                        >
-                            <Link to={getDetailUrl(favorite)} className="flex-1 flex flex-col">
-                                <div className="relative h-56 bg-gray-100 overflow-hidden">
-                                    {favorite.imageUrl ? (
-                                        <img
-                                            src={`http://localhost:8080${favorite.imageUrl}?t=${Date.now()}`}
-                                            alt={favorite.title}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                            onError={(e) => {
-                                                console.error("Image load failed for:", favorite.imageUrl);
-                                                e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Resim+Yok';
-                                            }}
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                                            <Heart className="w-16 h-16 opacity-50" />
-                                        </div>
-                                    )}
-                                    <div className="absolute top-3 right-3 z-10">
+                {/* Favorites Grid */}
+                {favorites.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {favorites.map((favorite) => (
+                            <Link
+                                key={favorite.id}
+                                to={getDetailUrl(favorite)}
+                                className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full relative"
+                            >
+                                <div className="relative h-60 overflow-hidden">
+                                    <div className="absolute top-4 right-4 z-20">
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 handleRemove(favorite.listingId);
                                             }}
-                                            className="p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
+                                            className="p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg hover:bg-red-50 active:scale-90 transition-all group/btn border border-white/50"
                                             title="Favorilerden Çıkar"
                                         >
-                                            <Trash2 className="h-4 w-4 text-red-600" />
+                                            <Heart className="w-5 h-5 text-red-600 fill-red-600 group-hover/btn:scale-110 transition-transform" />
                                         </button>
+                                    </div>
+
+                                    {favorite.imageUrl ? (
+                                        <img
+                                            src={getImageUrl(favorite.imageUrl) || ''}
+                                            alt={favorite.title}
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.parentElement?.querySelector('.placeholder')?.classList.remove('hidden');
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div className={`placeholder w-full h-full flex items-center justify-center bg-gray-50 ${favorite.imageUrl ? 'hidden' : ''}`}>
+                                        <img
+                                            src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80"
+                                            className="w-full h-full object-cover opacity-80 grayscale group-hover:grayscale-0 transition-all duration-500"
+                                            alt="Listing placeholder"
+                                        />
+                                    </div>
+
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+
+                                    <div className="absolute top-4 left-4 z-20">
+                                        <span className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm border border-white/50 flex items-center gap-1">
+                                            {getCategoryIcon(favorite.listingType)}
+                                            {getCategoryLabel(favorite.listingType)}
+                                        </span>
                                     </div>
                                 </div>
 
                                 <div className="p-5 flex-1 flex flex-col">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-200 line-clamp-2" title={favorite.title}>
+                                    <div className="mb-3">
+                                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors line-clamp-1" title={favorite.title}>
                                             {favorite.title}
                                         </h3>
-                                        <span className="ml-2 px-2 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full whitespace-nowrap shrink-0">
-                                            Favori
-                                        </span>
+                                        <p className="text-sm text-gray-500 line-clamp-2 mt-1 min-h-[2.5em]">{favorite.description}</p>
                                     </div>
 
-                                    {favorite.description && (
-                                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{favorite.description}</p>
-                                    )}
-
-                                    <div className="mt-auto space-y-2 mb-4">
-                                        <div className="flex items-center text-gray-600 text-sm">
-                                            <MapPin className="w-4 h-4 mr-2 shrink-0" />
-                                            <span className="truncate">
-                                                {favorite.city}
-                                                {favorite.district && `, ${favorite.district}`}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center text-gray-600 text-sm">
-                                            <Calendar className="w-4 h-4 mr-2 shrink-0" />
-                                            <span>Eklendi: {formatDate(favorite.createdAt)}</span>
-                                        </div>
+                                    <div className="flex items-center text-gray-500 text-sm mb-4">
+                                        <MapPin className="w-3.5 h-3.5 mr-1 text-gray-400" />
+                                        <span className="truncate">{favorite.city}, {favorite.district}</span>
                                     </div>
 
-                                    <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-auto">
-                                        <div className="flex items-center">
-                                            <Tag className="w-4 h-4 mr-2 text-green-600" />
-                                            <span className="text-xl font-bold text-green-600">
+                                    <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs text-gray-500 mb-0.5">Fiyat</p>
+                                            <p className="text-xl font-bold text-red-600">
                                                 {formatPrice(favorite.price, favorite.currency)}
-                                            </span>
+                                            </p>
+                                        </div>
+                                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-red-600 group-hover:text-white transition-all">
+                                            <ArrowRight className="w-4 h-4" />
                                         </div>
                                     </div>
                                 </div>
                             </Link>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-gray-100 dashed-border shadow-sm text-center">
+                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                            <Heart className="w-10 h-10 text-gray-300" />
                         </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <Heart className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-600 text-lg">Henüz favori ilanınız yok.</p>
-                    <p className="text-gray-500 mt-2 mb-4">Beğendiğiniz ilanları favorilere ekleyerek buradan kolayca erişebilirsiniz.</p>
-                    <Link
-                        to="/listings"
-                        className="inline-block bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-                    >
-                        İlanları Keşfet
-                    </Link>
-                </div>
-            )}
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Henüz Favori İlanınız Yok</h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-8">
+                            Beğendiğiniz ilanları favorilere ekleyerek takip edebilir, fiyat değişikliklerinden haberdar olabilirsiniz.
+                        </p>
+                        <Link
+                            to="/listings"
+                            className="bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-gray-900/10 active:scale-[0.98] inline-flex items-center gap-2"
+                        >
+                            <Search className="w-4 h-4" />
+                            İlanları Keşfet
+                        </Link>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

@@ -173,6 +173,34 @@ public class LandService {
             land.setIslandNumber(request.getIslandNumber());
         }
 
+        if (request.getPaftaNo() != null) {
+            land.setPaftaNo(request.getPaftaNo());
+        }
+
+        if (request.getKaks() != null) {
+            land.setKaks(request.getKaks());
+        }
+
+        if (request.getGabari() != null) {
+            land.setGabari(request.getGabari());
+        }
+
+        if (request.getCreditEligibility() != null) {
+            land.setCreditEligibility(request.getCreditEligibility());
+        }
+
+        if (request.getDeedStatus() != null) {
+            land.setDeedStatus(request.getDeedStatus());
+        }
+
+        if (request.getListingFrom() != null) {
+            land.setListingFrom(request.getListingFrom());
+        }
+
+        if (request.getExchange() != null) {
+            land.setExchange(request.getExchange());
+        }
+
         landRepository.save(land);
         return LandMapper.toResponse(land);
     }

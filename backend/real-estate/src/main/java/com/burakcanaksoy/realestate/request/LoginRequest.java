@@ -10,4 +10,6 @@ public class LoginRequest {
 
     @NotBlank(message = "Şifre boş olamaz")
     private String password;
+
+    private String loginType;
 }

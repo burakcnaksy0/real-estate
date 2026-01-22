@@ -1,7 +1,7 @@
 package com.burakcanaksoy.realestate.service;
 
 import com.burakcanaksoy.realestate.model.Notification;
-import com.burakcanaksoy.realestate.model.NotificationType;
+import com.burakcanaksoy.realestate.model.enums.NotificationType;
 import com.burakcanaksoy.realestate.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;

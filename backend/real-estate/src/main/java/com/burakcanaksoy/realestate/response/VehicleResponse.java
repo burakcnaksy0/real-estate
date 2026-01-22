@@ -38,15 +38,15 @@ public class VehicleResponse {
         private Long favoriteCount;
 
         private String series;
-        private VehicleStatus vehicleStatus;
-        private BodyType bodyType;
+        private String vehicleStatus;
+        private String bodyType;
         private String enginePower;
-        private TractionType tractionType;
+        private String tractionType;
         private String color;
         private Boolean warranty;
         private Boolean heavyDamage;
         private String plateNationality;
-        private ListingFrom fromWho;
+        private String fromWho;
         private Boolean exchange;
 
         private Long ownerId;

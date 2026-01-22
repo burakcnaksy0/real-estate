@@ -32,6 +32,7 @@ public class UserService {
     private final EmailService emailService;
     private final FileStorageService fileStorageService;
     private final SmsService smsService;
+    private final com.burakcanaksoy.realestate.service.ActivityLogService activityLogService;
 
     @Transactional
     public User updateProfile(Long userId, UpdateProfileRequest request) {
@@ -51,7 +52,12 @@ public class UserService {
             user.setEmail(request.getEmail());
         }
 
-        return userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+
+        activityLogService.logActivity(user.getUsername(), "PROFILE_UPDATED",
+                "User updated their profile information", "N/A");
+
+        return updatedUser;
     }
 
     @Transactional
@@ -147,8 +153,13 @@ public class UserService {
     public void toggleUserStatus(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
-        user.setEnabled(!user.getEnabled());
+        boolean newStatus = !user.getEnabled();
+        user.setEnabled(newStatus);
         userRepository.save(user);
+
+        String action = newStatus ? "USER_ENABLED" : "USER_DISABLED";
+        String description = String.format("User %s was %s", user.getUsername(), newStatus ? "enabled" : "disabled");
+        activityLogService.logActivity(getCurrentUsername(), action, description, "N/A");
     }
 
     @Transactional
@@ -157,12 +168,17 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
         user.setRoles(roles);
         userRepository.save(user);
+
+        String description = String.format("Updated roles for user %s to: %s", user.getUsername(), roles.toString());
+        activityLogService.logActivity(getCurrentUsername(), "USER_ROLES_UPDATED", description, "N/A");
     }
 
     @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+
+        String deletedUsername = user.getUsername();
 
         // Delete user's favorites
         favoriteRepository.deleteByUser(user);
@@ -184,6 +200,9 @@ public class UserService {
         }
 
         userRepository.delete(user);
+
+        String description = String.format("User %s (ID: %d) was permanently deleted", deletedUsername, userId);
+        activityLogService.logActivity(getCurrentUsername(), "USER_DELETED", description, "N/A");
     }
 
     @Transactional
@@ -202,5 +221,17 @@ public class UserService {
         String username = authentication.getName();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
+    }
+
+    private String getCurrentUsername() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated()) {
+                return authentication.getName();
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+        return "SYSTEM";
     }
 }

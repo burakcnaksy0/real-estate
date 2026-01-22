@@ -38,8 +38,6 @@ import { FavoritesPage } from './pages/FavoritesPage';
 import { WorkplaceDetailPage } from './pages/Workplace/WorkplaceDetailPage';
 import { MessagesPage } from './pages/Messages/MessagesPage';
 import { NotificationsPage } from './pages/NotificationsPage';
-import { AdminDashboard } from './pages/Admin/AdminDashboard';
-import { AdminRoute } from './components/Admin/AdminRoute';
 import SearchPage from './pages/SearchPage';
 import ComparePage from './pages/ComparePage';
 
@@ -99,6 +97,9 @@ const AppContent: React.FC = () => {
 
           {/* User Routes */}
           <Route path="/profile" element={<ProfilePage />} />
+
+
+
           <Route path="/my-listings" element={
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">İlanlarım</h2>
@@ -107,12 +108,6 @@ const AppContent: React.FC = () => {
           } />
           <Route path="/favorites" element={<FavoritesPage />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          } />
 
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/messages/:userId" element={<MessagesPage />} />

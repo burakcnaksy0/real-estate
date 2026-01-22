@@ -7,8 +7,7 @@ import comparisonService from '../services/comparisonService';
 import ComparisonTable from '../components/ComparisonTable';
 import { ComparisonResponse } from '../types';
 import { toast } from 'react-toastify';
-import { ArrowLeft, Printer, Trash2 } from 'lucide-react';
-import './ComparePage.css';
+import { ArrowLeft, Printer, Trash2, AlertCircle, GitCompare } from 'lucide-react';
 
 const ComparePage: React.FC = () => {
     const dispatch = useDispatch();
@@ -55,12 +54,10 @@ const ComparePage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="compare-page">
-                <div className="compare-container">
-                    <div className="loading-state">
-                        <div className="spinner"></div>
-                        <p>Karşılaştırma hazırlanıyor...</p>
-                    </div>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600 font-medium">Karşılaştırma hazırlanıyor...</p>
                 </div>
             </div>
         );
@@ -68,49 +65,78 @@ const ComparePage: React.FC = () => {
 
     if (error || !comparisonData) {
         return (
-            <div className="compare-page">
-                <div className="compare-container">
-                    <div className="error-state">
-                        <h2>Hata</h2>
-                        <p>{error || 'Karşılaştırma verileri yüklenemedi'}</p>
-                        <button onClick={handleBack} className="back-button">
-                            Geri Dön
-                        </button>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <AlertCircle className="w-8 h-8 text-red-600" />
                     </div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">Bir Hata Oluştu</h2>
+                    <p className="text-gray-500 mb-6">{error || 'Karşılaştırma verileri yüklenemedi'}</p>
+                    <button
+                        onClick={handleBack}
+                        className="bg-gray-900 hover:bg-black text-white px-6 py-2 rounded-xl font-bold transition-colors"
+                    >
+                        Geri Dön
+                    </button>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="compare-page">
-            <div className="compare-container">
-                <div className="compare-header">
-                    <div className="compare-header-left">
-                        <button onClick={handleBack} className="back-button">
-                            <ArrowLeft size={20} />
-                            <span>Geri Dön</span>
-                        </button>
-                        <h1 className="compare-title">İlan Karşılaştırma</h1>
-                    </div>
-                    <div className="compare-header-actions">
-                        <button onClick={handleClearAndBack} className="clear-button">
-                            <Trash2 size={18} />
-                            <span>Temizle ve Çık</span>
-                        </button>
-                        <button onClick={() => window.print()} className="print-button">
-                            <Printer size={18} />
-                            <span>Yazdır</span>
-                        </button>
-                    </div>
-                </div>
+        <div className="min-h-screen bg-gray-50/50 py-8 px-4 font-sans print:bg-white print:p-0">
+            <div className="max-w-7xl mx-auto">
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:shadow-none print:border-none">
+                    {/* Header */}
+                    <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-white print:hidden">
+                        <div className="flex items-center gap-4 w-full md:w-auto">
+                            <button
+                                onClick={handleBack}
+                                className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-500 hover:text-gray-900"
+                                title="Geri Dön"
+                            >
+                                <ArrowLeft className="w-6 h-6" />
+                            </button>
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                                    <GitCompare className="w-6 h-6 text-blue-600" />
+                                    İlan Karşılaştırma
+                                </h1>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    {selectedListings.length} ilan karşılaştırılıyor
+                                </p>
+                            </div>
+                        </div>
 
-                <ComparisonTable data={comparisonData} />
+                        <div className="flex items-center gap-3 w-full md:w-auto">
+                            <button
+                                onClick={handleClearAndBack}
+                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors border border-transparent hover:border-red-100"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span className="text-sm">Temizle ve Çık</span>
+                            </button>
+                            <button
+                                onClick={() => window.print()}
+                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-gray-900 hover:bg-black text-white rounded-xl font-bold transition-colors shadow-lg shadow-gray-900/10"
+                            >
+                                <Printer className="w-4 h-4" />
+                                <span>Yazdır</span>
+                            </button>
+                        </div>
+                    </div>
 
-                <div className="compare-footer">
-                    <p className="compare-footer-text">
-                        {selectedListings.length} ilan karşılaştırılıyor
-                    </p>
+                    {/* Content */}
+                    <div className="p-0 md:p-8 overflow-x-auto print:p-0">
+                        <div className="min-w-[800px]">
+                            <ComparisonTable data={comparisonData} />
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="bg-gray-50 p-4 text-center text-sm text-gray-400 border-t border-gray-100 print:hidden">
+                        Karşılaştırma tablosu {new Date().toLocaleDateString('tr-TR')} tarihinde oluşturuldu.
+                    </div>
                 </div>
             </div>
         </div>

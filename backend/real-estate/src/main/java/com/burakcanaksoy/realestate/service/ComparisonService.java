@@ -120,16 +120,16 @@ public class ComparisonService {
         fields.add(buildField("Yakıt Tipi", vehicles, v -> translateEnum(v.getFuelType().name())));
         fields.add(buildField("Vites", vehicles, v -> translateEnum(v.getTransmission().name())));
         fields.add(buildField("Araç Durumu", vehicles,
-                v -> v.getVehicleStatus() != null ? translateEnum(v.getVehicleStatus().name()) : "—"));
+                v -> v.getVehicleStatus() != null ? v.getVehicleStatus() : "—"));
         fields.add(buildField("KM", vehicles, v -> formatNumber(v.getKilometer()) + " km"));
         fields.add(buildField("Kasa Tipi", vehicles,
-                v -> v.getBodyType() != null ? translateEnum(v.getBodyType().name()) : "—"));
+                v -> v.getBodyType() != null ? v.getBodyType() : "—"));
         fields.add(
                 buildField("Motor Gücü", vehicles, v -> v.getEnginePower() != null ? v.getEnginePower() + " hp" : "—"));
         fields.add(buildField("Motor Hacmi", vehicles,
                 v -> v.getEngineVolume() != null ? v.getEngineVolume() + " cc" : "—"));
         fields.add(buildField("Çekiş", vehicles,
-                v -> v.getTractionType() != null ? translateEnum(v.getTractionType().name()) : "—"));
+                v -> v.getTractionType() != null ? v.getTractionType() : "—"));
         fields.add(buildField("Renk", vehicles, v -> v.getColor() != null ? v.getColor() : "—"));
         fields.add(buildField("Garanti", vehicles,
                 v -> v.getWarranty() != null ? (v.getWarranty() ? "Evet" : "Hayır") : "—"));
@@ -138,7 +138,7 @@ public class ComparisonService {
         fields.add(buildField("Plaka / Uyruk", vehicles,
                 v -> v.getPlateNationality() != null ? v.getPlateNationality() : "—"));
         fields.add(buildField("Kimden", vehicles,
-                v -> v.getFromWho() != null ? translateEnum(v.getFromWho().name()) : "—"));
+                v -> v.getFromWho() != null ? v.getFromWho() : "—"));
         fields.add(buildField("Takas", vehicles,
                 v -> v.getExchange() != null ? (v.getExchange() ? "Evet" : "Hayır") : "—"));
     }

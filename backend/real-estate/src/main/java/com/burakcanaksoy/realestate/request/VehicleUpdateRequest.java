@@ -21,11 +21,7 @@ public class VehicleUpdateRequest {
     @Size(max = 5000, message = "Description must not exceed 5000 characters")
     private String description;
 
-    @DecimalMin(
-            value = "0.0",
-            inclusive = false,
-            message = "Price must be greater than zero"
-    )
+    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than zero")
     private BigDecimal price;
 
     private Currency currency;
@@ -59,4 +55,34 @@ public class VehicleUpdateRequest {
 
     @Size(max = 20, message = "Engine volume must not exceed 20 characters")
     private String engineVolume;
+
+    @Size(max = 50, message = "Series must not exceed 50 characters")
+    private String series;
+
+    @Size(max = 20, message = "Vehicle status must not exceed 20 characters")
+    private String vehicleStatus;
+
+    @Size(max = 50, message = "Body type must not exceed 50 characters")
+    private String bodyType;
+
+    @Size(max = 20, message = "Engine power must not exceed 20 characters")
+    private String enginePower;
+
+    @Size(max = 50, message = "Traction type must not exceed 50 characters")
+    private String tractionType;
+
+    @Size(max = 30, message = "Color must not exceed 30 characters")
+    private String color;
+
+    @Size(max = 50, message = "Plate nationality must not exceed 50 characters")
+    private String plateNationality;
+
+    @Size(max = 20, message = "From who must not exceed 20 characters")
+    private String fromWho;
+
+    private Boolean warranty;
+
+    private Boolean heavyDamage;
+
+    private Boolean exchange;
 }

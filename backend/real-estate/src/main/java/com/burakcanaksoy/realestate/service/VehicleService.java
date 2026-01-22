@@ -155,6 +155,50 @@ public class VehicleService {
             vehicle.setEngineVolume(request.getEngineVolume());
         }
 
+        if (request.getSeries() != null) {
+            vehicle.setSeries(request.getSeries());
+        }
+
+        if (request.getVehicleStatus() != null) {
+            vehicle.setVehicleStatus(request.getVehicleStatus());
+        }
+
+        if (request.getBodyType() != null) {
+            vehicle.setBodyType(request.getBodyType());
+        }
+
+        if (request.getEnginePower() != null) {
+            vehicle.setEnginePower(request.getEnginePower());
+        }
+
+        if (request.getTractionType() != null) {
+            vehicle.setTractionType(request.getTractionType());
+        }
+
+        if (request.getColor() != null) {
+            vehicle.setColor(request.getColor());
+        }
+
+        if (request.getPlateNationality() != null) {
+            vehicle.setPlateNationality(request.getPlateNationality());
+        }
+
+        if (request.getFromWho() != null) {
+            vehicle.setFromWho(request.getFromWho());
+        }
+
+        if (request.getWarranty() != null) {
+            vehicle.setWarranty(request.getWarranty());
+        }
+
+        if (request.getHeavyDamage() != null) {
+            vehicle.setHeavyDamage(request.getHeavyDamage());
+        }
+
+        if (request.getExchange() != null) {
+            vehicle.setExchange(request.getExchange());
+        }
+
         Vehicle updatedVehicle = vehicleRepository.save(vehicle);
 
         return VehicleMapper.toResponse(updatedVehicle);

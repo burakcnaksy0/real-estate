@@ -64,45 +64,87 @@ public class ListingService {
 
     public Page<BaseListingResponse> search(GeneralFilterRequest filter, Pageable pageable) {
         List<BaseListing> allListings = new ArrayList<>();
+        String categorySlug = filter.getCategorySlug();
+
+        if (categorySlug != null && categorySlug.trim().isEmpty()) {
+            categorySlug = null;
+        }
+
+        boolean searchRealEstate = true;
+        boolean searchLand = true;
+        boolean searchVehicle = true;
+        boolean searchWorkplace = true;
+
+        // If a main category is selected, search only the relevant repository
+        // and clear categorySlug so it returns all listings of that type regardless of
+        // sub-category.
+        if ("emlak".equals(categorySlug)) {
+            searchLand = false;
+            searchVehicle = false;
+            searchWorkplace = false;
+            categorySlug = null;
+        } else if ("arsa".equals(categorySlug)) {
+            searchRealEstate = false;
+            searchVehicle = false;
+            searchWorkplace = false;
+            categorySlug = null;
+        } else if ("arac".equals(categorySlug)) {
+            searchRealEstate = false;
+            searchLand = false;
+            searchWorkplace = false;
+            categorySlug = null;
+        } else if ("isyeri".equals(categorySlug)) {
+            searchRealEstate = false;
+            searchLand = false;
+            searchVehicle = false;
+            categorySlug = null;
+        }
 
         // Her ilan tipine özgü filter request oluştur ve ara
-        RealEstateFilterRequest realEstateFilter = new RealEstateFilterRequest();
-        realEstateFilter.setCity(filter.getCity());
-        realEstateFilter.setDistrict(filter.getDistrict());
-        realEstateFilter.setCategorySlug(filter.getCategorySlug());
-        realEstateFilter.setStatus(filter.getStatus());
-        realEstateFilter.setMinPrice(filter.getMinPrice());
-        realEstateFilter.setMaxPrice(filter.getMaxPrice());
 
-        LandFilterRequest landFilter = new LandFilterRequest();
-        landFilter.setCity(filter.getCity());
-        landFilter.setDistrict(filter.getDistrict());
-        landFilter.setCategorySlug(filter.getCategorySlug());
-        landFilter.setStatus(filter.getStatus());
-        landFilter.setMinPrice(filter.getMinPrice());
-        landFilter.setMaxPrice(filter.getMaxPrice());
+        if (searchRealEstate) {
+            RealEstateFilterRequest realEstateFilter = new RealEstateFilterRequest();
+            realEstateFilter.setCity(filter.getCity());
+            realEstateFilter.setDistrict(filter.getDistrict());
+            realEstateFilter.setCategorySlug(categorySlug);
+            realEstateFilter.setStatus(filter.getStatus());
+            realEstateFilter.setMinPrice(filter.getMinPrice());
+            realEstateFilter.setMaxPrice(filter.getMaxPrice());
+            allListings.addAll(realEstateRepository.search(realEstateFilter, Pageable.unpaged()).getContent());
+        }
 
-        VehicleFilterRequest vehicleFilter = new VehicleFilterRequest();
-        vehicleFilter.setCity(filter.getCity());
-        vehicleFilter.setDistrict(filter.getDistrict());
-        vehicleFilter.setCategorySlug(filter.getCategorySlug());
-        vehicleFilter.setStatus(filter.getStatus());
-        vehicleFilter.setMinPrice(filter.getMinPrice());
-        vehicleFilter.setMaxPrice(filter.getMaxPrice());
+        if (searchLand) {
+            LandFilterRequest landFilter = new LandFilterRequest();
+            landFilter.setCity(filter.getCity());
+            landFilter.setDistrict(filter.getDistrict());
+            landFilter.setCategorySlug(categorySlug);
+            landFilter.setStatus(filter.getStatus());
+            landFilter.setMinPrice(filter.getMinPrice());
+            landFilter.setMaxPrice(filter.getMaxPrice());
+            allListings.addAll(landRepository.search(landFilter, Pageable.unpaged()).getContent());
+        }
 
-        WorkplaceFilterRequest workplaceFilter = new WorkplaceFilterRequest();
-        workplaceFilter.setCity(filter.getCity());
-        workplaceFilter.setDistrict(filter.getDistrict());
-        workplaceFilter.setCategorySlug(filter.getCategorySlug());
-        workplaceFilter.setStatus(filter.getStatus());
-        workplaceFilter.setMinPrice(filter.getMinPrice());
-        workplaceFilter.setMaxPrice(filter.getMaxPrice());
+        if (searchVehicle) {
+            VehicleFilterRequest vehicleFilter = new VehicleFilterRequest();
+            vehicleFilter.setCity(filter.getCity());
+            vehicleFilter.setDistrict(filter.getDistrict());
+            vehicleFilter.setCategorySlug(categorySlug);
+            vehicleFilter.setStatus(filter.getStatus());
+            vehicleFilter.setMinPrice(filter.getMinPrice());
+            vehicleFilter.setMaxPrice(filter.getMaxPrice());
+            allListings.addAll(vehicleRepository.search(vehicleFilter, Pageable.unpaged()).getContent());
+        }
 
-        // Tüm repository'lerden filtrelenmiş sonuçları al
-        allListings.addAll(realEstateRepository.search(realEstateFilter, Pageable.unpaged()).getContent());
-        allListings.addAll(landRepository.search(landFilter, Pageable.unpaged()).getContent());
-        allListings.addAll(vehicleRepository.search(vehicleFilter, Pageable.unpaged()).getContent());
-        allListings.addAll(workplaceRepository.search(workplaceFilter, Pageable.unpaged()).getContent());
+        if (searchWorkplace) {
+            WorkplaceFilterRequest workplaceFilter = new WorkplaceFilterRequest();
+            workplaceFilter.setCity(filter.getCity());
+            workplaceFilter.setDistrict(filter.getDistrict());
+            workplaceFilter.setCategorySlug(categorySlug);
+            workplaceFilter.setStatus(filter.getStatus());
+            workplaceFilter.setMinPrice(filter.getMinPrice());
+            workplaceFilter.setMaxPrice(filter.getMaxPrice());
+            allListings.addAll(workplaceRepository.search(workplaceFilter, Pageable.unpaged()).getContent());
+        }
 
         // Tarihe göre sırala (en yeni önce)
         allListings.sort(Comparator.comparing(BaseListing::getCreatedAt).reversed());
@@ -137,11 +179,11 @@ public class ListingService {
 
         // Konut (Real Estate)
         long realEstateCount = realEstateRepository.count();
-        stats.add(new CategoryStatsResponse("konut", "Emlak", realEstateCount));
+        stats.add(new CategoryStatsResponse("emlak", "Emlak", realEstateCount));
 
         // Vasıta (Vehicle)
         long vehicleCount = vehicleRepository.count();
-        stats.add(new CategoryStatsResponse("vasita", "Araçlar", vehicleCount));
+        stats.add(new CategoryStatsResponse("arac", "Araçlar", vehicleCount));
 
         // Arsa (Land)
         long landCount = landRepository.count();

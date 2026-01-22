@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Upload, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -8,6 +8,7 @@ import { useCategories } from '../../hooks/useCategories';
 import { RealEstate, RealEstateCreateRequest, Currency, RealEstateType, HeatingType, KitchenType, TittleStatus, UsingStatus, ListingFrom, OfferType } from '../../types';
 import { VideoUpload, VideoFile } from '../../components/VideoUpload/VideoUpload';
 import { VideoService } from '../../services/videoService';
+import { ImageService, ImageResponse } from '../../services/imageService';
 
 interface EditRealEstateModalProps {
     realEstate: RealEstate;
@@ -45,15 +46,22 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
     const activeCategories = getActiveCategories();
     const [video, setVideo] = useState<VideoFile | null>(null);
     const [uploadingVideo, setUploadingVideo] = useState(false);
+    const [uploadingImages, setUploadingImages] = useState(false);
+    const [selectedImages, setSelectedImages] = useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [existingImages, setExistingImages] = useState<ImageResponse[]>([]);
 
     const {
         register,
         handleSubmit,
         formState: { errors },
         reset,
+        watch,
     } = useForm<RealEstateCreateRequest>({
         resolver: yupResolver(realEstateSchema) as any,
     });
+
+    const inComplex = watch('inComplex');
 
     useEffect(() => {
         if (isOpen && realEstate) {
@@ -88,12 +96,54 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                 fromWho: realEstate.fromWho,
                 offerType: realEstate.offerType,
             });
+            fetchImages();
         }
     }, [isOpen, realEstate, reset]);
+
+    const fetchImages = async () => {
+        try {
+            const imgs = await ImageService.getListingImages(realEstate.id, 'REAL_ESTATE');
+            setExistingImages(imgs);
+        } catch (error) {
+            console.error('Error fetching images:', error);
+        }
+    };
+
+    const handleRemoveExistingImage = async (imageId: number) => {
+        if (window.confirm('Bu fotoğrafı silmek istediğinizden emin misiniz?')) {
+            try {
+                await ImageService.deleteImage(imageId);
+                setExistingImages(prev => prev.filter(img => img.id !== imageId));
+            } catch (error) {
+                console.error('Error deleting image:', error);
+            }
+        }
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        setSelectedImages(files);
+
+        // Create previews
+        const previews = files.map(file => URL.createObjectURL(file));
+        setImagePreviews(previews);
+    };
 
     const onSubmit = async (data: RealEstateCreateRequest) => {
         try {
             await update(realEstate.id, data);
+
+            // Upload images if selected
+            if (selectedImages.length > 0) {
+                setUploadingImages(true);
+                try {
+                    await ImageService.uploadImages(selectedImages, realEstate.id, 'REAL_ESTATE');
+                } catch (error) {
+                    console.error('Error uploading images:', error);
+                } finally {
+                    setUploadingImages(false);
+                }
+            }
 
             // Upload video if selected
             if (video) {
@@ -286,6 +336,7 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                         <input
                                             {...register('roomCount')}
                                             type="text"
+                                            placeholder="2+1"
                                             className={`input-field ${errors.roomCount ? 'border-red-500' : ''}`}
                                         />
                                     </div>
@@ -321,6 +372,7 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                         <input
                                             {...register('buildingAge')}
                                             type="text"
+                                            placeholder="0-5 yıl"
                                             className={`input-field ${errors.buildingAge ? 'border-red-500' : ''}`}
                                         />
                                     </div>
@@ -330,8 +382,18 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                         <input
                                             {...register('floor', { valueAsNumber: true })}
                                             type="number"
-                                            min="0"
+                                            min="-5"
                                             className={`input-field ${errors.floor ? 'border-red-500' : ''}`}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kat Sayısı</label>
+                                        <input
+                                            {...register('totalFloors', { valueAsNumber: true })}
+                                            type="number"
+                                            min="0"
+                                            className={`input-field ${errors.totalFloors ? 'border-red-500' : ''}`}
                                         />
                                     </div>
 
@@ -352,14 +414,13 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Eşyalı *</label>
-                                        <select
-                                            {...register('furnished')}
-                                            className={`input-field ${errors.furnished ? 'border-red-500' : ''}`}
-                                        >
-                                            <option value="true">Evet</option>
-                                            <option value="false">Hayır</option>
-                                        </select>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Banyo Sayısı</label>
+                                        <input
+                                            {...register('bathroomCount', { valueAsNumber: true })}
+                                            type="number"
+                                            min="0"
+                                            className={`input-field ${errors.bathroomCount ? 'border-red-500' : ''}`}
+                                        />
                                     </div>
 
                                     <div>
@@ -375,26 +436,6 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                                 </option>
                                             ))}
                                         </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Banyo Sayısı</label>
-                                        <input
-                                            {...register('bathroomCount', { valueAsNumber: true })}
-                                            type="number"
-                                            min="0"
-                                            className={`input-field ${errors.bathroomCount ? 'border-red-500' : ''}`}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kat Sayısı</label>
-                                        <input
-                                            {...register('totalFloors', { valueAsNumber: true })}
-                                            type="number"
-                                            min="0"
-                                            className={`input-field ${errors.totalFloors ? 'border-red-500' : ''}`}
-                                        />
                                     </div>
 
                                     <div>
@@ -430,6 +471,28 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                             ))}
                                         </select>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Eşyalı *</label>
+                                        <select
+                                            {...register('furnished')}
+                                            className={`input-field ${errors.furnished ? 'border-red-500' : ''}`}
+                                        >
+                                            <option value="true">Evet</option>
+                                            <option value="false">Hayır</option>
+                                        </select>
+                                    </div>
+
+                                    {inComplex && (
+                                        <div className="col-span-2 md:col-span-3">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Site Adı</label>
+                                            <input
+                                                {...register('complexName')}
+                                                type="text"
+                                                className="input-field"
+                                            />
+                                        </div>
+                                    )}
 
                                     <div className="col-span-2 md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
                                         <label className="flex items-center space-x-2">
@@ -505,6 +568,70 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                                 </div>
                             </div>
 
+                            {/* Images */}
+                            <div>
+                                <h4 className="text-md font-semibold text-gray-900 mb-4">Fotoğraflar</h4>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                                    <label className="cursor-pointer flex flex-col items-center">
+                                        <Upload className="h-12 w-12 text-gray-400 mb-2" />
+                                        <span className="text-sm text-gray-600">Fotoğraf eklemek için tıklayın</span>
+                                        <span className="text-xs text-gray-500 mt-1">Birden fazla fotoğraf seçebilirsiniz</span>
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            onChange={handleImageSelect}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                    <div className="mt-4 space-y-4">
+                                        {/* Existing Images */}
+                                        {existingImages.length > 0 && (
+                                            <div>
+                                                <h5 className="text-sm font-medium text-gray-700 mb-2">Mevcut Fotoğraflar</h5>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                    {existingImages.map((img) => (
+                                                        <div key={img.id} className="relative group">
+                                                            <img
+                                                                src={ImageService.getImageUrl(img.id)}
+                                                                alt="Real Estate"
+                                                                className="w-full h-24 object-cover rounded-lg"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveExistingImage(img.id)}
+                                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                title="Fotoğrafı Sil"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* New Image Previews */}
+                                        {imagePreviews.length > 0 && (
+                                            <div>
+                                                <h5 className="text-sm font-medium text-gray-700 mb-2">Yeni Eklenecek Fotoğraflar</h5>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                    {imagePreviews.map((preview, index) => (
+                                                        <div key={index} className="relative">
+                                                            <img
+                                                                src={preview}
+                                                                alt={`New Preview ${index + 1}`}
+                                                                className="w-full h-24 object-cover rounded-lg"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Video */}
                             <div>
                                 <h4 className="text-md font-semibold text-gray-900 mb-4">Video</h4>
@@ -529,19 +656,21 @@ export const EditRealEstateModal: React.FC<EditRealEstateModalProps> = ({
                             type="button"
                             onClick={onClose}
                             className="btn-secondary"
-                            disabled={isLoading || uploadingVideo}
+                            disabled={isLoading || uploadingVideo || uploadingImages}
                         >
                             İptal
                         </button>
                         <button
                             onClick={handleSubmit(onSubmit)}
-                            disabled={isLoading || uploadingVideo}
+                            disabled={isLoading || uploadingVideo || uploadingImages}
                             className="btn-primary flex items-center space-x-2 disabled:opacity-50"
                         >
-                            {isLoading ? (
+                            {isLoading || uploadingVideo || uploadingImages ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    <span>{uploadingVideo ? 'Video Yükleniyor...' : 'Kaydediliyor...'}</span>
+                                    <span>
+                                        {uploadingImages ? 'Fotoğraflar Yükleniyor...' : uploadingVideo ? 'Video Yükleniyor...' : 'Kaydediliyor...'}
+                                    </span>
                                 </>
                             ) : (
                                 <>

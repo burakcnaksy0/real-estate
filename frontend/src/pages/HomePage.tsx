@@ -1,61 +1,84 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ListingService } from '../services/listingService';
-import { Sparkles, TrendingUp, Shield, Zap, Globe, ArrowRight, Search, Star } from 'lucide-react';
-import { getImageUrl } from '../utils/imageUtils';
+import {
+  Sparkles,
+  TrendingUp,
+  Shield,
+  Zap,
+  Globe,
+  ArrowRight,
+  Search,
+  Star,
+  Home,
+  Car,
+  Map,
+  Building2,
+  User as UserIcon,
+  Check,
+  MapPin
+} from 'lucide-react';
 
 interface CategoryStats {
   name: string;
   href: string;
-  icon: string;
+  icon: React.ElementType;
   count: number;
   description: string;
   categorySlug: string;
-  gradient: string;
+  colorClass: string;
+  bgClass: string;
 }
 
 export const HomePage: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([
     {
       name: 'Emlak',
       href: '/real-estates',
-      icon: '🏠',
+      icon: Home,
       count: 0,
-      description: 'Ev, daire, villa',
-      categorySlug: 'konut',
-      gradient: 'from-blue-500 to-cyan-500'
+      description: 'Satılık & Kiralık Konutlar',
+      categorySlug: 'emlak',
+      colorClass: 'text-blue-600',
+      bgClass: 'bg-blue-50'
     },
     {
       name: 'Araçlar',
       href: '/vehicles',
-      icon: '🚗',
+      icon: Car,
       count: 0,
-      description: 'Otomobil, motosiklet',
-      categorySlug: 'vasita',
-      gradient: 'from-purple-500 to-pink-500'
+      description: 'Otomobil, SUV & Motosiklet',
+      categorySlug: 'arac',
+      colorClass: 'text-indigo-600',
+      bgClass: 'bg-indigo-50'
     },
     {
       name: 'Arsalar',
       href: '/lands',
-      icon: '🌾',
+      icon: Map,
       count: 0,
-      description: 'Tarla, bahçe, arsa',
+      description: 'Yatırımlık Arsa & Tarlalar',
       categorySlug: 'arsa',
-      gradient: 'from-green-500 to-emerald-500'
+      colorClass: 'text-emerald-600',
+      bgClass: 'bg-emerald-50'
     },
     {
       name: 'İşyerleri',
       href: '/workplaces',
-      icon: '🏢',
+      icon: Building2,
       count: 0,
-      description: 'Ofis, dükkan, fabrika',
+      description: 'Ofis, Dükkan & Depo',
       categorySlug: 'isyeri',
-      gradient: 'from-orange-500 to-red-500'
+      colorClass: 'text-amber-600',
+      bgClass: 'bg-amber-50'
     },
   ]);
-  const [loading, setLoading] = useState(true);
+
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchCategoryCounts = async () => {
@@ -82,280 +105,237 @@ export const HomePage: React.FC = () => {
     fetchCategoryCounts();
   }, []);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
   const formatCount = (count: number): string => {
-    return new Intl.NumberFormat('tr-TR').format(count);
+    return new Intl.NumberFormat('tr-TR', { notation: "compact", compactDisplay: "short" }).format(count);
   };
 
   return (
-    <div className="space-y-24 overflow-hidden">
-      {/* Welcome Message for Authenticated Users */}
-      {isAuthenticated && user && (
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 rounded-3xl"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-3xl"></div>
-          <div className="relative bg-white/60 backdrop-blur-xl border border-emerald-200/50 rounded-3xl p-8 shadow-xl">
-            <div className="flex items-center gap-5">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl blur-lg opacity-50"></div>
-                {user.profilePicture ? (
-                  <img
-                    src={getImageUrl(user.profilePicture)}
-                    alt={user.name || user.username}
-                    className="relative w-16 h-16 rounded-2xl object-cover shadow-lg border-2 border-white"
-                  />
-                ) : (
-                  <div className="relative w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
-                    <span className="text-white font-bold text-2xl">
-                      {user.name ? user.name.charAt(0).toUpperCase() : user.username?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
-                    Hoş geldiniz, {user.name && user.surname ? `${user.name} ${user.surname}` : user.username}!
-                  </h3>
-                  <Sparkles className="h-5 w-5 text-emerald-500" />
+    <div className="min-h-screen bg-gray-50 font-sans">
+      {/* Hero Section */}
+      <div className="relative h-[600px] lg:h-[700px] flex items-center overflow-hidden">
+        {/* Background Image & Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80"
+            alt="Hero Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-blue-900/60 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-transparent to-transparent opacity-90" />
+        </div>
+
+        {/* Content */}
+        <div className="container mx-auto px-4 relative z-10 pt-20">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/20 backdrop-blur-md border border-blue-400/30 text-blue-100 text-sm font-medium mb-6 animate-fade-in-up">
+              <Sparkles className="w-4 h-4 text-yellow-300" />
+              <span>Türkiye'nin Yeni Nesil İlan Platformu</span>
+            </div>
+
+            <h1 className="text-4xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-sm">
+              {isAuthenticated && user ? (
+                <>
+                  Tekrar Hoş Geldin, <span className="text-blue-300">{user.name}</span>.<br />
+                  <span className="text-2xl lg:text-4xl font-normal text-gray-200 mt-2 block">Bugün ne arıyorsun?</span>
+                </>
+              ) : (
+                <>
+                  Hayallerinizdeki <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">Yaşamı</span><br />
+                  Keşfetmeye Başlayın
+                </>
+              )}
+            </h1>
+
+            <p className="text-lg text-gray-200 mb-10 max-w-xl mx-auto leading-relaxed">
+              Binlerce emlak, vasıta ve arsa ilanı arasından size en uygun olanı güvenle bulun. Vesta ile ilan vermek de aramak da çok kolay.
+            </p>
+
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto">
+              <div className="relative flex items-center bg-white rounded-2xl shadow-xl p-2 transition-all focus-within:ring-4 focus-within:ring-blue-500/20 focus-within:scale-[1.01]">
+                <div className="pl-4 text-gray-400">
+                  <Search className="w-6 h-6" />
                 </div>
-                <p className="text-slate-600 text-lg">
-                  İlan vermek için hazır mısınız? Hemen başlayın!
-                </p>
+                <input
+                  type="text"
+                  placeholder="Nereyi veya neyi arıyorsunuz? (Örn: Kadıköy Satılık Daire)"
+                  className="w-full px-4 py-3 bg-transparent border-none outline-none text-gray-800 placeholder-gray-400 text-lg"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2"
+                >
+                  Ara
+                </button>
               </div>
-              <Link
-                to="/create"
-                className="hidden md:flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-              >
-                İlan Ver
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+            </form>
+
+            <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-gray-200 font-medium">
+              <span className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" /> Doğrulanmış İlanlar</span>
+              <span className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" /> Güvenli Ödeme</span>
+              <span className="flex items-center gap-2"><Check className="w-4 h-4 text-green-400" /> 7/24 Destek</span>
             </div>
           </div>
-        </section>
-      )}
-
-      {/* Hero Section */}
-      <section className="relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5 rounded-3xl"></div>
-        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-400/30 to-cyan-400/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-purple-400/30 to-pink-400/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
-
-        <div className="relative text-center py-24 px-4">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-blue-200/50 rounded-full px-5 py-2 mb-8">
-            <Star className="h-4 w-4 text-blue-600 fill-blue-600" />
-            <span className="text-sm font-semibold text-slate-700">Türkiye'nin En Güvenilir Platformu</span>
-          </div>
-
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
-            <span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
-              Hayalinizdeki Yaşam,
-            </span>
-            <br />
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Vesta Güvencesiyle Başlar
-            </span>
-          </h1>
-
-          <p className="text-xl md:text-2xl mb-12 text-slate-600 max-w-4xl mx-auto leading-relaxed">
-            Emlak, araç, arsa ve iş yeri arayışlarınızda güvenilir limanınız. Modern arayüzümüz ve geniş portföyümüzle
-            hayallerinizdeki yatırımı bulmak artık <span className="font-semibold text-slate-800">çok daha kolay</span>.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              to="/listings"
-              className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-5 px-10 rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105"
-            >
-              <Search className="h-5 w-5" />
-              Tüm İlanları Keşfet
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            {!isAuthenticated && (
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-semibold py-5 px-10 rounded-2xl shadow-xl border border-slate-200 transition-all duration-200 hover:scale-105"
-              >
-                Ücretsiz Kayıt Ol
-                <Sparkles className="h-5 w-5" />
-              </Link>
-            )}
-          </div>
         </div>
-      </section>
+      </div>
 
-      {/* Categories Section */}
-      <section>
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-slate-100 to-slate-50 rounded-full px-5 py-2 mb-4">
-            <TrendingUp className="h-4 w-4 text-slate-600" />
-            <span className="text-sm font-semibold text-slate-700">Popüler Kategoriler</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-            Ne Arıyorsunuz?
-          </h2>
-          <p className="text-slate-600 text-xl max-w-2xl mx-auto">
-            İhtiyacınıza uygun kategoriyi seçin ve binlerce ilan arasından size en uygun olanı bulun
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categoryStats.map((category, index) => (
-            <Link
-              key={category.name}
-              to={category.href}
-              className="group relative bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
-
-              <div className="relative p-8">
-                <div className={`w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br ${category.gradient} flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  {category.icon}
-                </div>
-
-                <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-slate-900 group-hover:to-slate-600 transition-all">
-                  {category.name}
-                </h3>
-
-                <p className="text-slate-500 mb-4 text-sm">
-                  {category.description}
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <p className={`font-bold text-lg bg-gradient-to-r ${category.gradient} bg-clip-text text-transparent`}>
-                    {loading ? (
-                      <span className="inline-block animate-pulse">...</span>
-                    ) : (
-                      `${formatCount(category.count)} ilan`
-                    )}
-                  </p>
-                  <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
-                </div>
+      {/* Stats Section (Floating) */}
+      <div className="container mx-auto px-4 -mt-16 relative z-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-8 bg-white rounded-3xl shadow-xl border border-gray-100 p-6 lg:p-10">
+          {[
+            { label: 'Aktif İlan', value: '15k+', icon: TrendingUp, color: 'text-blue-500', bg: 'bg-blue-50' },
+            { label: 'Mutlu Müşteri', value: '45k+', icon: UserIcon, color: 'text-purple-500', bg: 'bg-purple-50' },
+            { label: 'Şehir', value: '81', icon: MapPin, color: 'text-red-500', bg: 'bg-red-50' },
+            { label: 'Yıllık Deneyim', value: '10+', icon: Shield, color: 'text-green-500', bg: 'bg-green-50' },
+          ].map((stat, idx) => (
+            <div key={idx} className="flex flex-col items-center text-center p-2">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 ${stat.bg} ${stat.color}`}>
+                <stat.icon className="w-6 h-6" />
               </div>
-            </Link>
+              <span className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</span>
+              <span className="text-sm text-gray-500 font-medium">{stat.label}</span>
+            </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* Features Section */}
-      <section className="relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white rounded-3xl"></div>
-
-        <div className="relative py-16">
+      {/* Categories Section */}
+      <section className="py-24">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full px-5 py-2 mb-4">
-              <Shield className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-semibold text-slate-700">Neden Vesta?</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-              Güvenli ve Kolay İlan Platformu
-            </h2>
-            <p className="text-slate-600 text-xl max-w-2xl mx-auto">
-              Size en iyi deneyimi sunmak için tasarlandı
+            <span className="text-blue-600 font-bold tracking-wider uppercase text-sm mb-2 block">Kategoriler</span>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Neler Keşfetmek İstersiniz?</h2>
+            <p className="text-gray-500 max-w-2xl mx-auto">
+              İhtiyacınız olan her türlü ilan kategorisine kolayca ulaşın. En popüler kategorilerimizi sizin için derledik.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Shield,
-                title: 'Doğrulanmış Güven',
-                description: 'Sahte ilanlarla vakit kaybetmeyin. Tüm ilanlar ekibimiz tarafından titizlikle kontrol edilir.',
-                gradient: 'from-blue-500 to-cyan-500',
-                bgGradient: 'from-blue-50 to-cyan-50'
-              },
-              {
-                icon: Zap,
-                title: 'Hız ve Kolaylık',
-                description: 'Karmaşık menülerle uğraşmayın. İlan vermek de, aradığınızı bulmak da saniyeler sürer.',
-                gradient: 'from-purple-500 to-pink-500',
-                bgGradient: 'from-purple-50 to-pink-50'
-              },
-              {
-                icon: Globe,
-                title: 'Geniş Portföy',
-                description: 'Konut, araç, arsa ve iş yeri... Yatırım yapabileceğiniz tüm kategoriler tek bir platformda.',
-                gradient: 'from-green-500 to-emerald-500',
-                bgGradient: 'from-green-50 to-emerald-50'
-              },
-            ].map((feature, index) => (
-              <div
-                key={index}
-                className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-slate-100"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categoryStats.map((category) => (
+              <Link
+                to={category.href}
+                key={category.name}
+                className="group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 overflow-hidden"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl`}></div>
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${category.bgClass} opacity-50 rounded-bl-[100px] transition-transform duration-500 group-hover:scale-150`}></div>
 
-                <div className="relative">
-                  <div className={`w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <feature.icon className="h-8 w-8 text-white" />
-                  </div>
-
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">
-                    {feature.title}
-                  </h3>
-
-                  <p className="text-slate-600 leading-relaxed">
-                    {feature.description}
-                  </p>
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 relative z-10 ${category.bgClass} ${category.colorClass}`}>
+                  <category.icon className="w-8 h-8" />
                 </div>
-              </div>
+
+                <div className="relative z-10">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    {category.name}
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                    {category.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="bg-gray-50 px-3 py-1 rounded-full text-xs font-semibold text-gray-600 border border-gray-100">
+                      {loading ? '...' : formatCount(category.count)} İlan
+                    </span>
+                    <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+      {/* Feature Section */}
+      <section className="py-24 bg-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-50/50 rounded-l-full blur-3xl opacity-60"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="w-full lg:w-1/2 relative">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+                <img
+                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                  alt="Happy Family"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/50">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-green-100 p-3 rounded-full text-green-600">
+                      <Star className="w-6 h-6 fill-current" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">Müşteri Memnuniyeti</p>
+                      <p className="text-sm text-gray-600">Binlerce mutlu müşteri Vesta'yı tercih ediyor.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Decorative Elements */}
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob"></div>
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob animation-delay-2000"></div>
+            </div>
 
-        <div className="relative text-center py-20 px-4">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-5 py-2 mb-6">
-            <Sparkles className="h-4 w-4 text-white" />
-            <span className="text-sm font-semibold text-white">Başlamak İçin Hazır Mısınız?</span>
+            <div className="w-full lg:w-1/2">
+              <span className="text-blue-600 font-bold tracking-wider uppercase text-sm mb-2 block">Neden Vesta?</span>
+              <h2 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
+                İlan Vermenin ve Aramanın <br />
+                <span className="text-blue-600">En Kolay Yolu</span>
+              </h2>
+              <p className="text-gray-500 text-lg mb-8 leading-relaxed">
+                Vesta, gelişmiş filtreleme seçenekleri, güvenli mesajlaşma altyapısı ve kullanıcı dostu arayüzü ile aradığınızı bulmanızı kolaylaştırır.
+              </p>
+
+              <div className="space-y-6">
+                {[
+                  { title: 'Güvenli Altyapı', desc: 'Tüm verileriniz 256-bit SSL şifreleme ile korunur.', icon: Shield },
+                  { title: 'Hızlı İşlem', desc: 'İlanlarınızı saniyeler içinde oluşturun ve yayınlayın.', icon: Zap },
+                  { title: 'Global Erişim', desc: 'İlanlarınız 81 ilde milyonlarca kullanıcıya ulaşsın.', icon: Globe },
+                ].map((feature, i) => (
+                  <div key={i} className="flex gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                    <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                      <feature.icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">{feature.title}</h4>
+                      <p className="text-gray-500 text-sm">{feature.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-10">
+                <Link to="/register" className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-bold transition-all hover:shadow-lg hover:-translate-y-1">
+                  Hemen Başla <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            {isAuthenticated ? 'İlanınızı Hemen Verin' : 'Üye Olun ve İlan Verin'}
-          </h2>
-
-          <p className="text-white/90 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            {isAuthenticated
-              ? 'Mülkünüzü satmak veya kiralamak mı istiyorsunuz? Ücretsiz ilan vererek binlerce potansiyel alıcıya ulaşın.'
-              : 'Ücretsiz üye olun ve mülkünüzü satmak veya kiralamak için ilan verin. Binlerce potansiyel alıcıya ulaşın.'
-            }
+      {/* CTA Section */}
+      <section className="py-20 bg-blue-600 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">İlan Vermeye Hazır mısın?</h2>
+          <p className="text-blue-100 text-lg max-w-2xl mx-auto mb-10">
+            Evinizi, arabanızı veya arsanızı satmak artık çok kolay. Ücretsiz üye olun ve ilanınızı hemen yayınlayın.
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {isAuthenticated ? (
-              <Link
-                to="/create"
-                className="group inline-flex items-center gap-3 bg-white text-blue-600 hover:bg-blue-50 font-bold py-5 px-10 rounded-2xl shadow-2xl transition-all duration-200 hover:scale-105"
-              >
-                <Sparkles className="h-5 w-5" />
-                İlan Ver
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/register"
-                  className="group inline-flex items-center gap-3 bg-white text-blue-600 hover:bg-blue-50 font-bold py-5 px-10 rounded-2xl shadow-2xl transition-all duration-200 hover:scale-105"
-                >
-                  <Sparkles className="h-5 w-5" />
-                  Ücretsiz Kayıt Ol
-                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-5 px-10 rounded-2xl border border-white/30 transition-all duration-200 hover:scale-105"
-                >
-                  Giriş Yap
-                </Link>
-              </>
-            )}
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link to="/create" className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20">
+              Ücretsiz İlan Ver
+            </Link>
+            <Link to="/listings" className="bg-blue-700 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-800 transition-colors border border-blue-500">
+              İlanları İncele
+            </Link>
           </div>
         </div>
       </section>

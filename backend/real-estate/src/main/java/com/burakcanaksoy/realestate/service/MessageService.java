@@ -34,6 +34,7 @@ public class MessageService {
     private final LandRepository landRepository;
     private final WorkplaceRepository workplaceRepository;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    private final ActivityLogService activityLogService;
 
     @Transactional
     public MessageDetailResponse sendMessage(MessageCreateRequest request, Long senderId) {
@@ -59,6 +60,10 @@ public class MessageService {
         messagingTemplate.convertAndSend("/topic/messages/" + request.getReceiverId(), response);
         // Notify sender (for multi-tab sync)
         messagingTemplate.convertAndSend("/topic/messages/" + senderId, response);
+
+        // Log activity
+        String description = String.format("User sent message to %s", receiver.getUsername());
+        activityLogService.logActivity(sender.getUsername(), "MESSAGE_SENT", description, "N/A");
 
         return response;
     }

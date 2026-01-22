@@ -3,7 +3,22 @@ import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { VehicleService } from '../../services/vehicleService';
 import { Vehicle, VehicleFilterRequest } from '../../types';
-import { MapPin, Calendar, Tag, TrendingUp, Image as ImageIcon, Heart } from 'lucide-react';
+import {
+  MapPin,
+  Calendar,
+  Tag,
+  Image as ImageIcon,
+  Filter,
+  Search,
+  SlidersHorizontal,
+  Car,
+  Fuel,
+  Gauge,
+  Settings2,
+  X,
+  ArrowRight,
+  Heart
+} from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
 import CompareCheckbox from '../../components/CompareCheckbox';
 import { toggleListing } from '../../store/slices/comparisonSlice';
@@ -16,6 +31,7 @@ export const VehicleListPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const [filters, setFilters] = useState<VehicleFilterRequest>({
     city: '',
@@ -41,19 +57,13 @@ export const VehicleListPage: React.FC = () => {
       setError(null);
 
       const cleanFilters: VehicleFilterRequest = {};
-      if (filters.city?.trim()) cleanFilters.city = filters.city.trim();
-      if (filters.district?.trim()) cleanFilters.district = filters.district.trim();
-      if (filters.categorySlug?.trim()) cleanFilters.categorySlug = filters.categorySlug.trim();
-      if (filters.minPrice !== undefined && filters.minPrice > 0) cleanFilters.minPrice = filters.minPrice;
-      if (filters.maxPrice !== undefined && filters.maxPrice > 0) cleanFilters.maxPrice = filters.maxPrice;
-      if (filters.brand?.trim()) cleanFilters.brand = filters.brand.trim();
-      if (filters.model?.trim()) cleanFilters.model = filters.model.trim();
-      if (filters.minYear !== undefined && filters.minYear > 0) cleanFilters.minYear = filters.minYear;
-      if (filters.maxYear !== undefined && filters.maxYear > 0) cleanFilters.maxYear = filters.maxYear;
-      if (filters.fuelType) cleanFilters.fuelType = filters.fuelType;
-      if (filters.transmission) cleanFilters.transmission = filters.transmission;
-      if (filters.minKilometer !== undefined && filters.minKilometer >= 0) cleanFilters.minKilometer = filters.minKilometer;
-      if (filters.maxKilometer !== undefined && filters.maxKilometer >= 0) cleanFilters.maxKilometer = filters.maxKilometer;
+      Object.keys(filters).forEach(key => {
+        const value = filters[key as keyof VehicleFilterRequest];
+        if (value !== undefined && value !== '' && value !== null) {
+          // @ts-ignore
+          cleanFilters[key] = typeof value === 'string' ? value.trim() : value;
+        }
+      });
 
       const response = await VehicleService.search(cleanFilters, {
         page,
@@ -83,6 +93,7 @@ export const VehicleListPage: React.FC = () => {
 
   const handleSearch = () => {
     fetchVehicles(0);
+    setShowMobileFilters(false);
   };
 
   const handleClearFilters = () => {
@@ -115,368 +126,411 @@ export const VehicleListPage: React.FC = () => {
     return new Intl.NumberFormat('tr-TR', {
       style: 'currency',
       currency: currency || 'TRY',
+      maximumFractionDigits: 0
     }).format(price);
   };
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(date);
+  const getFuelTypeLabel = (type: string) => {
+    switch (type) {
+      case 'GASOLINE': return 'Benzin';
+      case 'DIESEL': return 'Dizel';
+      case 'ELECTRIC': return 'Elektrik';
+      case 'HYBRID': return 'Hibrit';
+      case 'LPG': return 'LPG';
+      default: return type;
+    }
+  };
+
+  const getTransmissionLabel = (type: string) => {
+    switch (type) {
+      case 'MANUAL': return 'Manuel';
+      case 'AUTOMATIC': return 'Otomatik';
+      default: return type;
+    }
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-2xl p-8">
-        <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-gray-50/50 py-8 font-sans">
+      <div className="container mx-auto px-4">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Araç İlanları</h1>
-            <p className="text-red-100">
-              {totalElements > 0 ? `${totalElements} araç ilanı bulundu` : 'Araç ilanlarını keşfedin'}
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Satılık Araç İlanları</h1>
+            <p className="text-gray-500 mt-1 flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              {totalElements} araç bulundu
             </p>
           </div>
-          <Link
-            to="/vehicles/create"
-            className="bg-white text-red-600 hover:bg-red-50 font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            İlan Ver
-          </Link>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5" />
-          Filtrele
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Şehir</label>
-            <input
-              type="text"
-              value={filters.city || ''}
-              onChange={(e) => handleFilterChange('city', e.target.value)}
-              placeholder="Örn: İstanbul"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">İlçe</label>
-            <input
-              type="text"
-              value={filters.district || ''}
-              onChange={(e) => handleFilterChange('district', e.target.value)}
-              placeholder="Örn: Kadıköy"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Marka</label>
-            <input
-              type="text"
-              value={filters.brand || ''}
-              onChange={(e) => handleFilterChange('brand', e.target.value)}
-              placeholder="Örn: Toyota"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
-            <input
-              type="text"
-              value={filters.model || ''}
-              onChange={(e) => handleFilterChange('model', e.target.value)}
-              placeholder="Örn: Corolla"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Yakıt Tipi</label>
-            <select
-              value={filters.fuelType || ''}
-              onChange={(e) => handleFilterChange('fuelType', e.target.value || undefined)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          <div className="flex gap-3 w-full md:w-auto">
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="md:hidden flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl font-medium text-gray-700 shadow-sm"
             >
-              <option value="">Tümü</option>
-              <option value="GASOLINE">Benzin</option>
-              <option value="DIESEL">Dizel</option>
-              <option value="ELECTRIC">Elektrik</option>
-              <option value="HYBRID">Hibrit</option>
-              <option value="LPG">LPG</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Vites</label>
-            <select
-              value={filters.transmission || ''}
-              onChange={(e) => handleFilterChange('transmission', e.target.value || undefined)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              <Filter className="w-4 h-4" /> Filtrele
+            </button>
+            <Link
+              to="/vehicles/create"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.98]"
             >
-              <option value="">Tümü</option>
-              <option value="MANUAL">Manuel</option>
-              <option value="AUTOMATIC">Otomatik</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min Fiyat</label>
-            <input
-              type="number"
-              value={filters.minPrice || ''}
-              onChange={(e) => handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Fiyat</label>
-            <input
-              type="number"
-              value={filters.maxPrice || ''}
-              onChange={(e) => handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="999999999"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min Yıl</label>
-            <input
-              type="number"
-              value={filters.minYear || ''}
-              onChange={(e) => handleFilterChange('minYear', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="2000"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Yıl</label>
-            <input
-              type="number"
-              value={filters.maxYear || ''}
-              onChange={(e) => handleFilterChange('maxYear', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="2024"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min KM</label>
-            <input
-              type="number"
-              value={filters.minKilometer || ''}
-              onChange={(e) => handleFilterChange('minKilometer', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max KM</label>
-            <input
-              type="number"
-              value={filters.maxKilometer || ''}
-              onChange={(e) => handleFilterChange('maxKilometer', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="999999"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
+              + İlan Ver
+            </Link>
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={handleSearch}
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            Ara
-          </button>
-          <button
-            onClick={handleClearFilters}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            Temizle
-          </button>
-        </div>
-      </div>
-
-      {/* Loading */}
-      {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
-        </div>
-      )}
-
-      {/* Error */}
-      {error && !loading && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600">{error}</p>
-        </div>
-      )}
-
-      {/* Listings Grid */}
-      {!loading && !error && vehicles.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {vehicles.map((vehicle) => (
-              <Link
-                key={vehicle.id}
-                to={`/vehicles/${vehicle.id}`}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-200 overflow-hidden group flex flex-col h-full"
-              >
-                <div className="relative h-56 bg-gray-100 overflow-hidden shrink-0">
-                  {/* Compare Checkbox */}
-                  <div onClick={(e) => e.preventDefault()}>
-                    <CompareCheckbox
-                      listingId={vehicle.id}
-                      category="vehicle"
-                      onToggle={() => dispatch(toggleListing({ id: vehicle.id, category: 'vehicle' }))}
-                    />
-                  </div>
-
-                  {vehicle.imageUrl ? (
-                    <img
-                      src={getImageUrl(vehicle.imageUrl) || ''}
-                      alt={vehicle.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.parentElement?.classList.add('bg-gray-200', 'flex', 'items-center', 'justify-center');
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Y2EzYWYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiIvPjxjaXJjbGUgY3g9IjguNSIgY3k9IjguNSIgcj0iMS41Ii8+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUuIDE2IDEwIDUgMjEiLz48L3N2Zz4=';
-                        e.currentTarget.style.display = 'block';
-                        e.currentTarget.style.objectFit = 'contain';
-                        e.currentTarget.style.padding = '20px';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <ImageIcon className="w-16 h-16 opacity-50" />
-                    </div>
-                  )}
-                  {vehicle.status && (
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm text-white ${vehicle.status === 'ACTIVE' ? 'bg-green-500' :
-                        vehicle.status === 'SOLD' ? 'bg-red-500' : 'bg-gray-500'
-                        }`}>
-                        {vehicle.status === 'ACTIVE' ? 'Aktif' : vehicle.status === 'SOLD' ? 'Satıldı' : 'Pasif'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors duration-200 mb-3 line-clamp-2">
-                    {vehicle.title}
-                  </h3>
-
-                  {vehicle.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{vehicle.description}</p>
-                  )}
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      <span>{vehicle.city}{vehicle.district && `, ${vehicle.district}`}</span>
-                    </div>
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      <span>{formatDate(vehicle.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-gray-600 text-sm">
-                      {vehicle.brand && <span>{vehicle.brand}</span>}
-                      {vehicle.year && <span>{vehicle.year}</span>}
-                      {vehicle.kilometer !== undefined && <span>{vehicle.kilometer.toLocaleString()} km</span>}
-                    </div>
-                    <div className="flex items-center gap-4 text-gray-600 text-sm">
-                      {vehicle.fuelType && <span>{vehicle.fuelType}</span>}
-                      {vehicle.transmission && <span>{vehicle.transmission}</span>}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    <div className="flex items-center">
-                      <Tag className="w-4 h-4 mr-2 text-red-600" />
-                      <span className="text-xl font-bold text-red-600">
-                        {formatPrice(vehicle.price, vehicle.currency)}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-gray-500 text-sm">
-                      <Heart className="w-4 h-4 mr-1" />
-                      <span>{vehicle.favoriteCount || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 0}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Önceki
-              </button>
-              <div className="flex gap-2">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum = i;
-                  if (totalPages > 5) {
-                    if (currentPage < 3) pageNum = i;
-                    else if (currentPage > totalPages - 3) pageNum = totalPages - 5 + i;
-                    else pageNum = currentPage - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`px-4 py-2 rounded-lg ${currentPage === pageNum
-                        ? 'bg-red-600 text-white'
-                        : 'bg-white border border-gray-300 hover:bg-gray-50'
-                        }`}
-                    >
-                      {pageNum + 1}
-                    </button>
-                  );
-                })}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left Sidebar - Filters */}
+          <div className={`lg:col-span-1 ${showMobileFilters ? 'fixed inset-0 z-50 bg-white p-6 overflow-y-auto' : 'hidden lg:block'}`}>
+            <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-gray-100 lg:p-6 sticky top-24">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <SlidersHorizontal className="w-5 h-5 text-indigo-600" />
+                  Filtreler
+                </h3>
+                {showMobileFilters && (
+                  <button onClick={() => setShowMobileFilters(false)} className="p-2 bg-gray-100 rounded-full">
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages - 1}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Sonraki
-              </button>
-            </div>
-          )}
-        </>
-      )}
 
-      {/* Empty State */}
-      {!loading && !error && vehicles.length === 0 && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 text-lg">Henüz araç ilanı bulunmuyor.</p>
-          <p className="text-gray-500 mt-2">Filtreleri değiştirerek tekrar deneyin.</p>
-          <Link
-            to="/vehicles/create"
-            className="inline-block mt-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-          >
-            İlk İlanı Siz Verin
-          </Link>
+              <div className="space-y-6">
+                {/* Location */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Konum</label>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Şehir (Örn: İstanbul)"
+                      value={filters.city || ''}
+                      onChange={(e) => handleFilterChange('city', e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm"
+                    />
+                    <input
+                      type="text"
+                      placeholder="İlçe (Örn: Kadıköy)"
+                      value={filters.district || ''}
+                      onChange={(e) => handleFilterChange('district', e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Make & Model */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Marka & Model</label>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Marka (Örn: Toyota)"
+                      value={filters.brand || ''}
+                      onChange={(e) => handleFilterChange('brand', e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Model (Örn: Corolla)"
+                      value={filters.model || ''}
+                      onChange={(e) => handleFilterChange('model', e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Price Range */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Fiyat Aralığı</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min TL"
+                      value={filters.minPrice || ''}
+                      onChange={(e) => handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max TL"
+                      value={filters.maxPrice || ''}
+                      onChange={(e) => handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
+                <hr className="border-gray-100" />
+
+                {/* Technical Specs */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-gray-700">Teknik Detaylar</label>
+
+                  {/* Fuel & Gear */}
+                  <div className="flex gap-2">
+                    <select
+                      value={filters.fuelType || ''}
+                      onChange={(e) => handleFilterChange('fuelType', e.target.value || undefined)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-indigo-500 outline-none text-sm appearance-none"
+                    >
+                      <option value="">Yakıt (Tümü)</option>
+                      <option value="GASOLINE">Benzin</option>
+                      <option value="DIESEL">Dizel</option>
+                      <option value="ELECTRIC">Elektrik</option>
+                      <option value="HYBRID">Hibrit</option>
+                      <option value="LPG">LPG</option>
+                    </select>
+                    <select
+                      value={filters.transmission || ''}
+                      onChange={(e) => handleFilterChange('transmission', e.target.value || undefined)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-indigo-500 outline-none text-sm appearance-none"
+                    >
+                      <option value="">Vites (Tümü)</option>
+                      <option value="MANUAL">Manuel</option>
+                      <option value="AUTOMATIC">Otomatik</option>
+                    </select>
+                  </div>
+
+                  {/* Year */}
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min Yıl"
+                      value={filters.minYear || ''}
+                      onChange={(e) => handleFilterChange('minYear', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max Yıl"
+                      value={filters.maxYear || ''}
+                      onChange={(e) => handleFilterChange('maxYear', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"
+                    />
+                  </div>
+
+                  {/* KM */}
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min KM"
+                      value={filters.minKilometer || ''}
+                      onChange={(e) => handleFilterChange('minKilometer', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max KM"
+                      value={filters.maxKilometer || ''}
+                      onChange={(e) => handleFilterChange('maxKilometer', e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-1/2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 flex flex-col gap-3">
+                  <button
+                    onClick={handleSearch}
+                    className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-gray-900/10"
+                  >
+                    Uygula
+                  </button>
+                  <button
+                    onClick={handleClearFilters}
+                    className="w-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold py-3 rounded-xl transition-all"
+                  >
+                    Temizle
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content - Listing Grid */}
+          <div className="lg:col-span-3">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-pulse h-[400px]">
+                    <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center text-red-600">
+                <p className="font-medium mb-2">Bir hata oluştu</p>
+                <p className="text-sm opacity-80">{error}</p>
+                <button onClick={handleSearch} className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 rounded-lg text-sm font-semibold transition-colors">
+                  Tekrar Dene
+                </button>
+              </div>
+            ) : vehicles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-gray-100 dashed-border shadow-sm text-center">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                  <Search className="w-10 h-10 text-gray-300" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Sonuç Bulunamadı</h3>
+                <p className="text-gray-500 max-w-md mx-auto mb-8">
+                  Aradığınız kriterlere uygun araç ilanı bulunamadı. Filtreleri temizleyerek veya farklı kriterler deneyerek tekrar arama yapabilirsiniz.
+                </p>
+                <button
+                  onClick={handleClearFilters}
+                  className="px-6 py-3 bg-indigo-50 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-100 transition-colors"
+                >
+                  Filtreleri Temizle
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {vehicles.map((vehicle) => (
+                    <Link
+                      key={vehicle.id}
+                      to={`/vehicles/${vehicle.id}`}
+                      className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full relative"
+                    >
+                      <div className="relative h-64 overflow-hidden">
+                        {/* Compare Button */}
+                        <div className="absolute top-3 left-3 z-20" onClick={(e) => e.preventDefault()}>
+                          <CompareCheckbox
+                            listingId={vehicle.id}
+                            category="vehicle"
+                            onToggle={() => dispatch(toggleListing({ id: vehicle.id, category: 'vehicle' }))}
+                          />
+                        </div>
+
+                        <div className="absolute top-4 right-4 z-20">
+                          <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm text-white ${vehicle.status === 'ACTIVE' ? 'bg-green-500' :
+                            vehicle.status === 'SOLD' ? 'bg-red-500' : 'bg-gray-500'
+                            }`}>
+                            {vehicle.status === 'ACTIVE' ? 'Aktif' : vehicle.status === 'SOLD' ? 'Satıldı' : 'Pasif'}
+                          </span>
+                        </div>
+
+                        {vehicle.imageUrl ? (
+                          <img
+                            src={getImageUrl(vehicle.imageUrl) || ''}
+                            alt={vehicle.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.parentElement?.querySelector('.placeholder')?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`placeholder w-full h-full flex items-center justify-center bg-gray-50 ${vehicle.imageUrl ? 'hidden' : ''}`}>
+                          <img
+                            src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=600&q=80"
+                            className="w-full h-full object-cover opacity-80 grayscale group-hover:grayscale-0 transition-all duration-500"
+                            alt="Car placeholder"
+                          />
+                        </div>
+
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute bottom-4 left-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1 z-10">
+                          <Heart className="w-4 h-4 text-white fill-current" />
+                          <span className="text-xs font-medium">{vehicle.favoriteCount || 0} Favori</span>
+                        </div>
+                      </div>
+
+                      <div className="p-5 flex-1 flex flex-col">
+                        <div className="mb-3">
+                          <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                            {vehicle.title}
+                          </h3>
+                          <p className="text-sm text-indigo-600 font-medium">{vehicle.brand} {vehicle.model}</p>
+                        </div>
+
+                        <div className="flex items-center text-gray-500 text-sm mb-4">
+                          <MapPin className="w-3.5 h-3.5 mr-1" />
+                          {vehicle.city}, {vehicle.district}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-y-2 gap-x-4 mb-5 text-sm text-gray-700">
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{vehicle.year}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Gauge className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{vehicle.kilometer?.toLocaleString()} km</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Fuel className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{getFuelTypeLabel(vehicle.fuelType || '')}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Settings2 className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{getTransmissionLabel(vehicle.transmission || '')}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-0.5">Satış Fiyatı</p>
+                            <p className="text-xl font-bold text-indigo-600">
+                              {formatPrice(vehicle.price, vehicle.currency)}
+                            </p>
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-12">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 0}
+                      className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-600"
+                    >
+                      Önceki
+                    </button>
+                    <div className="flex gap-2">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum = i;
+                        if (totalPages > 5) {
+                          if (currentPage < 3) pageNum = i;
+                          else if (currentPage > totalPages - 3) pageNum = totalPages - 5 + i;
+                          else pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold transition-all ${currentPage === pageNum
+                                ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-110'
+                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
+                              }`}
+                          >
+                            {pageNum + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages - 1}
+                      className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-gray-600"
+                    >
+                      Sonraki
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

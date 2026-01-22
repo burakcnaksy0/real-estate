@@ -12,14 +12,14 @@ export const useAuth = () => {
 
   const login = useCallback(
     (credentials: LoginRequest) => {
-      return dispatch(loginAsync(credentials));
+      return dispatch(loginAsync(credentials)).unwrap();
     },
     [dispatch]
   );
 
   const register = useCallback(
     (userData: RegisterRequest) => {
-      return dispatch(registerAsync(userData));
+      return dispatch(registerAsync(userData)).unwrap();
     },
     [dispatch]
   );
@@ -54,13 +54,13 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     error,
-    
+
     // Actions
     login,
     register,
     logout: logoutUser,
     checkAuth,
-    
+
     // Utilities
     isAdmin,
     isUser,

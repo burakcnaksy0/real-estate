@@ -3,6 +3,7 @@ package com.burakcanaksoy.realestate.service;
 import com.burakcanaksoy.realestate.event.FavoriteCountUpdateEvent;
 import com.burakcanaksoy.realestate.mapper.BaseListingMapper;
 import com.burakcanaksoy.realestate.model.*;
+import com.burakcanaksoy.realestate.model.enums.NotificationType;
 import com.burakcanaksoy.realestate.repository.*;
 import com.burakcanaksoy.realestate.response.BaseListingResponse;
 import com.burakcanaksoy.realestate.response.FavoriteResponse;
@@ -24,6 +25,7 @@ public class FavoriteService {
     private final ImageRepository imageRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationService notificationService;
+    private final ActivityLogService activityLogService;
 
     public FavoriteService(FavoriteRepository favoriteRepository,
             UserRepository userRepository,
@@ -33,7 +35,8 @@ public class FavoriteService {
             WorkplaceRepository workplaceRepository,
             ImageRepository imageRepository,
             SimpMessagingTemplate messagingTemplate,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            ActivityLogService activityLogService) {
         this.favoriteRepository = favoriteRepository;
         this.userRepository = userRepository;
         this.realEstateRepository = realEstateRepository;
@@ -43,6 +46,7 @@ public class FavoriteService {
         this.imageRepository = imageRepository;
         this.messagingTemplate = messagingTemplate;
         this.notificationService = notificationService;
+        this.activityLogService = activityLogService;
     }
 
     @Transactional
@@ -68,6 +72,10 @@ public class FavoriteService {
         // Notify listing owner
         notifyListingOwner(listingId, listingType, user);
 
+        // Log activity
+        String description = String.format("User added listing #%d (%s) to favorites", listingId, listingType);
+        activityLogService.logActivity(user.getUsername(), "FAVORITE_ADDED", description, "N/A");
+
         return mapToResponse(saved);
     }
 
@@ -85,6 +93,10 @@ public class FavoriteService {
 
         // Decrement favorite count
         decrementFavoriteCount(listingId, listingType);
+
+        // Log activity
+        String description = String.format("User removed listing #%d (%s) from favorites", listingId, listingType);
+        activityLogService.logActivity(user.getUsername(), "FAVORITE_REMOVED", description, "N/A");
     }
 
     public List<FavoriteResponse> getUserFavorites(Long userId) {

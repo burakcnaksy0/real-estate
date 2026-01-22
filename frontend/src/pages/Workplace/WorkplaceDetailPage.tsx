@@ -13,6 +13,7 @@ import { formatLastSeen } from '../../utils/dateUtils';
 import { WorkplaceService } from '../../services/workplaceService';
 import { FavoriteButton } from '../../components/FavoriteButton/FavoriteButton';
 import { ShareListingModal } from '../../components/Modals/ShareListingModal';
+import { EditWorkplaceModal } from '../../components/Modals/EditWorkplaceModal';
 import { MapView } from '../../components/MapView/MapView';
 import { NearbyPlaces } from '../../components/MapView/NearbyPlaces';
 import { websocketService } from '../../services/websocketService';
@@ -24,6 +25,7 @@ export const WorkplaceDetailPage: React.FC = () => {
     const [workplace, setWorkplace] = useState<Workplace | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [images, setImages] = useState<ImageResponse[]>([]);
     const [similarWorkplaces, setSimilarWorkplaces] = useState<Workplace[]>([]);
     const [activeTab, setActiveTab] = useState<'photos' | 'video'>('photos');
@@ -258,6 +260,12 @@ export const WorkplaceDetailPage: React.FC = () => {
                         </div>
                         {isOwner && (
                             <div className="flex space-x-2">
+                                <button
+                                    onClick={() => setIsEditModalOpen(true)}
+                                    className="btn-secondary flex items-center space-x-2"
+                                >
+                                    <Edit className="h-4 w-4" /> <span>Düzenle</span>
+                                </button>
                                 <button onClick={handleDelete} className="btn-secondary text-red-600 hover:bg-red-50 flex items-center space-x-2">
                                     <Trash2 className="h-4 w-4" /> <span>Sil</span>
                                 </button>
@@ -498,6 +506,17 @@ export const WorkplaceDetailPage: React.FC = () => {
                     listingId={workplace.id}
                     listingType="WORKPLACE"
                     listingTitle={workplace.title}
+                />
+            )}
+
+            {workplace && (
+                <EditWorkplaceModal
+                    workplace={workplace}
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSuccess={() => {
+                        window.location.reload();
+                    }}
                 />
             )}
         </div>

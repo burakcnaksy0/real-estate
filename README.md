@@ -1,95 +1,104 @@
-# 🏠 Vesta - Modern İlan Platformu
+# 🏠 Vesta - Yeni Nesil İlan Platformu
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-Demo-orange.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)
 ![React](https://img.shields.io/badge/React-18-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED)
 
-**Vesta**, kullanıcıların emlak, vasıta, arsa ve işyeri gibi çeşitli kategorilerde güvenle ilan verip arama yapabileceği, modern ve ölçeklenebilir bir Full-Stack web platformudur. Güvenli altyapısı, şık tasarımı ve kullanıcı dostu özellikleriyle uçtan uca eksiksiz bir deneyim sunar.
+**Vesta**, kullanıcıların emlak, vasıta, arsa ve işyeri gibi kategorilerde güvenle ilan verip arama yapabileceği, Full-Stack modern bir pazar yeri (marketplace) platformudur. Güçlü backend altyapısı (Spring Boot & Microservices ready) ve modern responsive frontend (React & Tailwind) mimarisi ile geliştirilmiştir.
 
 ---
 
-## ✨ Özellikler
+## ✨ Öne Çıkan Özellikler
 
-*   **Çoklu Kategori Yapısı:** Konut, Arsa, İşyeri ve Vasıta gibi farklı ihtiyaçlara özel ilan tipleri ve detaylı filtreleme seçenekleri.
-*   **Güvenli Kimlik Doğrulama:** JWT tabanlı güvenli giriş, kayıt ve oturum yönetimi (Google OAuth Entegrasyonu dahil).
-*   **🔍 Gelişmiş Arama Özellikleri:**
-    *   **Full-Text Search:** PostgreSQL ile Türkçe dil desteği
-    *   **Geospatial Search:** PostGIS ile konum bazlı arama ve yakındaki ilanlar
-    *   **Advanced Filtering:** Fiyat aralığı, özellik bazlı filtreleme
-    *   **Autocomplete:** Anlık arama önerileri
-    *   **Saved Searches:** Aramalarınızı kaydedin ve hızlıca erişin
-*   **🔔 Gelişmiş Bildirim Sistemi:** İlanlarınız favorilendiğinde veya mesaj aldığınızda anlık (Real-time) bildirimler.
-*   **💬 Gerçek Zamanlı Mesajlaşma:**
-    *   WebSocket altyapısı ile anlık sohbet.
-    *   Okundu bilgisi takibi.
-    *   Yazıyor... göstergeleri ve canlı güncellemeler.
-*   **Favoriler:** Beğenilen ilanları kaydetme ve hızlı erişim.
-*   **Kullanıcı Paneli:** Profil düzenleme, şifre değişikliği ve hesap yönetimi.
-*   **İlan Yönetimi:** Kullanıcıların kolayca ilan oluşturabilmesi, düzenleyebilmesi ve pasife alabilmesi.
-*   **Modern Arayüz:** Mobil uyumlu, hızlı ve estetik tasarım (Tailwind CSS & Lucide Icons).
+### 🚀 Kullanıcı Deneyimi & Arayüz
+*   **Modern & Responsive Tasarım:** Tüm cihazlarda kusursuz çalışan, Tailwind CSS ile geliştirilmiş şık arayüz.
+*   **İlan Verme Sihirbazı:** Adım adım kolay ilan oluşturma süreci.
+*   **Gelişmiş Dashboard:** İlanlarınızı, favorilerinizi ve mesajlarınızı tek yerden yönetebileceğiniz kapsamlı kullanıcı paneli.
+*   **Client-Side Optimizasyon:** Hızlı sayfa geçişleri ve anlık veri filtreleme.
+
+### 🔍 Arama ve Keşif
+*   **Akıllı Filtreleme:** Kategoriye özel (Emlak için oda sayısı, Vasıta için vites tipi vb.) detaylı filtreler.
+*   **Harita Entegrasyonu:** İlan konumlarını harita üzerinde görüntüleme.
+*   **Sıralama ve Sayfalama:** Binlerce ilanı performanstan ödün vermeden listeleme.
+
+### 💬 İletişim ve Etkileşim
+*   **Gerçek Zamanlı Sohbet:** WebSocket altyapısı ile anlık mesajlaşma, okundu bilgisi ve yazıyor göstergesi.
+*   **Bildirim Sistemi:** Yeni mesaj, favori ilanda fiyat değişikliği gibi durumlarda anlık bildirimler.
+*   **Favoriler:** Beğendiğiniz ilanları listenize ekleyin ve takip edin.
+
+### 🛡️ Güvenlik ve Yönetim
+*   **Rol Tabanlı Yetkilendirme (RBAC):** Admin, Kullanıcı ve Moderatör rolleri.
+*   **Yönetici Paneli:** Kullanıcıları, ilanları ve sistem istatistiklerini yönetmek için özel admin arayüzü.
+*   **Güvenli Giriş:** JWT (JSON Web Token) tabanlı kimlik doğrulama.
 
 ---
 
-## 🎥 Proje Görselleri ve Demo
+## 📸 Proje Görselleri
 
-### 💬 Sohbet ve Bildirim Sistemi Demosu
-Uygulamanın gerçek zamanlı mesajlaşma ve bildirim özelliklerini aşağıdaki videoda görebilirsiniz:
+### 🏠 Ana Sayfa ve İlan Vitrini
+Kullanıcı dostu kategori seçimi ve öne çıkan vitrin ilanları.
 
-https://private-user-images.githubusercontent.com/147622289/537772670-140dde80-4397-42e2-949b-7183b40aa583.mp4?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Njg4NjQwNTYsIm5iZiI6MTc2ODg2Mzc1NiwicGF0aCI6Ii8xNDc2MjIyODkvNTM3NzcyNjcwLTE0MGRkZTgwLTQzOTctNDJlMi05NDliLTcxODNiNDBhYTU4My5tcDQ_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMTE5JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDExOVQyMzAyMzZaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zMzUxYzJiYjYwZmZkNTlmMTVhZTU4ZTlhYzRkYmJjZDU5ZTA5MzFmYmIzNTZhNTU5ZTVmYjUzZmNiNGFiYTliJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.HDQHrpeDZ_VftXAbujRJYYAlvJKuRQ89BhpH4ep29iA
+| Ana Sayfa | İlan Detay Sayfası |
+|:---:|:---:|
+| ![Home Page](assets/homepage.png) | ![Advert Page](assets/advert_page.png) |
 
-### 🔐 Giriş ve Kayıt
-Kullanıcıların güvenle sisteme dahil olabileceği modern arayüzler.
+### 🔐 Kimlik Doğrulama
+Modern ve güvenli giriş/kayıt ekranları.
 
 | Giriş Yap | Kayıt Ol |
 |:---:|:---:|
 | ![Login Page](assets/login_page.png) | ![Register Page](assets/register_page.png) |
 
-### 🏠 Ana Sayfa ve İlanlar
-Kategorilere hızlı erişim ve vitrin ilanları.
+### 👤 Kullanıcı Paneli ve İletişim
+Profil yönetimi ve gerçek zamanlı mesajlaşma deneyimi.
 
-| Ana Sayfa | İlan Detayı |
-|:---:|:---:|
-| ![Home Page](assets/homepage.png) | ![Advert Page](assets/advert_page.png) |
-
-### 👤 Kullanıcı Deneyimi
-Kişiselleştirilmiş profil yönetimi ve iletişim.
-
-| Profil Sayfası | Mesajlaşma |
+| Profil Yönetimi | Mesajlaşma |
 |:---:|:---:|
 | ![Profile Page](assets/user_profile_page.png) | ![Message Page](assets/message_page.png) |
+
+### 🛡️ Yönetici (Admin) Paneli
+Platform yöneticileri için özel giriş ve yönetim ekranı.
+
+![Admin Login Page](assets/admin_login_page.png)
+
+### 🎥 Canlı Demo (Sohbet Özelliği)
+Uygulamanın gerçek zamanlı yeteneklerini gösteren kısa bir demo.
+
+[Videoyu İzle](assets/chat_response.mp4)
 
 ---
 
 ## 🛠 Teknoloji Yığını (Tech Stack)
 
-### Backend (Java & Spring Boot)
-*   **Core:** Java 17, Spring Boot 3
-*   **Veritabanı:** PostgreSQL + PostGIS
-*   **ORM:** Hibernate / Spring Data JPA + Hibernate Spatial
-*   **Migrations:** Flyway
-*   **Güvenlik:** Spring Security, JWT Auth, OAuth2
-*   **Real-time:** WebSocket (STOMP)
-*   **API Dokümantasyonu:** OpenAPI (Swagger)
+### Backend (Java Ecosystem)
+*   **Framework:** Spring Boot 3.3
+*   **Dil:** Java 17
+*   **Veritabanı:** PostgreSQL + PostGIS (Konansal veriler için)
+*   **ORM:** Spring Data JPA / Hibernate
+*   **Güvenlik:** Spring Security + JWT
+*   **Real-time:** WebSocket (STOMP Protocol)
+*   **API Docs:** Swagger UI / OpenAPI 3.0
 
-### Frontend (React & TypeScript)
-*   **Core:** React 18, TypeScript
+### Frontend (React Ecosystem)
+*   **Framework:** React 18
+*   **Dil:** TypeScript
 *   **State Management:** Redux Toolkit
 *   **Styling:** Tailwind CSS
-*   **Form Yönetimi:** React Hook Form, Yup
-*   **Bildirimler:** React Toastify
-*   **İkon Seti:** Lucide React
+*   **Routing:** React Router v6
+*   **Form:** React Hook Form
+*   **Icons:** Lucide React
 
-### DevOps & Araçlar
+### DevOps & Tools
 *   **Containerization:** Docker & Docker Compose
-*   **Versiyon Kontrol:** Git
+*   **Version Control:** Git & GitHub
 
 ---
 
 ## 📦 Kurulum ve Çalıştırma
 
-Projeyi yerel ortamınızda çalıştırmak için:
+Projeyi yerel ortamınızda ayağa kaldırmak için aşağıdaki adımları izleyin:
 
 ### 1. Repoyu Klonlayın
 ```bash
@@ -97,29 +106,33 @@ git clone https://github.com/burakcnaksy0/real-estate.git
 cd real-estate
 ```
 
-### 2. Backend Kurulumu
-Veritabanını ve backend servisini başlatın:
+### 2. Backend'i Başlatın (Docker ile)
+Veritabanı ve backend servislerini tek komutla başlatabilirsiniz:
 ```bash
 cd backend/real-estate
-docker-compose up -d  # PostgreSQL'i başlatır
-./mvnw spring-boot:run # Uygulamayı başlatır
+docker-compose up -d
+# Veya manuel olarak:
+# ./mvnw spring-boot:run
 ```
 
-### 3. Frontend Kurulumu
-Arayüzü başlatın:
+### 3. Frontend'i Başlatın
 ```bash
 cd frontend
 npm install
 npm start
 ```
-*Frontend: http://localhost:3000 | Backend: http://localhost:8080*
+
+Uygulama şu adreslerde çalışacaktır:
+*   **Frontend:** `http://localhost:3000`
+*   **Backend API:** `http://localhost:8080/api`
+*   **Swagger UI:** `http://localhost:8080/swagger-ui.html`
 
 ---
 
 ## 🤝 Katkıda Bulunma
 
-1. Forklayın
-2. Feature branch oluşturun (`git checkout -b feature/yeni-ozellik`)
-3. Commitileyin (`git commit -m 'Yeni özellik eklendi'`)
-4. Pushlayın (`git push origin feature/yeni-ozellik`)
+1. Forklayın (Fork)
+2. Feature branch oluşturun (`git checkout -b feature/harika-ozellik`)
+3. Değişikliklerinizi commit'leyin (`git commit -m 'Yeni harika özellik eklendi'`)
+4. Branch'inizi push'layın (`git push origin feature/harika-ozellik`)
 5. Pull Request açın

@@ -31,15 +31,28 @@ public class AdminUserInitializer {
     @Bean
     public CommandLineRunner initAdminUser() {
         return args -> {
-            // Check if admin user already exists
-            if (userRepository.findByUsername(adminUsername).isEmpty()) {
+            String defaultEmail = "admin@vesta.com";
+
+            // Try to find existing admin by email (since it is constant)
+            java.util.Optional<User> existingAdmin = userRepository.findByEmail(defaultEmail);
+
+            if (existingAdmin.isPresent()) {
+                log.info("Admin account found by email. Updating credentials from config...");
+                User admin = existingAdmin.get();
+                admin.setUsername(adminUsername);
+                admin.setPassword(passwordEncoder.encode(adminPassword));
+                // Make sure they have admin role
+                admin.setRoles(Set.of(Role.ROLE_ADMIN, Role.ROLE_USER));
+                userRepository.save(admin);
+                log.info("Admin credentials updated. New Username: {}", adminUsername);
+            } else if (userRepository.findByUsername(adminUsername).isEmpty()) {
                 log.info("Creating default admin user...");
 
                 User admin = new User();
                 admin.setName("Admin");
                 admin.setSurname("User");
                 admin.setUsername(adminUsername);
-                admin.setEmail("admin@vesta.com");
+                admin.setEmail(defaultEmail);
                 admin.setPassword(passwordEncoder.encode(adminPassword));
                 admin.setEnabled(true);
                 admin.setProvider("LOCAL");
@@ -52,7 +65,7 @@ public class AdminUserInitializer {
                 log.info("Admin user created successfully!");
                 log.info("Username: {}", adminUsername);
             } else {
-                log.info("Admin user already exists, skipping creation.");
+                log.info("Admin username '{}' already taken by another email. Skipping admin init.", adminUsername);
             }
         };
     }
