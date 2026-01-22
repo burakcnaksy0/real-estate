@@ -1,5 +1,6 @@
 package com.burakcanaksoy.realestate.security;
 
+import com.burakcanaksoy.realestate.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -42,11 +45,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 // Update last seen
-                // userRepository.findByUsername(username).ifPresent(user -> {
-                // System.out.println("DEBUG: Filter updating lastSeen for " + username);
-                // user.setLastSeen(LocalDateTime.now());
-                // userRepository.save(user);
-                // });
+                try {
+                    userRepository.findByUsername(username).ifPresent(user -> {
+                        user.setLastSeen(LocalDateTime.now());
+                        userRepository.save(user);
+                    });
+                } catch (Exception e) {
+                    log.warn("Failed to update last seen for user: {}", username, e);
+                }
             }
         } catch (Exception ex) {
             log.error("User authentication failed.", ex);

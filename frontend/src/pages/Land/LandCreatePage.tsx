@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useCategories } from '../../hooks/useCategories';
-import { LandCreateRequest, Currency, LandType, OfferType } from '../../types';
+import { LandCreateRequest, Currency, LandType, OfferType, YesNo, TittleStatus, ListingFrom } from '../../types';
 import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
 import { ImageService } from '../../services/imageService';
 import { LandService } from '../../services/landService';
@@ -28,6 +28,9 @@ const landSchema = yup.object({
     islandNumber: yup.number().required('Ada No gereklidir').min(0),
     zoningStatus: yup.string().max(100, 'Maksimum 100 karakter olabilir'),
     offerType: yup.mixed<OfferType>().required('İşlem tipi gereklidir'),
+    paftaNo: yup.string().max(50, 'Maksimum 50 karakter olabilir'),
+    kaks: yup.number().min(0).max(999.99),
+    gabari: yup.string().max(100, 'Maksimum 100 karakter olabilir'),
 });
 
 interface ImageFile {
@@ -253,6 +256,93 @@ export const LandCreatePage: React.FC = () => {
                                 placeholder="Örn: Konut İmarlı"
                             />
                             {errors.zoningStatus && <p className="mt-1 text-sm text-red-600">{errors.zoningStatus.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Pafta No</label>
+                            <input
+                                {...register('paftaNo')}
+                                type="text"
+                                className={`input-field ${errors.paftaNo ? 'border-red-500' : ''}`}
+                                placeholder="Örn: Belirtilmemiş"
+                            />
+                            {errors.paftaNo && <p className="mt-1 text-sm text-red-600">{errors.paftaNo.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Kaks (Emsal)</label>
+                            <input
+                                {...register('kaks', { valueAsNumber: true })}
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="999.99"
+                                className={`input-field ${errors.kaks ? 'border-red-500' : ''}`}
+                                placeholder="Örn: 1.30"
+                            />
+                            {errors.kaks && <p className="mt-1 text-sm text-red-600">{errors.kaks.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Gabari</label>
+                            <input
+                                {...register('gabari')}
+                                type="text"
+                                className={`input-field ${errors.gabari ? 'border-red-500' : ''}`}
+                                placeholder="Örn: Belirtilmemiş"
+                            />
+                            {errors.gabari && <p className="mt-1 text-sm text-red-600">{errors.gabari.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Krediye Uygunluk</label>
+                            <select
+                                {...register('creditEligibility')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={YesNo.YES}>Evet</option>
+                                <option value={YesNo.NO}>Hayır</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Tapu Durumu</label>
+                            <select
+                                {...register('deedStatus')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={TittleStatus.FULL_DEED}>Tam Tapulu</option>
+                                <option value={TittleStatus.SHARE_DEED}>Hisseli Tapu</option>
+                                <option value={TittleStatus.CONDOMINIUM}>Kat İrtifaklı</option>
+                                <option value={TittleStatus.CONSTRUCTION_SERVITUDE}>İnşaat Ruhsatlı</option>
+                                <option value={TittleStatus.NO_DEED}>Tapusuz</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Kimden</label>
+                            <select
+                                {...register('listingFrom')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={ListingFrom.OWNER}>Sahibinden</option>
+                                <option value={ListingFrom.GALLERY}>Emlakçıdan</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Takas</label>
+                            <select
+                                {...register('exchange')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={YesNo.YES}>Evet</option>
+                                <option value={YesNo.NO}>Hayır</option>
+                            </select>
                         </div>
                     </div>
                 </div>

@@ -6,7 +6,7 @@ import {
     Video as VideoIcon, Image as ImageIcon
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { Currency, WorkplaceType, Workplace, OfferType } from '../../types';
+import { Currency, WorkplaceType, Workplace, OfferType, HeatingType, YesNo, TittleStatus, ListingFrom } from '../../types';
 import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { formatLastSeen } from '../../utils/dateUtils';
@@ -106,6 +106,44 @@ export const WorkplaceDetailPage: React.FC = () => {
         if (type === OfferType.FOR_SALE) return 'Satılık';
         if (type === OfferType.FOR_RENT) return 'Kiralık';
         return type;
+    };
+
+    const getHeatingTypeLabel = (type?: HeatingType) => {
+        if (!type) return '-';
+        const labels: Record<HeatingType, string> = {
+            [HeatingType.NATURAL_GAS]: 'Doğalgaz',
+            [HeatingType.CENTRAL_HEATING]: 'Merkezi Isıtma',
+            [HeatingType.STOVE_HEATING]: 'Soba',
+            [HeatingType.AIR_CONDITIONING]: 'Klima'
+        };
+        return labels[type] || type;
+    };
+
+    const getYesNoLabel = (value?: YesNo) => {
+        if (!value) return '-';
+        return value === YesNo.YES ? 'Evet' : 'Hayır';
+    };
+
+    const getDeedStatusLabel = (status?: TittleStatus) => {
+        if (!status) return '-';
+        const labels: Record<TittleStatus, string> = {
+            [TittleStatus.FULL_DEED]: 'Tam Tapulu',
+            [TittleStatus.SHARE_DEED]: 'Hisseli Tapu',
+            [TittleStatus.CONDOMINIUM]: 'Kat İrtifaklı',
+            [TittleStatus.CONSTRUCTION_SERVITUDE]: 'İnşaat Ruhsatlı',
+            [TittleStatus.NO_DEED]: 'Tapusuz'
+        };
+        return labels[status] || status;
+    };
+
+    const getListingFromLabel = (from?: ListingFrom) => {
+        if (!from) return '-';
+        const labels: Record<ListingFrom, string> = {
+            [ListingFrom.OWNER]: 'Sahibinden',
+            [ListingFrom.GALLERY]: 'Emlakçıdan',
+            [ListingFrom.AUTHORIZED_DEALER]: 'Yetkili Satıcıdan'
+        };
+        return labels[from] || from;
     };
 
     if (isLoading) {
@@ -255,27 +293,84 @@ export const WorkplaceDetailPage: React.FC = () => {
 
                     {/* Details */}
                     <div className="card p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">İşyeri Detayları</h2>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="text-center p-4 bg-gray-50 rounded-lg">
-                                <Briefcase className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                                <div className="text-lg font-semibold">{getWorkplaceTypeLabel(workplace.workplaceType)}</div>
-                                <div className="text-sm text-gray-600">Tipi</div>
-                            </div>
-                            <div className="text-center p-4 bg-gray-50 rounded-lg">
-                                <Ruler className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                                <div className="text-lg font-semibold">{workplace.squareMeter} m²</div>
-                                <div className="text-sm text-gray-600">Alan</div>
-                            </div>
-                            <div className="text-center p-4 bg-gray-50 rounded-lg">
-                                <Layers className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                                <div className="text-lg font-semibold">{workplace.floorCount}</div>
-                                <div className="text-sm text-gray-600">Bölüm/Kat</div>
-                            </div>
-                            <div className="text-center p-4 bg-gray-50 rounded-lg">
-                                <Home className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                                <div className="text-lg font-semibold">{workplace.furnished ? 'Evet' : 'Hayır'}</div>
-                                <div className="text-sm text-gray-600">Eşyalı</div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">İlan Detayları</h2>
+
+                        {/* Comprehensive Details Table */}
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">İlan No</span>
+                                    <span className="text-gray-900 font-semibold">#{workplace.id}</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">İlan Tarihi</span>
+                                    <span className="text-gray-900">{new Date(workplace.createdAt).toLocaleDateString('tr-TR')}</span>
+                                </div>
+
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">Kategori</span>
+                                    <span className="text-gray-900">İş Yeri</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">Durum</span>
+                                    <span className="text-gray-900">{getOfferTypeLabel(workplace.offerType)}</span>
+                                </div>
+
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">m²</span>
+                                    <span className="text-gray-900 font-semibold">{workplace.squareMeter}</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">Bölüm & Oda Sayısı</span>
+                                    <span className="text-gray-900">{workplace.floorCount}</span>
+                                </div>
+
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">Aidat (TL)</span>
+                                    <span className="text-gray-900">{workplace.dues ? workplace.dues.toLocaleString('tr-TR') : '-'}</span>
+                                </div>
+
+                                {workplace.heatingType && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Isıtma</span>
+                                        <span className="text-gray-900">{getHeatingTypeLabel(workplace.heatingType)}</span>
+                                    </div>
+                                )}
+
+                                {workplace.buildingAge && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Bina Yaşı</span>
+                                        <span className="text-gray-900">{workplace.buildingAge}</span>
+                                    </div>
+                                )}
+
+                                {workplace.creditEligibility && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Krediye Uygunluk</span>
+                                        <span className="text-gray-900">{getYesNoLabel(workplace.creditEligibility)}</span>
+                                    </div>
+                                )}
+
+                                {workplace.deedStatus && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Tapu Durumu</span>
+                                        <span className="text-gray-900">{getDeedStatusLabel(workplace.deedStatus)}</span>
+                                    </div>
+                                )}
+
+                                {workplace.listingFrom && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Kimden</span>
+                                        <span className="text-gray-900">{getListingFromLabel(workplace.listingFrom)}</span>
+                                    </div>
+                                )}
+
+                                {workplace.exchange && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Takas</span>
+                                        <span className="text-gray-900">{getYesNoLabel(workplace.exchange)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -2,8 +2,11 @@ package com.burakcanaksoy.realestate.response;
 
 import com.burakcanaksoy.realestate.model.enums.Currency;
 import com.burakcanaksoy.realestate.model.enums.LandType;
+import com.burakcanaksoy.realestate.model.enums.ListingFrom;
 import com.burakcanaksoy.realestate.model.enums.ListingStatus;
 import com.burakcanaksoy.realestate.model.enums.OfferType;
+import com.burakcanaksoy.realestate.model.enums.TittleStatus;
+import com.burakcanaksoy.realestate.model.enums.YesNo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -36,6 +39,15 @@ public class LandResponse {
         private OfferType offerType;
         private Long viewCount;
         private Long favoriteCount;
+
+        /* ---------------- New fields ---------------- */
+        private String paftaNo;
+        private Double kaks;
+        private String gabari;
+        private YesNo creditEligibility;
+        private TittleStatus deedStatus;
+        private ListingFrom listingFrom;
+        private YesNo exchange;
 
         private Long ownerId;
         private String ownerUsername;

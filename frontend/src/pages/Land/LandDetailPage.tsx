@@ -6,7 +6,7 @@ import {
     Video as VideoIcon, Image as ImageIcon
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { Currency, LandType, Land, OfferType } from '../../types';
+import { Currency, LandType, Land, OfferType, YesNo, TittleStatus, ListingFrom } from '../../types';
 import { ImageResponse, ImageService } from '../../services/imageService';
 import { ImageGallery } from '../../components/ImageGallery/ImageGallery';
 import { formatLastSeen } from '../../utils/dateUtils';
@@ -106,6 +106,33 @@ export const LandDetailPage: React.FC = () => {
         if (type === OfferType.FOR_SALE) return 'Satılık';
         if (type === OfferType.FOR_RENT) return 'Kiralık';
         return type;
+    };
+
+    const getYesNoLabel = (value?: YesNo) => {
+        if (!value) return '-';
+        return value === YesNo.YES ? 'Evet' : 'Hayır';
+    };
+
+    const getDeedStatusLabel = (status?: TittleStatus) => {
+        if (!status) return '-';
+        const labels: Record<TittleStatus, string> = {
+            [TittleStatus.FULL_DEED]: 'Tam Tapulu',
+            [TittleStatus.SHARE_DEED]: 'Hisseli Tapu',
+            [TittleStatus.CONDOMINIUM]: 'Kat İrtifaklı',
+            [TittleStatus.CONSTRUCTION_SERVITUDE]: 'İnşaat Ruhsatlı',
+            [TittleStatus.NO_DEED]: 'Tapusuz'
+        };
+        return labels[status] || status;
+    };
+
+    const getListingFromLabel = (from?: ListingFrom) => {
+        if (!from) return '-';
+        const labels: Record<ListingFrom, string> = {
+            [ListingFrom.OWNER]: 'Sahibinden',
+            [ListingFrom.GALLERY]: 'Emlakçıdan',
+            [ListingFrom.AUTHORIZED_DEALER]: 'Yetkili Satıcıdan'
+        };
+        return labels[from] || from;
     };
 
     if (isLoading) {
@@ -255,27 +282,97 @@ export const LandDetailPage: React.FC = () => {
 
                     {/* Details */}
                     <div className="card p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Arsa Detayları</h2>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="text-center p-4 bg-gray-50 rounded-lg">
-                                <MapIcon className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                                <div className="text-lg font-semibold">{getLandTypeLabel(land.landType)}</div>
-                                <div className="text-sm text-gray-600">Tipi</div>
-                            </div>
-                            <div className="text-center p-4 bg-gray-50 rounded-lg">
-                                <Ruler className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                                <div className="text-lg font-semibold">{land.squareMeter} m²</div>
-                                <div className="text-sm text-gray-600">Alan</div>
-                            </div>
-                            <div className="text-center p-4 bg-gray-50 rounded-lg">
-                                <FileText className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                                <div className="text-lg font-semibold">{land.parcelNumber} / {land.islandNumber}</div>
-                                <div className="text-sm text-gray-600">Parsel/Ada</div>
-                            </div>
-                            <div className="text-center p-4 bg-gray-50 rounded-lg">
-                                <Building className="h-6 w-6 mx-auto mb-2 text-primary-600" />
-                                <div className="text-lg font-semibold">{land.zoningStatus || '-'}</div>
-                                <div className="text-sm text-gray-600">İmar</div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">İlan Detayları</h2>
+
+                        {/* Comprehensive Details Table */}
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">İlan No</span>
+                                    <span className="text-gray-900 font-semibold">#{land.id}</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">İlan Tarihi</span>
+                                    <span className="text-gray-900">{new Date(land.createdAt).toLocaleDateString('tr-TR')}</span>
+                                </div>
+
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">Emlak Tipi</span>
+                                    <span className="text-gray-900">{getLandTypeLabel(land.landType)}</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">İmar Durumu</span>
+                                    <span className="text-gray-900">{land.zoningStatus || 'Belirtilmemiş'}</span>
+                                </div>
+
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">m²</span>
+                                    <span className="text-gray-900 font-semibold">{land.squareMeter}</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">m² Fiyatı</span>
+                                    <span className="text-gray-900 font-semibold">
+                                        {(land.price / land.squareMeter).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} {land.currency}
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">Ada No</span>
+                                    <span className="text-gray-900">{land.islandNumber}</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b border-gray-200">
+                                    <span className="text-gray-600 font-medium">Parsel No</span>
+                                    <span className="text-gray-900">{land.parcelNumber}</span>
+                                </div>
+
+                                {land.paftaNo && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Pafta No</span>
+                                        <span className="text-gray-900">{land.paftaNo}</span>
+                                    </div>
+                                )}
+
+                                {land.kaks !== undefined && land.kaks !== null && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Kaks (Emsal)</span>
+                                        <span className="text-gray-900">{land.kaks}</span>
+                                    </div>
+                                )}
+
+                                {land.gabari && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Gabari</span>
+                                        <span className="text-gray-900">{land.gabari}</span>
+                                    </div>
+                                )}
+
+                                {land.creditEligibility && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Krediye Uygunluk</span>
+                                        <span className="text-gray-900">{getYesNoLabel(land.creditEligibility)}</span>
+                                    </div>
+                                )}
+
+                                {land.deedStatus && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Tapu Durumu</span>
+                                        <span className="text-gray-900">{getDeedStatusLabel(land.deedStatus)}</span>
+                                    </div>
+                                )}
+
+                                {land.listingFrom && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Kimden</span>
+                                        <span className="text-gray-900">{getListingFromLabel(land.listingFrom)}</span>
+                                    </div>
+                                )}
+
+                                {land.exchange && (
+                                    <div className="flex justify-between py-2 border-b border-gray-200">
+                                        <span className="text-gray-600 font-medium">Takas</span>
+                                        <span className="text-gray-900">{getYesNoLabel(land.exchange)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

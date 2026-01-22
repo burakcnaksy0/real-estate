@@ -2,6 +2,9 @@ package com.burakcanaksoy.realestate.request;
 
 import com.burakcanaksoy.realestate.model.enums.Currency;
 import com.burakcanaksoy.realestate.model.enums.LandType;
+import com.burakcanaksoy.realestate.model.enums.ListingFrom;
+import com.burakcanaksoy.realestate.model.enums.TittleStatus;
+import com.burakcanaksoy.realestate.model.enums.YesNo;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -69,4 +72,24 @@ public class LandCreateRequest {
     @NotNull(message = "Island number must be specified")
     @Min(value = 1, message = "Island number must be greater than zero")
     private Integer islandNumber;
+
+    /* ---------------- New optional fields ---------------- */
+
+    @Size(max = 50, message = "Pafta number must not exceed 50 characters")
+    private String paftaNo;
+
+    @DecimalMin(value = "0.0", message = "Kaks must be greater than or equal to zero")
+    @DecimalMax(value = "999.99", message = "Kaks must not exceed 999.99")
+    private Double kaks;
+
+    @Size(max = 100, message = "Gabari must not exceed 100 characters")
+    private String gabari;
+
+    private YesNo creditEligibility;
+
+    private TittleStatus deedStatus;
+
+    private ListingFrom listingFrom;
+
+    private YesNo exchange;
 }

@@ -1,7 +1,11 @@
 package com.burakcanaksoy.realestate.request;
 
 import com.burakcanaksoy.realestate.model.enums.Currency;
+import com.burakcanaksoy.realestate.model.enums.HeatingType;
+import com.burakcanaksoy.realestate.model.enums.ListingFrom;
+import com.burakcanaksoy.realestate.model.enums.TittleStatus;
 import com.burakcanaksoy.realestate.model.enums.WorkplaceType;
+import com.burakcanaksoy.realestate.model.enums.YesNo;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -62,5 +66,23 @@ public class WorkplaceCreateRequest {
 
     @NotNull(message = "Furnished information must be specified")
     private Boolean furnished;
+
+    /* ---------------- New optional fields ---------------- */
+
+    private HeatingType heatingType;
+
+    @Size(max = 50, message = "Building age must not exceed 50 characters")
+    private String buildingAge;
+
+    @DecimalMin(value = "0.0", message = "Dues must be greater than or equal to zero")
+    private BigDecimal dues;
+
+    private YesNo creditEligibility;
+
+    private TittleStatus deedStatus;
+
+    private ListingFrom listingFrom;
+
+    private YesNo exchange;
 
 }

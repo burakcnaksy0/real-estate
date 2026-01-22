@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Save } from 'lucide-react';
 import { useCategories } from '../../hooks/useCategories';
-import { WorkplaceCreateRequest, Currency, WorkplaceType, OfferType } from '../../types';
+import { WorkplaceCreateRequest, Currency, WorkplaceType, OfferType, HeatingType, YesNo, TittleStatus, ListingFrom } from '../../types';
 import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
 import { ImageService } from '../../services/imageService';
 import { WorkplaceService } from '../../services/workplaceService';
@@ -28,6 +28,8 @@ const workplaceSchema = yup.object({
     floorCount: yup.number().required('Kat sayısı gereklidir').min(0),
     furnished: yup.boolean().required('Eşyalı bilgisi gereklidir'),
     offerType: yup.mixed<OfferType>().required('İşlem tipi gereklidir'),
+    buildingAge: yup.string().max(50, 'Maksimum 50 karakter olabilir'),
+    dues: yup.number().min(0, 'Aidat 0 veya daha büyük olmalıdır'),
 });
 
 interface ImageFile {
@@ -254,6 +256,98 @@ export const WorkplaceCreatePage: React.FC = () => {
                                 </label>
                             </div>
                             {errors.furnished && <p className="mt-1 text-sm text-red-600">{errors.furnished.message}</p>}
+                        </div>
+                    </div>
+
+                    {/* New Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 pt-6 border-t">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Isıtma</label>
+                            <select
+                                {...register('heatingType')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={HeatingType.NATURAL_GAS}>Doğalgaz</option>
+                                <option value={HeatingType.CENTRAL_HEATING}>Merkezi Isıtma</option>
+                                <option value={HeatingType.STOVE_HEATING}>Soba</option>
+                                <option value={HeatingType.AIR_CONDITIONING}>Klima</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Bina Yaşı</label>
+                            <input
+                                {...register('buildingAge')}
+                                type="text"
+                                className={`input-field ${errors.buildingAge ? 'border-red-500' : ''}`}
+                                placeholder="Örn: 5-10 arası"
+                            />
+                            {errors.buildingAge && <p className="mt-1 text-sm text-red-600">{errors.buildingAge.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Aidat (TL)</label>
+                            <input
+                                {...register('dues', { valueAsNumber: true })}
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className={`input-field ${errors.dues ? 'border-red-500' : ''}`}
+                                placeholder="Örn: 500"
+                            />
+                            {errors.dues && <p className="mt-1 text-sm text-red-600">{errors.dues.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Krediye Uygunluk</label>
+                            <select
+                                {...register('creditEligibility')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={YesNo.YES}>Evet</option>
+                                <option value={YesNo.NO}>Hayır</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Tapu Durumu</label>
+                            <select
+                                {...register('deedStatus')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={TittleStatus.FULL_DEED}>Tam Tapulu</option>
+                                <option value={TittleStatus.SHARE_DEED}>Hisseli Tapu</option>
+                                <option value={TittleStatus.CONDOMINIUM}>Kat İrtifaklı</option>
+                                <option value={TittleStatus.CONSTRUCTION_SERVITUDE}>İnşaat Ruhsatlı</option>
+                                <option value={TittleStatus.NO_DEED}>Tapusuz</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Kimden</label>
+                            <select
+                                {...register('listingFrom')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={ListingFrom.OWNER}>Sahibinden</option>
+                                <option value={ListingFrom.GALLERY}>Emlakçıdan</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Takas</label>
+                            <select
+                                {...register('exchange')}
+                                className="input-field"
+                            >
+                                <option value="">Seçiniz</option>
+                                <option value={YesNo.YES}>Evet</option>
+                                <option value={YesNo.NO}>Hayır</option>
+                            </select>
                         </div>
                     </div>
                 </div>

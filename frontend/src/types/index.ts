@@ -93,6 +93,11 @@ export enum ListingFrom {
   AUTHORIZED_DEALER = 'AUTHORIZED_DEALER'
 }
 
+export enum YesNo {
+  YES = 'YES',
+  NO = 'NO'
+}
+
 // Backend entity'lerine karşılık gelen interface'ler
 
 export interface User {
@@ -215,6 +220,13 @@ export interface Land extends BaseListing {
   zoningStatus?: string;
   parcelNumber: number;
   islandNumber: number;
+  paftaNo?: string;
+  kaks?: number;
+  gabari?: string;
+  creditEligibility?: YesNo;
+  deedStatus?: TittleStatus;
+  listingFrom?: ListingFrom;
+  exchange?: YesNo;
 }
 
 export interface Workplace extends BaseListing {
@@ -222,6 +234,13 @@ export interface Workplace extends BaseListing {
   squareMeter: number;
   floorCount: number;
   furnished: boolean;
+  heatingType?: HeatingType;
+  buildingAge?: string;
+  dues?: number;
+  creditEligibility?: YesNo;
+  deedStatus?: TittleStatus;
+  listingFrom?: ListingFrom;
+  exchange?: YesNo;
 }
 
 // API Request/Response tipleri
@@ -359,6 +378,13 @@ export interface LandCreateRequest {
   parcelNumber: number;
   islandNumber: number;
   offerType: OfferType;
+  paftaNo?: string;
+  kaks?: number;
+  gabari?: string;
+  creditEligibility?: YesNo;
+  deedStatus?: TittleStatus;
+  listingFrom?: ListingFrom;
+  exchange?: YesNo;
 }
 
 export interface WorkplaceCreateRequest {
@@ -376,6 +402,13 @@ export interface WorkplaceCreateRequest {
   floorCount: number;
   furnished: boolean;
   offerType: OfferType;
+  heatingType?: HeatingType;
+  buildingAge?: string;
+  dues?: number;
+  creditEligibility?: YesNo;
+  deedStatus?: TittleStatus;
+  listingFrom?: ListingFrom;
+  exchange?: YesNo;
 }
 
 // Filter Request tipleri

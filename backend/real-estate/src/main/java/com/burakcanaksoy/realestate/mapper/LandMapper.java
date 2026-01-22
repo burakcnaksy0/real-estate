@@ -42,6 +42,15 @@ public class LandMapper {
         land.setParcelNumber(request.getParcelNumber());
         land.setIslandNumber(request.getIslandNumber());
 
+        // New fields
+        land.setPaftaNo(request.getPaftaNo());
+        land.setKaks(request.getKaks());
+        land.setGabari(request.getGabari());
+        land.setCreditEligibility(request.getCreditEligibility());
+        land.setDeedStatus(request.getDeedStatus());
+        land.setListingFrom(request.getListingFrom());
+        land.setExchange(request.getExchange());
+
         return land;
     }
 
@@ -81,6 +90,15 @@ public class LandMapper {
         response.setZoningStatus(land.getZoningStatus());
         response.setParcelNumber(land.getParcelNumber());
         response.setIslandNumber(land.getIslandNumber());
+
+        // New fields
+        response.setPaftaNo(land.getPaftaNo());
+        response.setKaks(land.getKaks());
+        response.setGabari(land.getGabari());
+        response.setCreditEligibility(land.getCreditEligibility());
+        response.setDeedStatus(land.getDeedStatus());
+        response.setListingFrom(land.getListingFrom());
+        response.setExchange(land.getExchange());
 
         // user relationship
         if (land.getCreatedBy() != null) {

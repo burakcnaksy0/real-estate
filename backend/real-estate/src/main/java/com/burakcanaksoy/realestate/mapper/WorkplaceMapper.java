@@ -38,6 +38,15 @@ public class WorkplaceMapper {
         workplace.setFloorCount(request.getFloorCount());
         workplace.setFurnished(request.getFurnished());
 
+        // New fields
+        workplace.setHeatingType(request.getHeatingType());
+        workplace.setBuildingAge(request.getBuildingAge());
+        workplace.setDues(request.getDues());
+        workplace.setCreditEligibility(request.getCreditEligibility());
+        workplace.setDeedStatus(request.getDeedStatus());
+        workplace.setListingFrom(request.getListingFrom());
+        workplace.setExchange(request.getExchange());
+
         return workplace;
     }
 
@@ -74,6 +83,15 @@ public class WorkplaceMapper {
         response.setSquareMeter(workplace.getSquareMeter());
         response.setFloorCount(workplace.getFloorCount());
         response.setFurnished(workplace.getFurnished());
+
+        // New fields
+        response.setHeatingType(workplace.getHeatingType());
+        response.setBuildingAge(workplace.getBuildingAge());
+        response.setDues(workplace.getDues());
+        response.setCreditEligibility(workplace.getCreditEligibility());
+        response.setDeedStatus(workplace.getDeedStatus());
+        response.setListingFrom(workplace.getListingFrom());
+        response.setExchange(workplace.getExchange());
 
         // user relationship
         if (workplace.getCreatedBy() != null) {
