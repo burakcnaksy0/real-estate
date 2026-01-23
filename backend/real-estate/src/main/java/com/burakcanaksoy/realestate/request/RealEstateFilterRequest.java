@@ -34,4 +34,6 @@ public class RealEstateFilterRequest {
     private HeatingType heatingType;
 
     private Boolean furnished;
+
+    private Long ownerId;
 }

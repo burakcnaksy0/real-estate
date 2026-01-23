@@ -32,4 +32,6 @@ public class VehicleFilterRequest {
     private Integer maxKilometer;
 
     private String engineVolume;
+
+    private Long ownerId;
 }

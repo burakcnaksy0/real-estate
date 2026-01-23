@@ -13,4 +13,5 @@ public class GeneralFilterRequest {
     private ListingStatus status;
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
+    private Long ownerId;
 }

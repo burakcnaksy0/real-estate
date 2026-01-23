@@ -30,7 +30,6 @@ public class Workplace extends BaseListing {
     @Column(nullable = false)
     private Boolean furnished;
 
-    // New fields
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private HeatingType heatingType;

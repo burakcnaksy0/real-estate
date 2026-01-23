@@ -16,6 +16,7 @@ import com.burakcanaksoy.realestate.request.WorkplaceFilterRequest;
 import com.burakcanaksoy.realestate.response.BaseListingResponse;
 import com.burakcanaksoy.realestate.response.CategoryStatsResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ListingService {
 
     private final RealEstateRepository realEstateRepository;
@@ -63,6 +65,7 @@ public class ListingService {
     }
 
     public Page<BaseListingResponse> search(GeneralFilterRequest filter, Pageable pageable) {
+        log.info("Processing search in service. Filter: {}", filter);
         List<BaseListing> allListings = new ArrayList<>();
         String categorySlug = filter.getCategorySlug();
 
@@ -110,7 +113,11 @@ public class ListingService {
             realEstateFilter.setStatus(filter.getStatus());
             realEstateFilter.setMinPrice(filter.getMinPrice());
             realEstateFilter.setMaxPrice(filter.getMaxPrice());
-            allListings.addAll(realEstateRepository.search(realEstateFilter, Pageable.unpaged()).getContent());
+            realEstateFilter.setOwnerId(filter.getOwnerId());
+            List<com.burakcanaksoy.realestate.model.RealEstate> results = realEstateRepository
+                    .search(realEstateFilter, Pageable.unpaged()).getContent();
+            log.info("Real Estate search results count: {}", results.size());
+            allListings.addAll(results);
         }
 
         if (searchLand) {
@@ -121,7 +128,11 @@ public class ListingService {
             landFilter.setStatus(filter.getStatus());
             landFilter.setMinPrice(filter.getMinPrice());
             landFilter.setMaxPrice(filter.getMaxPrice());
-            allListings.addAll(landRepository.search(landFilter, Pageable.unpaged()).getContent());
+            landFilter.setOwnerId(filter.getOwnerId());
+            List<com.burakcanaksoy.realestate.model.Land> results = landRepository
+                    .search(landFilter, Pageable.unpaged()).getContent();
+            log.info("Land search results count: {}", results.size());
+            allListings.addAll(results);
         }
 
         if (searchVehicle) {
@@ -132,7 +143,11 @@ public class ListingService {
             vehicleFilter.setStatus(filter.getStatus());
             vehicleFilter.setMinPrice(filter.getMinPrice());
             vehicleFilter.setMaxPrice(filter.getMaxPrice());
-            allListings.addAll(vehicleRepository.search(vehicleFilter, Pageable.unpaged()).getContent());
+            vehicleFilter.setOwnerId(filter.getOwnerId());
+            List<com.burakcanaksoy.realestate.model.Vehicle> results = vehicleRepository
+                    .search(vehicleFilter, Pageable.unpaged()).getContent();
+            log.info("Vehicle search results count: {}", results.size());
+            allListings.addAll(results);
         }
 
         if (searchWorkplace) {
@@ -143,7 +158,11 @@ public class ListingService {
             workplaceFilter.setStatus(filter.getStatus());
             workplaceFilter.setMinPrice(filter.getMinPrice());
             workplaceFilter.setMaxPrice(filter.getMaxPrice());
-            allListings.addAll(workplaceRepository.search(workplaceFilter, Pageable.unpaged()).getContent());
+            workplaceFilter.setOwnerId(filter.getOwnerId());
+            List<com.burakcanaksoy.realestate.model.Workplace> results = workplaceRepository
+                    .search(workplaceFilter, Pageable.unpaged()).getContent();
+            log.info("Workplace search results count: {}", results.size());
+            allListings.addAll(results);
         }
 
         // Tarihe göre sırala (en yeni önce)

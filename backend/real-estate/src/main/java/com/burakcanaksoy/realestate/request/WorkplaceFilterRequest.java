@@ -20,4 +20,5 @@ public class WorkplaceFilterRequest {
     private Integer minFloorCount;
     private Integer maxFloorCount;
     private Boolean furnished;
+    private Long ownerId;
 }

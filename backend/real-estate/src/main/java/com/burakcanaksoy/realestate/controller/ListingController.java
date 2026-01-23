@@ -51,6 +51,7 @@ public class ListingController {
     @GetMapping("/search")
     public ResponseEntity<Page<BaseListingResponse>> search(@ModelAttribute GeneralFilterRequest filter,
             Pageable pageable) {
+        log.info("Search request received. Filter: {}", filter);
         return ResponseEntity.ok(listingService.search(filter, pageable));
     }
 

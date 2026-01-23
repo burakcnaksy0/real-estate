@@ -22,4 +22,6 @@ public class LandFilterRequest {
 
     private Integer minSquareMeter;
     private Integer maxSquareMeter;
+
+    private Long ownerId;
 }

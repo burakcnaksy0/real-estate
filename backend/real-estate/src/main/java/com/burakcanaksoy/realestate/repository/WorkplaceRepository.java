@@ -30,6 +30,7 @@ public interface WorkplaceRepository extends BaseListingRepository<Workplace> {
         and (:#{#filter.minFloorCount} is null or w.floorCount >= :#{#filter.minFloorCount})
         and (:#{#filter.maxFloorCount} is null or w.floorCount <= :#{#filter.maxFloorCount})
         and (:#{#filter.furnished} is null or w.furnished = :#{#filter.furnished})
+        and (:#{#filter.ownerId} is null or w.createdBy.id = :#{#filter.ownerId})
       """, countQuery = """
       select count(w)
       from Workplace w
@@ -46,6 +47,7 @@ public interface WorkplaceRepository extends BaseListingRepository<Workplace> {
         and (:#{#filter.minFloorCount} is null or w.floorCount >= :#{#filter.minFloorCount})
         and (:#{#filter.maxFloorCount} is null or w.floorCount <= :#{#filter.maxFloorCount})
         and (:#{#filter.furnished} is null or w.furnished = :#{#filter.furnished})
+        and (:#{#filter.ownerId} is null or w.createdBy.id = :#{#filter.ownerId})
       """)
   Page<Workplace> search(@Param("filter") WorkplaceFilterRequest filter, Pageable pageable);
 

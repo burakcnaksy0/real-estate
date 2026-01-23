@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ListingService, GeneralFilterRequest } from '../services/listingService';
 import { BaseListing, ListingStatus } from '../types';
 import {
@@ -30,6 +30,10 @@ export const AllListingsPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const initialOwnerId = queryParams.get('ownerId') ? Number(queryParams.get('ownerId')) : undefined;
+
     // Filter state
     const [filters, setFilters] = useState<GeneralFilterRequest>({
         city: '',
@@ -38,6 +42,7 @@ export const AllListingsPage: React.FC = () => {
         status: undefined,
         minPrice: undefined,
         maxPrice: undefined,
+        ownerId: initialOwnerId
     });
 
     const pageSize = 12;
@@ -55,6 +60,8 @@ export const AllListingsPage: React.FC = () => {
             if (filters.status) cleanFilters.status = filters.status;
             if (filters.minPrice !== undefined && filters.minPrice > 0) cleanFilters.minPrice = filters.minPrice;
             if (filters.maxPrice !== undefined && filters.maxPrice > 0) cleanFilters.maxPrice = filters.maxPrice;
+            if (filters.maxPrice !== undefined && filters.maxPrice > 0) cleanFilters.maxPrice = filters.maxPrice;
+            if (filters.ownerId) cleanFilters.ownerId = filters.ownerId;
 
             // Fetch all listings (large size to simulate 'all' for client-side pagination)
             const response = await ListingService.search(cleanFilters, {
@@ -63,7 +70,9 @@ export const AllListingsPage: React.FC = () => {
                 sort: 'createdAt,desc',
             });
 
-            setAllFetchedListings(response.content);
+            let content = response.content;
+
+            setAllFetchedListings(content);
             setCurrentPage(0); // Reset to first page on new search
         } catch (err: any) {
             setError(err.message || 'İlanlar yüklenirken bir hata oluştu');
@@ -104,25 +113,45 @@ export const AllListingsPage: React.FC = () => {
             status: undefined,
             minPrice: undefined,
             maxPrice: undefined,
+            ownerId: undefined
         });
-        // Need to wait for state update in next render or use a ref, but simple setTimeout works for now
-        // A better way is to call fetch with default filters directly
-        setTimeout(() => {
-            const defaultFilters: GeneralFilterRequest = {};
-            ListingService.search(defaultFilters, {
-                page: 0,
-                size: 1000,
-                sort: 'createdAt,desc',
-            }).then(res => {
-                setAllFetchedListings(res.content);
-                setCurrentPage(0);
-                setLoading(false);
-            }).catch(err => {
-                setError(err.message);
-                setLoading(false);
-            });
-        }, 0);
+        // We need to fetch with clean filters. Filters state update is async.
+        // So we call fetch explicitly with empty filters
+        const defaultFilters: GeneralFilterRequest = {};
+        ListingService.search(defaultFilters, {
+            page: 0,
+            size: 1000,
+            sort: 'createdAt,desc',
+        }).then(res => {
+            setAllFetchedListings(res.content);
+            setCurrentPage(0);
+            setLoading(false);
+        }).catch(err => {
+            setError(err.message);
+            setLoading(false);
+        });
     };
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const newOwnerId = queryParams.get('ownerId') ? Number(queryParams.get('ownerId')) : undefined;
+        // Only update if it changed
+        if (newOwnerId !== filters.ownerId) {
+            setFilters(prev => ({ ...prev, ownerId: newOwnerId }));
+            // We need to trigger fetch here because setFilters is async and we need new filters
+            // But fetchListings uses 'filters' state which might be stale in this closure if we call it immediately
+            // However, we can create a separate effect for filter changes OR pass new filters to fetchListings
+            // For now, let's rely on an effect dependency on filters.ownerId if we add it, OR manually fetching using the new value
+            // Simpler approach: toggle a trigger or add filters.ownerId to dependency of existing effect (but that effect is currently empty deps)
+        }
+    }, [location.search]);
+
+    // Re-fetch when ownerId changes (handled via filters state update)
+    useEffect(() => {
+        if (filters.ownerId !== undefined) {
+            fetchListings();
+        }
+    }, [filters.ownerId]);
 
     const handlePageChange = (newPage: number) => {
         if (newPage >= 0 && newPage < totalPages) {
@@ -195,6 +224,11 @@ export const AllListingsPage: React.FC = () => {
                         <p className="text-gray-500 mt-1 flex items-center gap-2">
                             <Search className="w-4 h-4" />
                             {totalElements} ilan bulundu
+                            {filters.ownerId && (
+                                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                                    Satıcı Filtresi Aktif
+                                </span>
+                            )}
                         </p>
                     </div>
                     <button
@@ -231,8 +265,8 @@ export const AllListingsPage: React.FC = () => {
                                                 key={cat}
                                                 onClick={() => handleFilterChange('categorySlug', filters.categorySlug === cat ? '' : cat)}
                                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${filters.categorySlug === cat
-                                                        ? 'bg-blue-50 border-blue-200 text-blue-700'
-                                                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                    ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                                                     }`}
                                             >
                                                 {getCategoryIcon(cat)}

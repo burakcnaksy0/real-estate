@@ -436,6 +436,10 @@ export const MessagesPage: React.FC = () => {
                                         const isOwn = message.senderId === (user?.id || 0);
                                         const showAvatar = index === 0 || messages[index - 1].senderId !== message.senderId;
 
+                                        // Check for listing link
+                                        const listingMatch = message.content.match(/(\/real-estates|\/vehicles|\/lands|\/workplaces)\/(\d+)/);
+                                        const isListingShare = !!listingMatch;
+
                                         return (
                                             <div
                                                 key={message.id}
@@ -448,12 +452,44 @@ export const MessagesPage: React.FC = () => {
                                                 )}
 
                                                 <div className={`group max-w-[70%] relative`}>
-                                                    <div className={`px-5 py-3.5 rounded-2xl shadow-sm text-sm leading-relaxed ${isOwn
-                                                        ? 'bg-blue-600 text-white rounded-br-none'
-                                                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
-                                                        }`}>
-                                                        {message.content}
-                                                    </div>
+                                                    {isListingShare ? (
+                                                        <Link
+                                                            to={listingMatch[0]}
+                                                            className={`block overflow-hidden rounded-2xl shadow-sm border transition-all hover:shadow-md ${isOwn
+                                                                ? 'bg-blue-600 border-blue-600 text-white rounded-br-none'
+                                                                : 'bg-white border-gray-200 text-gray-800 rounded-bl-none'
+                                                                }`}
+                                                        >
+                                                            <div className={`p-4 ${isOwn ? 'bg-blue-700/50' : 'bg-gray-50'}`}>
+                                                                <div className="flex items-center gap-2 mb-1 opacity-80">
+                                                                    <span className="text-xs uppercase font-bold tracking-wider">İlan Paylaşımı</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`p-2 rounded-lg ${isOwn ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
+                                                                        <Image className="w-5 h-5" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="font-bold text-sm leading-tight">İlanı görüntülemek için tıklayın</p>
+                                                                        <p className={`text-xs mt-0.5 ${isOwn ? 'text-blue-100' : 'text-gray-500'}`}>
+                                                                            İlan No: {listingMatch[2]}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            {message.content.replace(listingMatch[0], '').trim() && (
+                                                                <div className="px-4 py-3 text-sm">
+                                                                    {message.content.replace(listingMatch[0], '').trim()}
+                                                                </div>
+                                                            )}
+                                                        </Link>
+                                                    ) : (
+                                                        <div className={`px-5 py-3.5 rounded-2xl shadow-sm text-sm leading-relaxed ${isOwn
+                                                            ? 'bg-blue-600 text-white rounded-br-none'
+                                                            : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
+                                                            }`}>
+                                                            {message.content}
+                                                        </div>
+                                                    )}
 
                                                     <div className={`flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity absolute -bottom-5 ${isOwn ? 'right-0' : 'left-0'}`}>
                                                         <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">

@@ -8,6 +8,7 @@ export interface GeneralFilterRequest {
   status?: ListingStatus;
   minPrice?: number;
   maxPrice?: number;
+  ownerId?: number;
 }
 
 export class ListingService {

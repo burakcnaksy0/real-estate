@@ -27,6 +27,7 @@ public interface LandRepository extends BaseListingRepository<Land> {
         and (:#{#filter.landType} is null or l.landType = :#{#filter.landType})
         and (:#{#filter.minSquareMeter} is null or l.squareMeter >= :#{#filter.minSquareMeter})
         and (:#{#filter.maxSquareMeter} is null or l.squareMeter <= :#{#filter.maxSquareMeter})
+        and (:#{#filter.ownerId} is null or l.createdBy.id = :#{#filter.ownerId})
       """, countQuery = """
       select count(l)
       from Land l
@@ -40,6 +41,7 @@ public interface LandRepository extends BaseListingRepository<Land> {
         and (:#{#filter.landType} is null or l.landType = :#{#filter.landType})
         and (:#{#filter.minSquareMeter} is null or l.squareMeter >= :#{#filter.minSquareMeter})
         and (:#{#filter.maxSquareMeter} is null or l.squareMeter <= :#{#filter.maxSquareMeter})
+        and (:#{#filter.ownerId} is null or l.createdBy.id = :#{#filter.ownerId})
       """)
   Page<Land> search(@Param("filter") LandFilterRequest filter, Pageable pageable);
 

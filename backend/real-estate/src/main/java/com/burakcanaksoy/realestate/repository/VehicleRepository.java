@@ -35,6 +35,7 @@ public interface VehicleRepository extends BaseListingRepository<Vehicle> {
         and (:#{#filter.minKilometer} is null or v.kilometer >= :#{#filter.minKilometer})
         and (:#{#filter.maxKilometer} is null or v.kilometer <= :#{#filter.maxKilometer})
         and (:#{#filter.engineVolume} is null or v.engineVolume = :#{#filter.engineVolume})
+        and (:#{#filter.ownerId} is null or v.createdBy.id = :#{#filter.ownerId})
       """, countQuery = """
       select count(v)
       from Vehicle v
@@ -54,6 +55,7 @@ public interface VehicleRepository extends BaseListingRepository<Vehicle> {
         and (:#{#filter.minKilometer} is null or v.kilometer >= :#{#filter.minKilometer})
         and (:#{#filter.maxKilometer} is null or v.kilometer <= :#{#filter.maxKilometer})
         and (:#{#filter.engineVolume} is null or v.engineVolume = :#{#filter.engineVolume})
+        and (:#{#filter.ownerId} is null or v.createdBy.id = :#{#filter.ownerId})
       """)
   Page<Vehicle> search(@Param("filter") VehicleFilterRequest filter, Pageable pageable);
 

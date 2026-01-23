@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     MapPin, Calendar, User, Phone, Edit, Trash2, ArrowLeft,
     Home, Ruler, Map as MapIcon, FileText, Building, Share2, Eye, Heart,
-    Video as VideoIcon, Image as ImageIcon
+    Video as VideoIcon, Image as ImageIcon, ShieldCheck, Tag, Info, Navigation,
+    ChevronRight, Mail, Mountain, Trees, Layers, Maximize
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, LandType, Land, OfferType, YesNo, TittleStatus, ListingFrom } from '../../types';
@@ -164,363 +165,403 @@ export const LandDetailPage: React.FC = () => {
 
     const isOwner = isAuthenticated && user?.id === land.ownerId;
 
-    return (
-        <div className="space-y-6">
-            {/* Breadcrumb */}
-            <nav className="flex items-center space-x-2 text-sm text-gray-600">
-                <Link to="/" className="hover:text-primary-600">Ana Sayfa</Link>
-                <span>/</span>
-                <Link to="/lands" className="hover:text-primary-600">Arsa İlanları</Link>
-                <span>/</span>
-                <span className="text-gray-900">{land.title}</span>
-            </nav>
-
-            {/* Back Button */}
-            <button onClick={() => navigate(-1)} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="h-4 w-4" />
-                <span>Geri Dön</span>
-            </button>
-
-            {/* Media Tabs */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
-                <div className="flex border-b">
-                    <button
-                        onClick={() => setActiveTab('photos')}
-                        className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'photos'
-                            ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }`}
-                    >
-                        <div className="flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4" />
-                            <span>Fotoğraflar</span>
-                        </div>
-                    </button>
-
-                    {land.videoUrl && (
-                        <button
-                            onClick={() => setActiveTab('video')}
-                            className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'video'
-                                ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                }`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <VideoIcon className="w-4 h-4" />
-                                <span>Video Turu</span>
-                            </div>
-                        </button>
-                    )}
+    // Helper components
+    const FeatureCard = ({ icon: Icon, label, value, subValue }: { icon: any, label: string, value: string | number | undefined, subValue?: string }) => {
+        if (!value) return null;
+        return (
+            <div className="flex items-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="p-3 bg-primary-50 rounded-lg text-primary-600 mr-4">
+                    <Icon size={24} />
                 </div>
+                <div>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{label}</p>
+                    <p className="text-base font-bold text-gray-900">{value}</p>
+                    {subValue && <p className="text-xs text-gray-400">{subValue}</p>}
+                </div>
+            </div>
+        );
+    };
 
-                <div className="p-4 bg-gray-50">
-                    <div className={activeTab === 'photos' ? 'block' : 'hidden'}>
-                        <ImageGallery images={images} fallbackIcon={<MapIcon className="w-24 h-24 text-gray-300" />} />
-                    </div>
+    const DetailRow = ({ label, value, icon: Icon }: { label: string, value: string | number | boolean | undefined, icon?: any }) => {
+        if (value === undefined || value === null || value === '') return null;
+        return (
+            <div className="flex justify-between items-center py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors">
+                <span className="text-gray-500 font-medium flex items-center gap-2">
+                    {Icon && <Icon size={16} className="text-gray-400" />}
+                    {label}
+                </span>
+                <span className="text-gray-900 font-semibold text-right">{value === true ? 'Evet' : value === false ? 'Hayır' : value}</span>
+            </div>
+        );
+    };
 
-                    {activeTab === 'video' && land.videoUrl && (
-                        <div className="rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
-                            <video
-                                src={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}${land.videoUrl}`}
-                                controls
-                                className="w-full h-full"
-                                autoPlay
-                            >
-                                Tarayıcınız video oynatmayı desteklemiyor.
-                            </video>
+    return (
+        <div className="min-h-screen bg-gray-50 pb-12">
+            {/* Breadcrumb Header */}
+            <div className="bg-white border-b sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <nav className="flex items-center text-sm text-gray-500 overflow-x-auto whitespace-nowrap pb-1 md:pb-0">
+                            <Link to="/" className="hover:text-primary-600 transition-colors">Ana Sayfa</Link>
+                            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+                            <Link to="/lands" className="hover:text-primary-600 transition-colors">Arsa</Link>
+                            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+                            <span className="font-medium text-gray-900 truncate max-w-[200px]">{land.title}</span>
+                        </nav>
+
+                        <div className="flex items-center gap-3">
+                            {!isOwner ? (
+                                <>
+                                    <FavoriteButton listingId={land.id} listingType="LAND" />
+                                    <button
+                                        onClick={() => setIsShareModalOpen(true)}
+                                        className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-all"
+                                        title="Paylaş"
+                                    >
+                                        <Share2 className="w-5 h-5" />
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setIsEditModalOpen(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Düzenle</span>
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-medium transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Sil</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Header */}
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{land.title}</h1>
-                            <div className="flex items-center text-gray-600 space-x-4">
-                                <span className="flex items-center"><MapPin className="h-4 w-4 mr-1" />{land.city}, {land.district}</span>
-                                <span className="flex items-center"><Calendar className="h-4 w-4 mr-1" />{new Date(land.createdAt).toLocaleDateString('tr-TR')}</span>
-                                <span className="flex items-center"><Eye className="h-4 w-4 mr-1" />{land.viewCount} görüntülenme</span>
-                                <span className="flex items-center"><Heart className="h-4 w-4 mr-1" />{land.favoriteCount || 0} favori</span>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Title Section */}
+                <div className="mb-8">
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+                        <div className="flex-1">
+                            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-3">
+                                {land.title}
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                                <span className="flex items-center px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                                    <MapPin className="w-4 h-4 mr-2 text-primary-500" />
+                                    {land.city}, {land.district}
+                                </span>
+                                <span className="flex items-center px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                                    <Calendar className="w-4 h-4 mr-2 text-primary-500" />
+                                    {new Date(land.createdAt).toLocaleDateString('tr-TR')}
+                                </span>
+                                <span className="flex items-center px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                                    <Tag className="w-4 h-4 mr-2 text-primary-500" />
+                                    İlan No: {land.id}
+                                </span>
+                                <span className="flex items-center px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                                    <Eye className="w-4 h-4 mr-2 text-primary-500" />
+                                    {land.viewCount} Görüntülenme
+                                </span>
                             </div>
                         </div>
-                        {isOwner && (
-                            <div className="flex space-x-2">
-                                <button
-                                    onClick={() => setIsEditModalOpen(true)}
-                                    className="btn-secondary flex items-center space-x-2"
-                                >
-                                    <Edit className="h-4 w-4" /> <span>Düzenle</span>
-                                </button>
-                                <button onClick={handleDelete} className="btn-secondary text-red-600 hover:bg-red-50 flex items-center space-x-2">
-                                    <Trash2 className="h-4 w-4" /> <span>Sil</span>
-                                </button>
+                        <div className="flex flex-col items-start lg:items-end">
+                            <div className="text-4xl font-bold text-primary-600">
+                                {formatPrice(land.price, land.currency)}
                             </div>
-                        )}
-
-                        {!isOwner && isAuthenticated && (
-                            <div className="flex space-x-2">
-                                <FavoriteButton listingId={land.id} listingType="LAND" />
-                                <button
-                                    onClick={() => setIsShareModalOpen(true)}
-                                    className="btn-secondary flex items-center space-x-2"
-                                    title="İlanı Paylaş"
-                                >
-                                    <Share2 className="h-4 w-4" />
-                                    <span>Paylaş</span>
-                                </button>
-                            </div>
-                        )}
-
-                        {!isAuthenticated && (
-                            <FavoriteButton listingId={land.id} listingType="LAND" />
-                        )}
-                    </div>
-
-                    {/* Price Card */}
-                    <div className="bg-primary-50 rounded-lg p-6">
-                        <div className="text-3xl font-bold text-primary-600">{formatPrice(land.price, land.currency)}</div>
-                        <div className="text-gray-600 mt-1">
-                            {getLandTypeLabel(land.landType)} • {getOfferTypeLabel(land.offerType)}
-                        </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="card p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6">İlan Detayları</h2>
-
-                        {/* Comprehensive Details Table */}
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">İlan No</span>
-                                    <span className="text-gray-900 font-semibold">#{land.id}</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">İlan Tarihi</span>
-                                    <span className="text-gray-900">{new Date(land.createdAt).toLocaleDateString('tr-TR')}</span>
-                                </div>
-
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">Emlak Tipi</span>
-                                    <span className="text-gray-900">{getLandTypeLabel(land.landType)}</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">İmar Durumu</span>
-                                    <span className="text-gray-900">{land.zoningStatus || 'Belirtilmemiş'}</span>
-                                </div>
-
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">m²</span>
-                                    <span className="text-gray-900 font-semibold">{land.squareMeter}</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">m² Fiyatı</span>
-                                    <span className="text-gray-900 font-semibold">
-                                        {(land.price / land.squareMeter).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} {land.currency}
-                                    </span>
-                                </div>
-
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">Ada No</span>
-                                    <span className="text-gray-900">{land.islandNumber}</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">Parsel No</span>
-                                    <span className="text-gray-900">{land.parcelNumber}</span>
-                                </div>
-
-                                {land.paftaNo && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Pafta No</span>
-                                        <span className="text-gray-900">{land.paftaNo}</span>
-                                    </div>
-                                )}
-
-                                {land.kaks !== undefined && land.kaks !== null && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Kaks (Emsal)</span>
-                                        <span className="text-gray-900">{land.kaks}</span>
-                                    </div>
-                                )}
-
-                                {land.gabari && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Gabari</span>
-                                        <span className="text-gray-900">{land.gabari}</span>
-                                    </div>
-                                )}
-
-                                {land.creditEligibility && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Krediye Uygunluk</span>
-                                        <span className="text-gray-900">{getYesNoLabel(land.creditEligibility)}</span>
-                                    </div>
-                                )}
-
-                                {land.deedStatus && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Tapu Durumu</span>
-                                        <span className="text-gray-900">{getDeedStatusLabel(land.deedStatus)}</span>
-                                    </div>
-                                )}
-
-                                {land.listingFrom && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Kimden</span>
-                                        <span className="text-gray-900">{getListingFromLabel(land.listingFrom)}</span>
-                                    </div>
-                                )}
-
-                                {land.exchange && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Takas</span>
-                                        <span className="text-gray-900">{getYesNoLabel(land.exchange)}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    {land.description && (
-                        <div className="card p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Açıklama</h2>
-                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{land.description}</p>
-                        </div>
-                    )}
-
-                    {/* Map */}
-                    {land.latitude && land.longitude && (
-                        <div className="card p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
-                            <MapView
-                                latitude={land.latitude}
-                                longitude={land.longitude}
-                                title={land.title}
-                                height="300px"
-                            />
-                        </div>
-                    )}
-                    {/* Nearby Places */}
-                    {land.latitude && land.longitude && (
-                        <div className="card p-6">
-                            <NearbyPlaces
-                                latitude={land.latitude}
-                                longitude={land.longitude}
-                            />
-                        </div>
-                    )}
-                </div>
-
-                {/* Sidebar (Contact, etc) */}
-                <div className="space-y-6">
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">İletişim</h3>
-                        <div className="flex items-center space-x-3 mb-4">
-                            <User className="h-5 w-5 text-gray-400" />
-                            <span className="text-gray-900">{land.ownerUsername}</span>
-                        </div>
-                        {isAuthenticated ? (
-                            <button className="w-full btn-primary flex items-center justify-center space-x-2">
-                                <Phone className="h-4 w-4" /> <span>İletişime Geç</span>
-                            </button>
-                        ) : (
-                            <Link to="/login" className="btn-primary w-full text-center">Giriş Yap</Link>
-                        )}
-                    </div>
-
-                    {/* Quick Info */}
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Özet Bilgiler</h3>
-                        <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">İlan No:</span>
-                                <span className="font-medium">#{land.id}</span>
-                            </div>
-
-                            {land.ownerLastSeen && (
-                                <div className="flex justify-between text-green-600">
-                                    <span className="text-gray-600">Son Görülme:</span>
-                                    <span className="font-medium">{formatLastSeen(land.ownerLastSeen)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Durum:</span>
-                                <span className="font-medium capitalize">{land.status}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Güncellenme:</span>
-                                <span className="font-medium">
-                                    {new Date(land.updatedAt).toLocaleDateString('tr-TR')}
+                            <div className="flex gap-2 mt-2">
+                                <span className="px-4 py-1 bg-green-100 text-green-700 border border-green-200 rounded-full text-sm font-semibold tracking-wide">
+                                    {getLandTypeLabel(land.landType)}
+                                </span>
+                                <span className="px-4 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded-full text-sm font-semibold tracking-wide">
+                                    {getOfferTypeLabel(land.offerType)}
                                 </span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Similar Listings */}
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Benzer İlanlar</h3>
-                        <div className="space-y-4">
-                            {similarLands.length === 0 ? (
-                                <p className="text-gray-500 text-sm">Benzer ilan bulunamadı.</p>
-                            ) : (
-                                similarLands.map((listing) => (
-                                    <Link key={listing.id} to={`/lands/${listing.id}`} className="flex space-x-3 group">
-                                        {listing.imageUrl ? (
-                                            <img
-                                                src={`${process.env.REACT_APP_API_BASE_URL}${listing.imageUrl}`}
-                                                alt={listing.title}
-                                                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                                            />
-                                        ) : (
-                                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                                <MapIcon className="h-6 w-6 text-gray-400" />
-                                            </div>
-                                        )}
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 truncate group-hover:text-primary-600">
-                                                {listing.title}
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                                {getLandTypeLabel(listing.landType)} • {listing.squareMeter} m²
-                                            </p>
-                                            <p className="text-sm font-semibold text-primary-600">
-                                                {formatPrice(listing.price, listing.currency)}
-                                            </p>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* LEFT COLUMN (Content) */}
+                    <div className="lg:col-span-8 space-y-8">
+
+                        {/* Gallery */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="border-b bg-gray-50 flex items-center px-4">
+                                <button
+                                    onClick={() => setActiveTab('photos')}
+                                    className={`flex items-center gap-2 px-6 py-4 font-medium text-sm border-b-2 transition-all ${activeTab === 'photos'
+                                        ? 'border-primary-600 text-primary-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900'
+                                        }`}
+                                >
+                                    <ImageIcon size={18} />
+                                    <span>Fotoğraflar</span>
+                                </button>
+                                {land.videoUrl && (
+                                    <button
+                                        onClick={() => setActiveTab('video')}
+                                        className={`flex items-center gap-2 px-6 py-4 font-medium text-sm border-b-2 transition-all ${activeTab === 'video'
+                                            ? 'border-primary-600 text-primary-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        <VideoIcon size={18} />
+                                        <span>Video Turu</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="p-1">
+                                {activeTab === 'photos' ? (
+                                    <ImageGallery images={images} fallbackIcon={<MapIcon className="w-32 h-32 text-gray-200" />} />
+                                ) : (
+                                    land.videoUrl && (
+                                        <div className="bg-black aspect-video flex items-center justify-center">
+                                            <video
+                                                src={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}${land.videoUrl}`}
+                                                controls
+                                                className="w-full h-full"
+                                                autoPlay
+                                            >
+                                                Tarayıcınız video oynatmayı desteklemiyor.
+                                            </video>
                                         </div>
-                                    </Link>
-                                ))
+                                    )
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Quick Specs Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <FeatureCard
+                                icon={Maximize}
+                                label="Büyüklük"
+                                value={land.squareMeter + " m²"}
+                            />
+                            <FeatureCard
+                                icon={Layers}
+                                label="İmar Durumu"
+                                value={land.zoningStatus || 'Belirtilmemiş'}
+                            />
+                            <FeatureCard
+                                icon={Mountain}
+                                label="Ada"
+                                value={land.islandNumber}
+                            />
+                            <FeatureCard
+                                icon={Trees}
+                                label="Parsel"
+                                value={land.parcelNumber}
+                            />
+                        </div>
+
+                        {/* Comprehensive Details */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                                <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                                    <Info size={20} />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">Arsa Özellikleri</h2>
+                            </div>
+
+                            <div className="p-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-12">
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider border-b pb-2">Temel Bilgiler</h3>
+                                        <DetailRow label="İlan No" value={`#${land.id}`} />
+                                        <DetailRow label="Ada No" value={land.islandNumber} />
+                                        <DetailRow label="Parsel No" value={land.parcelNumber} />
+                                        <DetailRow label="Pafta No" value={land.paftaNo} />
+                                        <DetailRow label="m² Fiyatı" value={`${(land.price / land.squareMeter).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ${land.currency}`} />
+                                    </div>
+
+                                    <div className="space-y-1 mt-6 md:mt-0">
+                                        <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider border-b pb-2">İmar & Tapu</h3>
+                                        <DetailRow label="Kaks (Emsal)" value={land.kaks} />
+                                        <DetailRow label="Gabari" value={land.gabari} />
+                                        <DetailRow label="Tapu Durumu" value={getDeedStatusLabel(land.deedStatus)} icon={FileText} />
+                                        <DetailRow label="Krediye Uygun" value={getYesNoLabel(land.creditEligibility)} />
+                                        <DetailRow label="Takas" value={getYesNoLabel(land.exchange)} />
+                                        <DetailRow label="Kimden" value={getListingFromLabel(land.listingFrom)} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Description */}
+                        {land.description && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                                    <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                                        <Tag size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900">Açıklama</h2>
+                                </div>
+                                <div className="p-8">
+                                    <div className="prose prose-blue max-w-none">
+                                        <p className="text-gray-700 whitespace-pre-line leading-relaxed text-lg">{land.description}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Map */}
+                        {land.latitude && land.longitude && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                                    <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                                        <Navigation size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900">Konum</h2>
+                                </div>
+                                <div className="h-[400px]">
+                                    <MapView
+                                        latitude={land.latitude}
+                                        longitude={land.longitude}
+                                        title={land.title}
+                                        height="100%"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        {/* Nearby Places */}
+                        {land.latitude && land.longitude && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                                    <div className="p-2 bg-teal-50 rounded-lg text-teal-600">
+                                        <MapPin size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900">Yakın Çevre</h2>
+                                </div>
+                                <div className="p-4">
+                                    <NearbyPlaces
+                                        latitude={land.latitude}
+                                        longitude={land.longitude}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* RIGHT COLUMN (Sidebar) */}
+                    <div className="lg:col-span-4 space-y-6">
+                        {/* Sticky Sidebar Container */}
+                        <div className="sticky top-24 space-y-6">
+
+                            {/* Seller Card */}
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden p-6">
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">İlan Sahibi</h3>
+                                <Link to={`/listings?ownerId=${land.ownerId}`} className="flex items-center gap-4 mb-6 group hover:bg-gray-50 p-2 -mx-2 rounded-xl transition-colors">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center text-primary-700 font-bold text-2xl border-4 border-white shadow-md group-hover:scale-105 transition-transform">
+                                        <User size={32} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{land.ownerUsername}</h4>
+                                        {land.ownerLastSeen && (
+                                            <p className="text-sm text-green-600 flex items-center gap-1">
+                                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                                {formatLastSeen(land.ownerLastSeen)}
+                                            </p>
+                                        )}
+                                        <p className="text-xs text-gray-500 mt-1">Tüm ilanlarını gör &rarr;</p>
+                                    </div>
+                                </Link>
+
+                                <div className="space-y-3">
+                                    {isAuthenticated ? (
+                                        <>
+                                            <button className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] shadow-primary-200 shadow-lg">
+                                                <Phone size={20} />
+                                                <span>Telefonu Göster</span>
+                                            </button>
+                                            {user?.id !== land.ownerId && (
+                                                <button
+                                                    onClick={() => navigate(`/messages/${land.ownerId}`)}
+                                                    className="w-full bg-white border-2 border-primary-100 text-primary-700 hover:bg-primary-50 font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all"
+                                                >
+                                                    <Mail size={20} />
+                                                    <span>Mesaj Gönder</span>
+                                                </button>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="bg-gray-50 rounded-xl p-4 text-center">
+                                            <p className="text-gray-600 mb-3 text-sm">İletişim bilgilerini görmek için giriş yapın.</p>
+                                            <Link to="/login" className="text-primary-600 font-bold hover:underline">Giriş Yap</Link>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Safety Tips (Static) */}
+                            <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
+                                <div className="flex items-center gap-2 mb-3 text-blue-800 font-bold">
+                                    <ShieldCheck size={20} />
+                                    <h3>Güvenlik İpuçları</h3>
+                                </div>
+                                <ul className="text-sm text-blue-900 space-y-2 list-disc list-inside opacity-80">
+                                    <li>Kapora göndermeyin.</li>
+                                    <li>Tapu/Ada/Parsel sorgulaması yapın.</li>
+                                    <li>Belediyeden imar durumunu teyit edin.</li>
+                                </ul>
+                            </div>
+
+                            {/* Similar Listings Shortcut */}
+                            {similarLands.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden p-6">
+                                    <h3 className="font-bold text-gray-900 mb-4">Benzer İlanlar</h3>
+                                    <div className="space-y-4">
+                                        {similarLands.slice(0, 3).map(listing => (
+                                            <Link key={listing.id} to={`/lands/${listing.id}`} className="flex gap-3 group">
+                                                <div className="w-20 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                                    {listing.imageUrl ? (
+                                                        <img src={process.env.REACT_APP_API_BASE_URL + listing.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                                    ) : <div className="w-full h-full flex items-center justify-center text-gray-400"><MapIcon size={20} /></div>}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium text-gray-900 truncate group-hover:text-primary-600 font-sm">{listing.title}</p>
+                                                    <p className="text-xs text-gray-500">{listing.city}, {listing.district}</p>
+                                                    <p className="text-primary-600 font-bold text-sm">{formatPrice(listing.price, listing.currency)}</p>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
+
                         </div>
                     </div>
                 </div>
+
+                {/* Share Modal */}
+                {land && (
+                    <ShareListingModal
+                        isOpen={isShareModalOpen}
+                        onClose={() => setIsShareModalOpen(false)}
+                        listingId={land.id}
+                        listingType="LAND"
+                        listingTitle={land.title}
+                    />
+                )}
+
+                {land && (
+                    <EditLandModal
+                        land={land}
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        onSuccess={() => {
+                            window.location.reload();
+                        }}
+                    />
+                )}
             </div>
-
-            {/* Share Modal */}
-            {land && (
-                <ShareListingModal
-                    isOpen={isShareModalOpen}
-                    onClose={() => setIsShareModalOpen(false)}
-                    listingId={land.id}
-                    listingType="LAND"
-                    listingTitle={land.title}
-                />
-            )}
-
-            {land && (
-                <EditLandModal
-                    land={land}
-                    isOpen={isEditModalOpen}
-                    onClose={() => setIsEditModalOpen(false)}
-                    onSuccess={() => {
-                        window.location.reload();
-                    }}
-                />
-            )}
         </div>
     );
 };

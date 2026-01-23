@@ -33,6 +33,7 @@ public interface RealEstateRepository extends BaseListingRepository<RealEstate> 
         and (:#{#filter.maxFloor} is null or r.floor <= :#{#filter.maxFloor})
         and (:#{#filter.heatingType} is null or r.heatingType = :#{#filter.heatingType})
         and (:#{#filter.furnished} is null or r.furnished = :#{#filter.furnished})
+        and (:#{#filter.ownerId} is null or r.createdBy.id = :#{#filter.ownerId})
       """, countQuery = """
       select count(r)
       from RealEstate r
@@ -52,6 +53,7 @@ public interface RealEstateRepository extends BaseListingRepository<RealEstate> 
         and (:#{#filter.maxFloor} is null or r.floor <= :#{#filter.maxFloor})
         and (:#{#filter.heatingType} is null or r.heatingType = :#{#filter.heatingType})
         and (:#{#filter.furnished} is null or r.furnished = :#{#filter.furnished})
+        and (:#{#filter.ownerId} is null or r.createdBy.id = :#{#filter.ownerId})
       """)
   Page<RealEstate> search(@Param("filter") RealEstateFilterRequest filter, Pageable pageable);
 

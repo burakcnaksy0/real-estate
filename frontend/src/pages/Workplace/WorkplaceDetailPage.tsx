@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
     MapPin, Calendar, User, Phone, Mail, Edit, Trash2, ArrowLeft,
     Home, Ruler, Layers, Briefcase, Share2, Eye, Heart,
-    Video as VideoIcon, Image as ImageIcon
+    Video as VideoIcon, Image as ImageIcon, ShieldCheck, Tag, Info, Navigation,
+    ChevronRight, Thermometer, Building, Warehouse, Maximize, FileText
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Currency, WorkplaceType, Workplace, OfferType, HeatingType, YesNo, TittleStatus, ListingFrom } from '../../types';
@@ -175,350 +176,403 @@ export const WorkplaceDetailPage: React.FC = () => {
 
     const isOwner = isAuthenticated && user?.id === workplace.ownerId;
 
-    return (
-        <div className="space-y-6">
-            {/* Breadcrumb */}
-            <nav className="flex items-center space-x-2 text-sm text-gray-600">
-                <Link to="/" className="hover:text-primary-600">Ana Sayfa</Link>
-                <span>/</span>
-                <Link to="/workplaces" className="hover:text-primary-600">İşyeri İlanları</Link>
-                <span>/</span>
-                <span className="text-gray-900">{workplace.title}</span>
-            </nav>
-
-            {/* Back Button */}
-            <button onClick={() => navigate(-1)} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="h-4 w-4" />
-                <span>Geri Dön</span>
-            </button>
-
-            {/* Media Tabs */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
-                <div className="flex border-b">
-                    <button
-                        onClick={() => setActiveTab('photos')}
-                        className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'photos'
-                            ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }`}
-                    >
-                        <div className="flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4" />
-                            <span>Fotoğraflar</span>
-                        </div>
-                    </button>
-
-                    {workplace.videoUrl && (
-                        <button
-                            onClick={() => setActiveTab('video')}
-                            className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === 'video'
-                                ? 'border-b-2 border-primary-600 text-primary-600 bg-gray-50'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                }`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <VideoIcon className="w-4 h-4" />
-                                <span>Video Turu</span>
-                            </div>
-                        </button>
-                    )}
+    // Helper components
+    const FeatureCard = ({ icon: Icon, label, value, subValue }: { icon: any, label: string, value: string | number | undefined, subValue?: string }) => {
+        if (!value) return null;
+        return (
+            <div className="flex items-center p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="p-3 bg-primary-50 rounded-lg text-primary-600 mr-4">
+                    <Icon size={24} />
                 </div>
+                <div>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{label}</p>
+                    <p className="text-base font-bold text-gray-900">{value}</p>
+                    {subValue && <p className="text-xs text-gray-400">{subValue}</p>}
+                </div>
+            </div>
+        );
+    };
 
-                <div className="p-4 bg-gray-50">
-                    <div className={activeTab === 'photos' ? 'block' : 'hidden'}>
-                        <ImageGallery images={images} fallbackIcon={<Briefcase className="w-24 h-24 text-gray-300" />} />
-                    </div>
+    const DetailRow = ({ label, value, icon: Icon }: { label: string, value: string | number | boolean | undefined, icon?: any }) => {
+        if (value === undefined || value === null || value === '') return null;
+        return (
+            <div className="flex justify-between items-center py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors">
+                <span className="text-gray-500 font-medium flex items-center gap-2">
+                    {Icon && <Icon size={16} className="text-gray-400" />}
+                    {label}
+                </span>
+                <span className="text-gray-900 font-semibold text-right">{value === true ? 'Evet' : value === false ? 'Hayır' : value}</span>
+            </div>
+        );
+    };
 
-                    {activeTab === 'video' && workplace.videoUrl && (
-                        <div className="rounded-xl overflow-hidden bg-black aspect-video shadow-lg">
-                            <video
-                                src={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}${workplace.videoUrl}`}
-                                controls
-                                className="w-full h-full"
-                                autoPlay
-                            >
-                                Tarayıcınız video oynatmayı desteklemiyor.
-                            </video>
+    return (
+        <div className="min-h-screen bg-gray-50 pb-12">
+            {/* Breadcrumb Header */}
+            <div className="bg-white border-b sticky top-0 z-30 shadow-sm backdrop-blur-md bg-white/90">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <nav className="flex items-center text-sm text-gray-500 overflow-x-auto whitespace-nowrap pb-1 md:pb-0">
+                            <Link to="/" className="hover:text-primary-600 transition-colors">Ana Sayfa</Link>
+                            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+                            <Link to="/workplaces" className="hover:text-primary-600 transition-colors">İşyeri</Link>
+                            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+                            <span className="font-medium text-gray-900 truncate max-w-[200px]">{workplace.title}</span>
+                        </nav>
+
+                        <div className="flex items-center gap-3">
+                            {!isOwner ? (
+                                <>
+                                    <FavoriteButton listingId={workplace.id} listingType="WORKPLACE" />
+                                    <button
+                                        onClick={() => setIsShareModalOpen(true)}
+                                        className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-all"
+                                        title="Paylaş"
+                                    >
+                                        <Share2 className="w-5 h-5" />
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setIsEditModalOpen(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Düzenle</span>
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-medium transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Sil</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Header */}
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{workplace.title}</h1>
-                            <div className="flex items-center text-gray-600 space-x-4">
-                                <span className="flex items-center"><MapPin className="h-4 w-4 mr-1" />{workplace.city}, {workplace.district}</span>
-                                <span className="flex items-center"><Calendar className="h-4 w-4 mr-1" />{new Date(workplace.createdAt).toLocaleDateString('tr-TR')}</span>
-                                <span className="flex items-center"><Eye className="h-4 w-4 mr-1" />{workplace.viewCount} görüntülenme</span>
-                                <span className="flex items-center"><Heart className="h-4 w-4 mr-1" />{workplace.favoriteCount || 0} favori</span>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Title Section */}
+                <div className="mb-8">
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+                        <div className="flex-1">
+                            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-3">
+                                {workplace.title}
+                            </h1>
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                                <span className="flex items-center px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                                    <MapPin className="w-4 h-4 mr-2 text-primary-500" />
+                                    {workplace.city}, {workplace.district}
+                                </span>
+                                <span className="flex items-center px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                                    <Calendar className="w-4 h-4 mr-2 text-primary-500" />
+                                    {new Date(workplace.createdAt).toLocaleDateString('tr-TR')}
+                                </span>
+                                <span className="flex items-center px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                                    <Tag className="w-4 h-4 mr-2 text-primary-500" />
+                                    İlan No: {workplace.id}
+                                </span>
+                                <span className="flex items-center px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                                    <Eye className="w-4 h-4 mr-2 text-primary-500" />
+                                    {workplace.viewCount} Görüntülenme
+                                </span>
                             </div>
                         </div>
-                        {isOwner && (
-                            <div className="flex space-x-2">
-                                <button
-                                    onClick={() => setIsEditModalOpen(true)}
-                                    className="btn-secondary flex items-center space-x-2"
-                                >
-                                    <Edit className="h-4 w-4" /> <span>Düzenle</span>
-                                </button>
-                                <button onClick={handleDelete} className="btn-secondary text-red-600 hover:bg-red-50 flex items-center space-x-2">
-                                    <Trash2 className="h-4 w-4" /> <span>Sil</span>
-                                </button>
+                        <div className="flex flex-col items-start lg:items-end">
+                            <div className="text-4xl font-bold text-primary-600">
+                                {formatPrice(workplace.price, workplace.currency)}
                             </div>
-                        )}
-
-                        {!isOwner && isAuthenticated && (
-                            <div className="flex space-x-2">
-                                <FavoriteButton listingId={workplace.id} listingType="WORKPLACE" />
-                                <button
-                                    onClick={() => setIsShareModalOpen(true)}
-                                    className="btn-secondary flex items-center space-x-2"
-                                    title="İlanı Paylaş"
-                                >
-                                    <Share2 className="h-4 w-4" />
-                                    <span>Paylaş</span>
-                                </button>
-                            </div>
-                        )}
-
-                        {!isAuthenticated && (
-                            <FavoriteButton listingId={workplace.id} listingType="WORKPLACE" />
-                        )}
-                    </div>
-
-                    {/* Price Card */}
-                    <div className="bg-primary-50 rounded-lg p-6">
-                        <div className="text-3xl font-bold text-primary-600">{formatPrice(workplace.price, workplace.currency)}</div>
-                        <div className="text-gray-600 mt-1">
-                            {getWorkplaceTypeLabel(workplace.workplaceType)} • {getOfferTypeLabel(workplace.offerType)}
-                        </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="card p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6">İlan Detayları</h2>
-
-                        {/* Comprehensive Details Table */}
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">İlan No</span>
-                                    <span className="text-gray-900 font-semibold">#{workplace.id}</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">İlan Tarihi</span>
-                                    <span className="text-gray-900">{new Date(workplace.createdAt).toLocaleDateString('tr-TR')}</span>
-                                </div>
-
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">Kategori</span>
-                                    <span className="text-gray-900">İş Yeri</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">Durum</span>
-                                    <span className="text-gray-900">{getOfferTypeLabel(workplace.offerType)}</span>
-                                </div>
-
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">m²</span>
-                                    <span className="text-gray-900 font-semibold">{workplace.squareMeter}</span>
-                                </div>
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">Bölüm & Oda Sayısı</span>
-                                    <span className="text-gray-900">{workplace.floorCount}</span>
-                                </div>
-
-                                <div className="flex justify-between py-2 border-b border-gray-200">
-                                    <span className="text-gray-600 font-medium">Aidat (TL)</span>
-                                    <span className="text-gray-900">{workplace.dues ? workplace.dues.toLocaleString('tr-TR') : '-'}</span>
-                                </div>
-
-                                {workplace.heatingType && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Isıtma</span>
-                                        <span className="text-gray-900">{getHeatingTypeLabel(workplace.heatingType)}</span>
-                                    </div>
-                                )}
-
-                                {workplace.buildingAge && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Bina Yaşı</span>
-                                        <span className="text-gray-900">{workplace.buildingAge}</span>
-                                    </div>
-                                )}
-
-                                {workplace.creditEligibility && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Krediye Uygunluk</span>
-                                        <span className="text-gray-900">{getYesNoLabel(workplace.creditEligibility)}</span>
-                                    </div>
-                                )}
-
-                                {workplace.deedStatus && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Tapu Durumu</span>
-                                        <span className="text-gray-900">{getDeedStatusLabel(workplace.deedStatus)}</span>
-                                    </div>
-                                )}
-
-                                {workplace.listingFrom && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Kimden</span>
-                                        <span className="text-gray-900">{getListingFromLabel(workplace.listingFrom)}</span>
-                                    </div>
-                                )}
-
-                                {workplace.exchange && (
-                                    <div className="flex justify-between py-2 border-b border-gray-200">
-                                        <span className="text-gray-600 font-medium">Takas</span>
-                                        <span className="text-gray-900">{getYesNoLabel(workplace.exchange)}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    {workplace.description && (
-                        <div className="card p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Açıklama</h2>
-                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{workplace.description}</p>
-                        </div>
-                    )}
-
-                    {/* Map */}
-                    {workplace.latitude && workplace.longitude && (
-                        <div className="card p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Konum</h2>
-                            <MapView
-                                latitude={workplace.latitude}
-                                longitude={workplace.longitude}
-                                title={workplace.title}
-                                height="300px"
-                            />
-                        </div>
-                    )}
-                    {/* Nearby Places */}
-                    {workplace.latitude && workplace.longitude && (
-                        <div className="card p-6">
-                            <NearbyPlaces
-                                latitude={workplace.latitude}
-                                longitude={workplace.longitude}
-                            />
-                        </div>
-                    )}
-                </div>
-
-                {/* Sidebar (Contact, etc) */}
-                <div className="space-y-6">
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">İletişim</h3>
-                        <div className="flex items-center space-x-3 mb-4">
-                            <User className="h-5 w-5 text-gray-400" />
-                            <span className="text-gray-900">{workplace.ownerUsername}</span>
-                        </div>
-                        {isAuthenticated ? (
-                            <button className="w-full btn-primary flex items-center justify-center space-x-2">
-                                <Phone className="h-4 w-4" /> <span>İletişime Geç</span>
-                            </button>
-                        ) : (
-                            <Link to="/login" className="btn-primary w-full text-center">Giriş Yap</Link>
-                        )}
-                    </div>
-
-                    {/* Quick Info */}
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Özet Bilgiler</h3>
-                        <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">İlan No:</span>
-                                <span className="font-medium">#{workplace.id}</span>
-                            </div>
-
-                            {workplace.ownerLastSeen && (
-                                <div className="flex justify-between text-green-600">
-                                    <span className="text-gray-600">Son Görülme:</span>
-                                    <span className="font-medium">{formatLastSeen(workplace.ownerLastSeen)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Durum:</span>
-                                <span className="font-medium capitalize">{workplace.status}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Güncellenme:</span>
-                                <span className="font-medium">
-                                    {new Date(workplace.updatedAt).toLocaleDateString('tr-TR')}
+                            <div className="flex gap-2 mt-2">
+                                <span className="px-4 py-1 bg-blue-100 text-blue-700 border border-blue-200 rounded-full text-sm font-semibold tracking-wide">
+                                    {getWorkplaceTypeLabel(workplace.workplaceType)}
+                                </span>
+                                <span className="px-4 py-1 bg-purple-100 text-purple-700 border border-purple-200 rounded-full text-sm font-semibold tracking-wide">
+                                    {getOfferTypeLabel(workplace.offerType)}
                                 </span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Similar Listings */}
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Benzer İlanlar</h3>
-                        <div className="space-y-4">
-                            {similarWorkplaces.length === 0 ? (
-                                <p className="text-gray-500 text-sm">Benzer ilan bulunamadı.</p>
-                            ) : (
-                                similarWorkplaces.map((listing) => (
-                                    <Link key={listing.id} to={`/workplaces/${listing.id}`} className="flex space-x-3 group">
-                                        {listing.imageUrl ? (
-                                            <img
-                                                src={`${process.env.REACT_APP_API_BASE_URL}${listing.imageUrl}`}
-                                                alt={listing.title}
-                                                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                                            />
-                                        ) : (
-                                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                                <Briefcase className="h-6 w-6 text-gray-400" />
-                                            </div>
-                                        )}
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 truncate group-hover:text-primary-600">
-                                                {listing.title}
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                                {getWorkplaceTypeLabel(listing.workplaceType)} • {listing.squareMeter} m²
-                                            </p>
-                                            <p className="text-sm font-semibold text-primary-600">
-                                                {formatPrice(listing.price, listing.currency)}
-                                            </p>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* LEFT COLUMN (Content) */}
+                    <div className="lg:col-span-8 space-y-8">
+
+                        {/* Gallery */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="border-b bg-gray-50 flex items-center px-4">
+                                <button
+                                    onClick={() => setActiveTab('photos')}
+                                    className={`flex items-center gap-2 px-6 py-4 font-medium text-sm border-b-2 transition-all ${activeTab === 'photos'
+                                        ? 'border-primary-600 text-primary-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-900'
+                                        }`}
+                                >
+                                    <ImageIcon size={18} />
+                                    <span>Fotoğraflar</span>
+                                </button>
+                                {workplace.videoUrl && (
+                                    <button
+                                        onClick={() => setActiveTab('video')}
+                                        className={`flex items-center gap-2 px-6 py-4 font-medium text-sm border-b-2 transition-all ${activeTab === 'video'
+                                            ? 'border-primary-600 text-primary-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        <VideoIcon size={18} />
+                                        <span>Video Turu</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="p-1">
+                                {activeTab === 'photos' ? (
+                                    <ImageGallery images={images} fallbackIcon={<Briefcase className="w-32 h-32 text-gray-200" />} />
+                                ) : (
+                                    workplace.videoUrl && (
+                                        <div className="bg-black aspect-video flex items-center justify-center">
+                                            <video
+                                                src={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}${workplace.videoUrl}`}
+                                                controls
+                                                className="w-full h-full"
+                                                autoPlay
+                                            >
+                                                Tarayıcınız video oynatmayı desteklemiyor.
+                                            </video>
                                         </div>
-                                    </Link>
-                                ))
+                                    )
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Quick Specs Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <FeatureCard
+                                icon={Maximize}
+                                label="Büyüklük"
+                                value={workplace.squareMeter + " m²"}
+                            />
+                            <FeatureCard
+                                icon={Layers}
+                                label="Bölüm/Oda"
+                                value={workplace.floorCount}
+                            />
+                            <FeatureCard
+                                icon={Thermometer}
+                                label="Isıtma"
+                                value={workplace.heatingType ? getHeatingTypeLabel(workplace.heatingType) : '-'}
+                            />
+                            <FeatureCard
+                                icon={Building}
+                                label="Bina Yaşı"
+                                value={workplace.buildingAge}
+                            />
+                        </div>
+
+                        {/* Comprehensive Details */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                                <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                                    <Info size={20} />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">İşyeri Özellikleri</h2>
+                            </div>
+
+                            <div className="p-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-12">
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider border-b pb-2">Temel Bilgiler</h3>
+                                        <DetailRow label="İlan No" value={`#${workplace.id}`} />
+                                        <DetailRow label="Kategori" value="İş Yeri" />
+                                        <DetailRow label="Türü" value={getWorkplaceTypeLabel(workplace.workplaceType)} />
+                                        <DetailRow label="Durum" value={getOfferTypeLabel(workplace.offerType)} />
+                                        <DetailRow label="Bölüm Sayısı" value={workplace.floorCount} />
+                                        <DetailRow label="m² Fiyatı" value={`${(workplace.price / workplace.squareMeter).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ${workplace.currency}`} />
+                                    </div>
+
+                                    <div className="space-y-1 mt-6 md:mt-0">
+                                        <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider border-b pb-2">Detaylar & Tapu</h3>
+                                        <DetailRow label="Aidat" value={workplace.dues ? `${workplace.dues} TL` : undefined} />
+                                        <DetailRow label="Tapu Durumu" value={getDeedStatusLabel(workplace.deedStatus)} icon={FileText} />
+                                        <DetailRow label="Krediye Uygun" value={getYesNoLabel(workplace.creditEligibility)} />
+                                        <DetailRow label="Takas" value={getYesNoLabel(workplace.exchange)} />
+                                        <DetailRow label="Kimden" value={getListingFromLabel(workplace.listingFrom)} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Description */}
+                        {workplace.description && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                                    <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                                        <Tag size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900">Açıklama</h2>
+                                </div>
+                                <div className="p-8">
+                                    <div className="prose prose-blue max-w-none">
+                                        <p className="text-gray-700 whitespace-pre-line leading-relaxed text-lg">{workplace.description}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Map */}
+                        {workplace.latitude && workplace.longitude && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                                    <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                                        <Navigation size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900">Konum</h2>
+                                </div>
+                                <div className="h-[400px]">
+                                    <MapView
+                                        latitude={workplace.latitude}
+                                        longitude={workplace.longitude}
+                                        title={workplace.title}
+                                        height="100%"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        {/* Nearby Places */}
+                        {workplace.latitude && workplace.longitude && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                                    <div className="p-2 bg-teal-50 rounded-lg text-teal-600">
+                                        <MapPin size={20} />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-gray-900">Yakın Çevre</h2>
+                                </div>
+                                <div className="p-4">
+                                    <NearbyPlaces
+                                        latitude={workplace.latitude}
+                                        longitude={workplace.longitude}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* RIGHT COLUMN (Sidebar) */}
+                    <div className="lg:col-span-4 space-y-6">
+                        {/* Sticky Sidebar Container */}
+                        <div className="sticky top-24 space-y-6">
+
+                            {/* Seller Card */}
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden p-6">
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">İlan Sahibi</h3>
+                                <Link to={`/listings?ownerId=${workplace.ownerId}`} className="flex items-center gap-4 mb-6 group hover:bg-gray-50 p-2 -mx-2 rounded-xl transition-colors">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center text-primary-700 font-bold text-2xl border-4 border-white shadow-md group-hover:scale-105 transition-transform">
+                                        <User size={32} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{workplace.ownerUsername}</h4>
+                                        {workplace.ownerLastSeen && (
+                                            <p className="text-sm text-green-600 flex items-center gap-1">
+                                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                                {formatLastSeen(workplace.ownerLastSeen)}
+                                            </p>
+                                        )}
+                                        <p className="text-xs text-gray-500 mt-1">Tüm ilanlarını gör &rarr;</p>
+                                    </div>
+                                </Link>
+
+                                <div className="space-y-3">
+                                    {isAuthenticated ? (
+                                        <>
+                                            <button className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] shadow-primary-200 shadow-lg">
+                                                <Phone size={20} />
+                                                <span>Telefonu Göster</span>
+                                            </button>
+                                            {user?.id !== workplace.ownerId && (
+                                                <button
+                                                    onClick={() => navigate(`/messages/${workplace.ownerId}`)}
+                                                    className="w-full bg-white border-2 border-primary-100 text-primary-700 hover:bg-primary-50 font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all"
+                                                >
+                                                    <Mail size={20} />
+                                                    <span>Mesaj Gönder</span>
+                                                </button>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="bg-gray-50 rounded-xl p-4 text-center">
+                                            <p className="text-gray-600 mb-3 text-sm">İletişim bilgilerini görmek için giriş yapın.</p>
+                                            <Link to="/login" className="text-primary-600 font-bold hover:underline">Giriş Yap</Link>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Safety Tips (Static) */}
+                            <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
+                                <div className="flex items-center gap-2 mb-3 text-blue-800 font-bold">
+                                    <ShieldCheck size={20} />
+                                    <h3>Güvenlik İpuçları</h3>
+                                </div>
+                                <ul className="text-sm text-blue-900 space-y-2 list-disc list-inside opacity-80">
+                                    <li>Kapora göndermeyin.</li>
+                                    <li>İşyeri ruhsatı ve tapuyu kontrol edin.</li>
+                                    <li>Sözleşme şartlarını dikkatle okuyun.</li>
+                                </ul>
+                            </div>
+
+                            {/* Similar Listings Shortcut */}
+                            {similarWorkplaces.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden p-6">
+                                    <h3 className="font-bold text-gray-900 mb-4">Benzer İlanlar</h3>
+                                    <div className="space-y-4">
+                                        {similarWorkplaces.slice(0, 3).map(listing => (
+                                            <Link key={listing.id} to={`/workplaces/${listing.id}`} className="flex gap-3 group">
+                                                <div className="w-20 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                                    {listing.imageUrl ? (
+                                                        <img src={process.env.REACT_APP_API_BASE_URL + listing.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                                    ) : <div className="w-full h-full flex items-center justify-center text-gray-400"><Briefcase size={20} /></div>}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium text-gray-900 truncate group-hover:text-primary-600 font-sm">{listing.title}</p>
+                                                    <p className="text-xs text-gray-500">{listing.city}, {listing.district}</p>
+                                                    <p className="text-primary-600 font-bold text-sm">{formatPrice(listing.price, listing.currency)}</p>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
+
                         </div>
                     </div>
                 </div>
+
+                {/* Share Modal */}
+                {workplace && (
+                    <ShareListingModal
+                        isOpen={isShareModalOpen}
+                        onClose={() => setIsShareModalOpen(false)}
+                        listingId={workplace.id}
+                        listingType="WORKPLACE"
+                        listingTitle={workplace.title}
+                    />
+                )}
+
+                {workplace && (
+                    <EditWorkplaceModal
+                        workplace={workplace}
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        onSuccess={() => {
+                            window.location.reload();
+                        }}
+                    />
+                )}
             </div>
-
-            {/* Share Modal */}
-            {workplace && (
-                <ShareListingModal
-                    isOpen={isShareModalOpen}
-                    onClose={() => setIsShareModalOpen(false)}
-                    listingId={workplace.id}
-                    listingType="WORKPLACE"
-                    listingTitle={workplace.title}
-                />
-            )}
-
-            {workplace && (
-                <EditWorkplaceModal
-                    workplace={workplace}
-                    isOpen={isEditModalOpen}
-                    onClose={() => setIsEditModalOpen(false)}
-                    onSuccess={() => {
-                        window.location.reload();
-                    }}
-                />
-            )}
         </div>
     );
 };
